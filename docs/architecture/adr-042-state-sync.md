@@ -80,7 +80,7 @@ performance of random reads and of iterating through the tree to determine eleme
 (ie. elements aren't indexed by the element number).
 
 An alternative design was suggested by Jae Kwon in
-[#3639](https://github.com/tendermint/tendermint/issues/3639) where chunking
+[#3639](https://github.com/tendermint/classic/issues/3639) where chunking
 happens lazily and in a dynamic way: nodes request key ranges from their peers,
 and peers respond with some subset of the
 requested range and with notes on how to request the rest in parallel from other
@@ -94,7 +94,7 @@ Additionally, per chunk validation tends to come more naturally to the
 Lazy approach since it tends to use the existing structure of the tree
 (ie. keys or nodes) rather than state-sync specific chunks. Such a
 design for tendermint was originally tracked in
-[#828](https://github.com/tendermint/tendermint/issues/828).
+[#828](https://github.com/tendermint/classic/issues/828).
 
 #### Eager StateSync
 Warp Sync as implemented in Parity
@@ -107,9 +107,9 @@ out the state is incorrect until you download the whole thing and compare it
 with a verified block header. 
 
 A similar solution was implemented by Binance in
-[#3594](https://github.com/tendermint/tendermint/pull/3594)
+[#3594](https://github.com/tendermint/classic/pull/3594)
 based on their initial implementation in
-[PR #3243](https://github.com/tendermint/tendermint/pull/3243)
+[PR #3243](https://github.com/tendermint/classic/pull/3243)
 and [some learnings](https://docs.google.com/document/d/1npGTAa1qxe8EQZ1wG0a0Sip9t5oX2vYZNUDwr_LVRR4/edit).
 Note this still requires the honest majority peer assumption.
 
@@ -130,10 +130,10 @@ structure while Eager can optimize for sequential reads.
 
 This distinctin between approaches was demonstrated by Binance's
 [ackratos](https://github.com/ackratos) in their implementation of [Lazy
-State sync](https://github.com/tendermint/tendermint/pull/3243), The
+State sync](https://github.com/tendermint/classic/pull/3243), The
 [analysis](https://docs.google.com/document/d/1npGTAa1qxe8EQZ1wG0a0Sip9t5oX2vYZNUDwr_LVRR4/)
 of the performance, and follow up implementation of [Warp
-Sync](http://github.com/tendermint/tendermint/pull/3594).
+Sync](http://github.com/tendermint/classic/pull/3594).
 
 #### Compairing Security Models
 There are several different security models which have been
@@ -143,7 +143,7 @@ Light client validation: In which the node receiving data is expected to
 first perform a light client sync and have all the nessesary block
 headers. Within the trusted block header (trusted in terms of from a
 validator set subject to [weak
-subjectivity](https://github.com/tendermint/tendermint/pull/3795)) and
+subjectivity](https://github.com/tendermint/classic/pull/3795)) and
 can compare any subset of keys called a chunk against the merkle root.
 The advantage of light client validation is that the block headers are
 signed by validators which have something to lose for malicious
@@ -203,7 +203,7 @@ will need implement:
 ![StateSync Architecture Diagram](img/state-sync.png)
 
 ## Implementation Path
-* Create StateSync reactor based on  [#3753](https://github.com/tendermint/tendermint/pull/3753)
+* Create StateSync reactor based on  [#3753](https://github.com/tendermint/classic/pull/3753)
 * Design SnapshotFormat with an eye towards cosmos-hub implementation
 * ABCI message to send/receive SnapshotFormat
 * IAVL+ changes to support SnapshotFormat
@@ -228,12 +228,12 @@ Proposed
 * Static Scheduling lacks opportunity for real time chunk availability optimizations
 
 ## References
-[sync: Sync current state without full replay for Applications](https://github.com/tendermint/tendermint/issues/828) - original issue
+[sync: Sync current state without full replay for Applications](https://github.com/tendermint/classic/issues/828) - original issue
 [tendermint state sync proposal](https://docs.google.com/document/d/15MFsQtNA0MGBv7F096FFWRDzQ1vR6_dics5Y49vF8JU/edit?ts=5a0f3629) - Cloudhead proposal
 [tendermint state sync proposal 2](https://docs.google.com/document/d/1npGTAa1qxe8EQZ1wG0a0Sip9t5oX2vYZNUDwr_LVRR4/edit) - ackratos proposal
-[proposal 2 implementation](https://github.com/tendermint/tendermint/pull/3243)  - ackratos implementation
-[WIP General/Lazy State-Sync pseudo-spec](https://github.com/tendermint/tendermint/issues/3639) - Jae Proposal
-[Warp Sync Implementation](https://github.com/tendermint/tendermint/pull/3594) - ackratos
-[Chunk Proposal](https://github.com/tendermint/tendermint/pull/3799) - Bucky proposed
+[proposal 2 implementation](https://github.com/tendermint/classic/pull/3243)  - ackratos implementation
+[WIP General/Lazy State-Sync pseudo-spec](https://github.com/tendermint/classic/issues/3639) - Jae Proposal
+[Warp Sync Implementation](https://github.com/tendermint/classic/pull/3594) - ackratos
+[Chunk Proposal](https://github.com/tendermint/classic/pull/3799) - Bucky proposed
 
 

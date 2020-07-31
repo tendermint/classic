@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/tendermint/tendermint/types"
+	"github.com/tendermint/classic/types"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
+	abci "github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/classic/libs/log"
 
-	bam "github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	bam "github.com/tendermint/classic/sdk/baseapp"
+	"github.com/tendermint/classic/sdk/codec"
+	sdk "github.com/tendermint/classic/sdk/types"
 )
 
 // NewApp creates a simple mock kvstore app for testing. It should work
@@ -89,7 +89,7 @@ func InitChainer(key sdk.StoreKey) func(sdk.Context, abci.RequestInitChain) abci
 		genesisState := new(GenesisJSON)
 		err := json.Unmarshal(stateJSON, genesisState)
 		if err != nil {
-			panic(err) // TODO https://github.com/cosmos/cosmos-sdk/issues/468
+			panic(err) // TODO https://github.com/tendermint/classic/sdk/issues/468
 			// return sdk.ErrGenesisParse("").TraceCause(err, "")
 		}
 

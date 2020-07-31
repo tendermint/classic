@@ -10,16 +10,16 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/tendermint/classic/db"
 
-	cfg "github.com/tendermint/tendermint/config"
-	cmn "github.com/tendermint/tendermint/libs/common"
-	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/mock"
-	"github.com/tendermint/tendermint/proxy"
-	sm "github.com/tendermint/tendermint/state"
-	"github.com/tendermint/tendermint/store"
-	"github.com/tendermint/tendermint/types"
+	cfg "github.com/tendermint/classic/config"
+	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/classic/libs/log"
+	"github.com/tendermint/classic/mock"
+	"github.com/tendermint/classic/proxy"
+	sm "github.com/tendermint/classic/state"
+	"github.com/tendermint/classic/store"
+	"github.com/tendermint/classic/types"
 )
 
 const (

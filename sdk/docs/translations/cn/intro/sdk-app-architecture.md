@@ -59,7 +59,7 @@ Cosmos SDK 应用程序的主要部分是一个区块链服务后台（daemon）
 
 ## ABCI
 
-Tendermint通过名为[ABCI](https://github.com/tendermint/tendermint/tree/master/abci)的接口将交易从网络层传递给应用程序，因此应用程序必须要实现 ABCI 。
+Tendermint通过名为[ABCI](https://github.com/tendermint/classic/tree/master/abci)的接口将交易从网络层传递给应用程序，因此应用程序必须要实现 ABCI 。
 
 ```
 +---------------------+

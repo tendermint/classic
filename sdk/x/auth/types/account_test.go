@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	tmtime "github.com/tendermint/tendermint/types/time"
+	tmtime "github.com/tendermint/classic/types/time"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/classic/sdk/codec"
+	sdk "github.com/tendermint/classic/sdk/types"
 )
 
 var (

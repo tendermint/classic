@@ -6,12 +6,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/tendermint/classic/abci/types"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/crisis"
-	distr "github.com/cosmos/cosmos-sdk/x/distribution"
+	sdk "github.com/tendermint/classic/sdk/types"
+	"github.com/tendermint/classic/sdk/x/auth"
+	"github.com/tendermint/classic/sdk/x/crisis"
+	distr "github.com/tendermint/classic/sdk/x/distribution"
 )
 
 var (

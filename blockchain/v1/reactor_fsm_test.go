@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	cmn "github.com/tendermint/tendermint/libs/common"
-	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/p2p"
-	"github.com/tendermint/tendermint/types"
+	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/classic/libs/log"
+	"github.com/tendermint/classic/p2p"
+	"github.com/tendermint/classic/types"
 )
 
 type lastBlockRequestT struct {

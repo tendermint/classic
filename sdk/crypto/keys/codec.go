@@ -1,10 +1,10 @@
 package keys
 
 import (
-	cryptoAmino "github.com/tendermint/tendermint/crypto/encoding/amino"
+	cryptoAmino "github.com/tendermint/classic/crypto/encoding/amino"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/hd"
+	"github.com/tendermint/classic/sdk/codec"
+	"github.com/tendermint/classic/sdk/crypto/keys/hd"
 )
 
 var cdc *codec.Codec

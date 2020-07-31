@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/classic/sdk/codec"
+	sdk "github.com/tendermint/classic/sdk/types"
 )
 
 var (

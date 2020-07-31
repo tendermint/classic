@@ -30,7 +30,7 @@ In the future, we can also allow for more complex conditionals on the accountabl
 
 Every ASM will then have its own struct, implementing the crypto.Pubkey interface.
 
-This ADR assumes that [replacing crypto.Signature with []bytes](https://github.com/tendermint/tendermint/issues/1957) has been accepted.
+This ADR assumes that [replacing crypto.Signature with []bytes](https://github.com/tendermint/classic/issues/1957) has been accepted.
 
 #### K of N threshold signature
 
@@ -113,7 +113,7 @@ type CryptoBitArray struct {
 
 The reason for not using the BitArray currently implemented in `libs/common/bit_array.go`
 is that it is less space efficient, due to a space / time trade-off.
-Evidence for this is outlined in [this issue](https://github.com/tendermint/tendermint/issues/2077).
+Evidence for this is outlined in [this issue](https://github.com/tendermint/classic/issues/2077).
 
 In the multisig, we will not be performing arithmetic operations,
 so there is no performance increase with the current implementation,

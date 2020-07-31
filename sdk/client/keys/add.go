@@ -7,19 +7,19 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/input"
-	"github.com/cosmos/cosmos-sdk/crypto/keys"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/classic/sdk/client/flags"
+	"github.com/tendermint/classic/sdk/client/input"
+	"github.com/tendermint/classic/sdk/crypto/keys"
+	sdk "github.com/tendermint/classic/sdk/types"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"github.com/cosmos/go-bip39"
 
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/multisig"
-	"github.com/tendermint/tendermint/libs/cli"
+	"github.com/tendermint/classic/crypto"
+	"github.com/tendermint/classic/crypto/multisig"
+	"github.com/tendermint/classic/libs/cli"
 )
 
 const (

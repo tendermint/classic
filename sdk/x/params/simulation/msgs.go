@@ -6,11 +6,11 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/gov"
-	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
+	"github.com/tendermint/classic/sdk/baseapp"
+	sdk "github.com/tendermint/classic/sdk/types"
+	"github.com/tendermint/classic/sdk/x/gov"
+	"github.com/tendermint/classic/sdk/x/params"
+	"github.com/tendermint/classic/sdk/x/simulation"
 )
 
 type simParamChange struct {

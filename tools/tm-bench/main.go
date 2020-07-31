@@ -10,9 +10,9 @@ import (
 
 	"github.com/go-kit/kit/log/term"
 
-	cmn "github.com/tendermint/tendermint/libs/common"
-	"github.com/tendermint/tendermint/libs/log"
-	tmrpc "github.com/tendermint/tendermint/rpc/client"
+	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/classic/libs/log"
+	tmrpc "github.com/tendermint/classic/rpc/client"
 )
 
 var logger = log.NewNopLogger()

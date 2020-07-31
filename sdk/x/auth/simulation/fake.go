@@ -6,11 +6,11 @@ import (
 	"math/big"
 	"math/rand"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
+	"github.com/tendermint/classic/sdk/baseapp"
+	sdk "github.com/tendermint/classic/sdk/types"
+	"github.com/tendermint/classic/sdk/x/auth"
+	"github.com/tendermint/classic/sdk/x/auth/types"
+	"github.com/tendermint/classic/sdk/x/simulation"
 )
 
 // SimulateDeductFee

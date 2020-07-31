@@ -7,11 +7,11 @@ import (
 	"io/ioutil"
 	"time"
 
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	cmn "github.com/tendermint/tendermint/libs/common"
-	"github.com/tendermint/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
+	"github.com/tendermint/classic/crypto"
+	"github.com/tendermint/classic/crypto/ed25519"
+	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/classic/types"
+	tmtime "github.com/tendermint/classic/types/time"
 )
 
 // TODO: type ?

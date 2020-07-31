@@ -61,7 +61,7 @@ pre-image attacks, as well as being [deterministic](https://en.wikipedia.org/wik
 ## Specification
 
 Tendermint has a well established protocol for signing messages using a canonical
-JSON representation as defined [here](https://github.com/tendermint/tendermint/blob/master/types/canonical.go).
+JSON representation as defined [here](https://github.com/tendermint/classic/blob/master/types/canonical.go).
 
 An example of such a canonical JSON structure is Tendermint's vote structure:
 
@@ -87,7 +87,7 @@ to the Cosmos chain identifier. The user-agent should **refuse** signing if the
 `@chain_id` field does not match the currently active chain! The `@type` field
 must equal the constant `"message"`. The `@type` field corresponds to the type of 
 structure the user will be signing in an application. For now, a user is only
-allowed to sign bytes of valid ASCII text ([see here](https://github.com/tendermint/tendermint/blob/master/libs/common/string.go#L61-L74)).
+allowed to sign bytes of valid ASCII text ([see here](https://github.com/tendermint/classic/blob/master/libs/common/string.go#L61-L74)).
 However, this will change and evolve to support additional application-specific
 structures that are human-readable and machine-verifiable ([see Future Adaptations](#futureadaptations)).
 

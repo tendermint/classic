@@ -11,9 +11,9 @@ Even in an insecure mode which does not encrypt private key on disk, it is reaso
 the mutable part and immutable part.
 
 References:
-[#1181](https://github.com/tendermint/tendermint/issues/1181)
-[#2657](https://github.com/tendermint/tendermint/issues/2657)
-[#2313](https://github.com/tendermint/tendermint/issues/2313)
+[#1181](https://github.com/tendermint/classic/issues/1181)
+[#2657](https://github.com/tendermint/classic/issues/2657)
+[#2313](https://github.com/tendermint/classic/issues/2313)
 
 ## Proposed Solution
 

@@ -224,7 +224,7 @@ We further use the function ```signers(Commit)``` that returns the set of valida
 ```
 
   *Remark*: Basic header verification must be done for *h2*. Similar checks are done in:  
-  https://github.com/tendermint/tendermint/blob/master/types/validator_set.go#L591-L633
+  https://github.com/tendermint/classic/blob/master/types/validator_set.go#L591-L633
 
   *Remark*: There are some sanity checks which are not in the code:
   *h2.Header.height > h1.Header.height* and *h2.Header.bfttime > h1.Header.bfttime* and *h2.Header.bfttime < now*.

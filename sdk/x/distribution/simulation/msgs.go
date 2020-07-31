@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/distribution"
-	"github.com/cosmos/cosmos-sdk/x/gov"
-	govsim "github.com/cosmos/cosmos-sdk/x/gov/simulation"
-	"github.com/cosmos/cosmos-sdk/x/simulation"
+	"github.com/tendermint/classic/sdk/baseapp"
+	sdk "github.com/tendermint/classic/sdk/types"
+	"github.com/tendermint/classic/sdk/x/auth"
+	"github.com/tendermint/classic/sdk/x/distribution"
+	"github.com/tendermint/classic/sdk/x/gov"
+	govsim "github.com/tendermint/classic/sdk/x/gov/simulation"
+	"github.com/tendermint/classic/sdk/x/simulation"
 )
 
 // SimulateMsgSetWithdrawAddress generates a MsgSetWithdrawAddress with random values.

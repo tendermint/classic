@@ -8,11 +8,11 @@ import (
 	"github.com/pkg/errors"
 
 	tmbtcec "github.com/tendermint/btcd/btcec"
-	tmcrypto "github.com/tendermint/tendermint/crypto"
-	tmsecp256k1 "github.com/tendermint/tendermint/crypto/secp256k1"
+	tmcrypto "github.com/tendermint/classic/crypto"
+	tmsecp256k1 "github.com/tendermint/classic/crypto/secp256k1"
 
-	"github.com/cosmos/cosmos-sdk/crypto/keys/hd"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/classic/sdk/crypto/keys/hd"
+	sdk "github.com/tendermint/classic/sdk/types"
 )
 
 var (

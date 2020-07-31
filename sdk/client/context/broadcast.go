@@ -3,8 +3,8 @@ package context
 import (
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/classic/sdk/client/flags"
+	sdk "github.com/tendermint/classic/sdk/types"
 )
 
 // BroadcastTx broadcasts a transactions either synchronously or asynchronously

@@ -10,10 +10,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
+	"github.com/tendermint/classic/crypto/ed25519"
+	"github.com/tendermint/classic/crypto/secp256k1"
 
-	"github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/classic/sdk/types"
 )
 
 var invalidStrs = []string{

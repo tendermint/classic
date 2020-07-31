@@ -292,7 +292,7 @@ The number of aunts is limited to 100 (`maxAunts`) to protect the node against D
 
 ### IAVL+ Tree
 
-Because Tendermint only uses a Simple Merkle Tree, application developers are expect to use their own Merkle tree in their applications. For example, the IAVL+ Tree - an immutable self-balancing binary tree for persisting application state is used by the [Cosmos SDK](https://github.com/cosmos/cosmos-sdk/blob/master/docs/clients/lite/specification.md)
+Because Tendermint only uses a Simple Merkle Tree, application developers are expect to use their own Merkle tree in their applications. For example, the IAVL+ Tree - an immutable self-balancing binary tree for persisting application state is used by the [Cosmos SDK](https://github.com/tendermint/classic/sdk/blob/master/docs/clients/lite/specification.md)
 
 ## JSON
 
@@ -343,4 +343,4 @@ The field ordering and the fixed sized encoding for the first three fields is op
 in HSMs. It creates fixed offsets for relevant fields that need to be read in this context.
 For more details, see the [signing spec](../consensus/signing.md).
 Also, see the motivating discussion in
-[#1622](https://github.com/tendermint/tendermint/issues/1622).
+[#1622](https://github.com/tendermint/classic/issues/1622).

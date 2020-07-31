@@ -3,7 +3,7 @@
 The Tendermint Core developer call is comprised of both [Interchain
 Foundation](http://interchain.io/) and [All in Bits](https://tendermint.com/)
 team members discussing the development of [Tendermint
-BFT](https://github.com/tendermint/tendermint) and related research. The goal
+BFT](https://github.com/tendermint/classic) and related research. The goal
 of the Tendermint Core developer calls is to provide transparency into the
 decision making process, technical information, update cycles etc.
 

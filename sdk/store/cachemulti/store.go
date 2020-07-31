@@ -3,11 +3,11 @@ package cachemulti
 import (
 	"io"
 
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/tendermint/classic/db"
 
-	"github.com/cosmos/cosmos-sdk/store/cachekv"
-	"github.com/cosmos/cosmos-sdk/store/dbadapter"
-	"github.com/cosmos/cosmos-sdk/store/types"
+	"github.com/tendermint/classic/sdk/store/cachekv"
+	"github.com/tendermint/classic/sdk/store/dbadapter"
+	"github.com/tendermint/classic/sdk/store/types"
 )
 
 //----------------------------------------

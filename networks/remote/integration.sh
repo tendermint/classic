@@ -25,7 +25,7 @@ echo "export PATH=\$PATH:\$GOPATH/bin" >> ~/.profile
 source ~/.profile
 
 ## get the code and move into repo
-REPO=github.com/tendermint/tendermint
+REPO=github.com/tendermint/classic
 go get $REPO
 cd $GOPATH/src/$REPO
 
@@ -52,7 +52,7 @@ sudo apt-get install ansible -y
 pip install dopy
 
 # the next two commands are directory sensitive
-cd $GOPATH/src/github.com/tendermint/tendermint/networks/remote/terraform
+cd $GOPATH/src/github.com/tendermint/classic/networks/remote/terraform
 
 terraform init
 terraform apply -var DO_API_TOKEN="$DO_API_TOKEN" -var SSH_KEY_FILE="$SSH_KEY_FILE" -auto-approve
@@ -80,13 +80,13 @@ ip2=$(strip $ip2)
 ip3=$(strip $ip3)
 
 # all the ansible commands are also directory specific
-cd $GOPATH/src/github.com/tendermint/tendermint/networks/remote/ansible
+cd $GOPATH/src/github.com/tendermint/classic/networks/remote/ansible
 
 # create config dirs
 tendermint testnet
 
 ansible-playbook -i inventory/digital_ocean.py -l sentrynet install.yml
-ansible-playbook -i inventory/digital_ocean.py -l sentrynet config.yml -e BINARY=$GOPATH/src/github.com/tendermint/tendermint/build/tendermint -e CONFIGDIR=$GOPATH/src/github.com/tendermint/tendermint/networks/remote/ansible/mytestnet
+ansible-playbook -i inventory/digital_ocean.py -l sentrynet config.yml -e BINARY=$GOPATH/src/github.com/tendermint/classic/build/tendermint -e CONFIGDIR=$GOPATH/src/github.com/tendermint/classic/networks/remote/ansible/mytestnet
 
 sleep 10
 
@@ -102,7 +102,7 @@ id2=$(strip $id2)
 id3=$(strip $id3)
 
 # remove file we'll re-write to with new info
-old_ansible_file=$GOPATH/src/github.com/tendermint/tendermint/networks/remote/ansible/roles/install/templates/systemd.service.j2
+old_ansible_file=$GOPATH/src/github.com/tendermint/classic/networks/remote/ansible/roles/install/templates/systemd.service.j2
 rm $old_ansible_file
 
 # need to populate the `--p2p.persistent_peers` flag

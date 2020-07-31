@@ -7,7 +7,7 @@ DEPRECATED: Moved [here](../spec/abci/abci.md)
 ## Message Types
 
 ABCI requests/responses are defined as simple Protobuf messages in [this
-schema file](https://github.com/tendermint/tendermint/blob/master/abci/types/types.proto).
+schema file](https://github.com/tendermint/classic/blob/master/abci/types/types.proto).
 TendermintCore sends the requests, and the ABCI application sends the
 responses. Here, we provide an overview of the messages types and how
 they are used by Tendermint. Then we describe each request-response pair

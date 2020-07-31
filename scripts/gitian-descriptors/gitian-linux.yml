@@ -20,7 +20,7 @@ packages:
 - "xxd"
 - "quilt"
 remotes:
-- "url": "https://github.com/tendermint/tendermint.git"
+- "url": "https://github.com/tendermint/classic.git"
   "dir": "tendermint"
 files:
 - "golang-debian-1.12.8-1.tar.gz"
@@ -69,7 +69,7 @@ script: |
   popd
 
   # Prepare GOPATH and install deps
-  distsrc=${GOPATH}/src/github.com/tendermint/tendermint
+  distsrc=${GOPATH}/src/github.com/tendermint/classic
   mkdir -p ${distsrc}
   pushd ${distsrc}
   tar --strip-components=1 -xf $SOURCEDIST
@@ -78,7 +78,7 @@ script: |
 
   # Configure LDFLAGS for reproducible builds
   LDFLAGS="-extldflags=-static -buildid=${VERSION} -s -w \
-    -X github.com/tendermint/tendermint/version.GitCommit=${COMMIT}"
+    -X github.com/tendermint/classic/version.GitCommit=${COMMIT}"
 
   # Extract release tarball and build
   for arch in ${ARCHS}; do

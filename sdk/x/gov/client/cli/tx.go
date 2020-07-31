@@ -7,15 +7,15 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/context"
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	govutils "github.com/cosmos/cosmos-sdk/x/gov/client/utils"
-	"github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/tendermint/classic/sdk/client"
+	"github.com/tendermint/classic/sdk/client/context"
+	"github.com/tendermint/classic/sdk/codec"
+	sdk "github.com/tendermint/classic/sdk/types"
+	"github.com/tendermint/classic/sdk/version"
+	"github.com/tendermint/classic/sdk/x/auth"
+	"github.com/tendermint/classic/sdk/x/auth/client/utils"
+	govutils "github.com/tendermint/classic/sdk/x/gov/client/utils"
+	"github.com/tendermint/classic/sdk/x/gov/types"
 )
 
 // Proposal flags

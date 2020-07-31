@@ -6,7 +6,7 @@
 
 Tendermint blockchain benchmarking tool:
 
-- [https://github.com/tendermint/tendermint/tree/master/tools/tm-bench](https://github.com/tendermint/tendermint/tree/master/tools/tm-bench)
+- [https://github.com/tendermint/classic/tree/master/tools/tm-bench](https://github.com/tendermint/classic/tree/master/tools/tm-bench)
 
 For example, the following: `tm-bench -T 30 -r 10000 localhost:26657`
 
@@ -21,7 +21,7 @@ Blocks/sec     0.800     0.400      1        24
 NOTE: **tm-bench only works with build-in `kvstore` ABCI application**. For it
 to work with your application, you will need to modify `generateTx` function.
 In the future, we plan to support scriptable transactions (see
-[\#1938](https://github.com/tendermint/tendermint/issues/1938)).
+[\#1938](https://github.com/tendermint/classic/issues/1938)).
 
 ## Quick Start
 
@@ -36,7 +36,7 @@ docker run -it --rm --link=tm tendermint/bench tm:26657
 
 ### Using binaries
 
-[Install Tendermint](https://github.com/tendermint/tendermint#install)
+[Install Tendermint](https://github.com/tendermint/classic#install)
 
 then run:
 

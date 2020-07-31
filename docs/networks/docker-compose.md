@@ -17,7 +17,7 @@ Note the binary will be mounted into the container so it can be updated without
 rebuilding the image.
 
 ```
-cd $GOPATH/src/github.com/tendermint/tendermint
+cd $GOPATH/src/github.com/tendermint/classic
 
 # Build the linux binary in ./build
 make build-linux
@@ -72,7 +72,7 @@ non-validators network.
 Before running it, don't forget to cleanup the old files:
 
 ```
-cd $GOPATH/src/github.com/tendermint/tendermint
+cd $GOPATH/src/github.com/tendermint/classic
 
 # Clear the build folder
 rm -rf ./build/node*
@@ -80,7 +80,7 @@ rm -rf ./build/node*
 
 ## Configuring abci containers
 
-To use your own abci applications with 4-node setup edit the [docker-compose.yaml](https://github.com/tendermint/tendermint/blob/master/docker-compose.yml) file and add image to your abci application.
+To use your own abci applications with 4-node setup edit the [docker-compose.yaml](https://github.com/tendermint/classic/blob/master/docker-compose.yml) file and add image to your abci application.
 
 ```
  abci0:
@@ -129,7 +129,7 @@ To use your own abci applications with 4-node setup edit the [docker-compose.yam
 
 ```
 
-Override the [command](https://github.com/tendermint/tendermint/blob/master/networks/local/localnode/Dockerfile#L12) in each node to connect to it's abci.
+Override the [command](https://github.com/tendermint/classic/blob/master/networks/local/localnode/Dockerfile#L12) in each node to connect to it's abci.
 
 ```
   node0:
@@ -148,7 +148,7 @@ Override the [command](https://github.com/tendermint/tendermint/blob/master/netw
         ipv4_address: 192.167.10.2
 ```
 
-Similarly do for node1, node2 and node3 then [run testnet](https://github.com/tendermint/tendermint/blob/master/docs/networks/docker-compose.md#run-a-testnet)
+Similarly do for node1, node2 and node3 then [run testnet](https://github.com/tendermint/classic/blob/master/docs/networks/docker-compose.md#run-a-testnet)
 
 ## Logging
 

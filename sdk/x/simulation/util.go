@@ -6,10 +6,10 @@ import (
 	"math/rand"
 	"testing"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/tendermint/classic/abci/types"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/classic/sdk/baseapp"
+	sdk "github.com/tendermint/classic/sdk/types"
 )
 
 // assertAll asserts the all invariants against application state

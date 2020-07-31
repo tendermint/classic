@@ -12,9 +12,9 @@
 - A node is said to be _at_ a given height, round, and step, or at
   `(H,R,S)`, or at `(H,R)` in short to omit the step.
 - To _prevote_ or _precommit_ something means to broadcast a [prevote
-  vote](https://godoc.org/github.com/tendermint/tendermint/types#Vote)
+  vote](https://godoc.org/github.com/tendermint/classic/types#Vote)
   or [first precommit
-  vote](https://godoc.org/github.com/tendermint/tendermint/types#FirstPrecommit)
+  vote](https://godoc.org/github.com/tendermint/classic/types#FirstPrecommit)
   for something.
 - A vote _at_ `(H,R)` is a vote signed with the bytes for `H` and `R`
   included in its [sign-bytes](../blockchain/blockchain.md#vote).
@@ -105,7 +105,7 @@ example,
 - Nodes gossip prevotes for the proposed PoLC (proof-of-lock-change)
   round if one is proposed.
 - Nodes gossip to nodes lagging in blockchain height with block
-  [commits](https://godoc.org/github.com/tendermint/tendermint/types#Commit)
+  [commits](https://godoc.org/github.com/tendermint/classic/types#Commit)
   for older blocks.
 - Nodes opportunistically gossip `HasVote` messages to hint peers what
   votes it already has.
@@ -120,7 +120,7 @@ A proposal is signed and published by the designated proposer at each
 round. The proposer is chosen by a deterministic and non-choking round
 robin selection algorithm that selects proposers in proportion to their
 voting power (see
-[implementation](https://github.com/tendermint/tendermint/blob/master/types/validator_set.go)).
+[implementation](https://github.com/tendermint/classic/blob/master/types/validator_set.go)).
 
 A proposal at `(H,R)` is composed of a block and an optional latest
 `PoLC-Round < R` which is included iff the proposer knows of one. This

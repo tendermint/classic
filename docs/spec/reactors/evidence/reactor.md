@@ -2,7 +2,7 @@
 
 ## Channels
 
-[#1503](https://github.com/tendermint/tendermint/issues/1503)
+[#1503](https://github.com/tendermint/classic/issues/1503)
 
 Sending invalid evidence will result in stopping the peer.
 

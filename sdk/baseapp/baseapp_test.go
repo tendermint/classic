@@ -7,17 +7,17 @@ import (
 	"os"
 	"testing"
 
-	store "github.com/cosmos/cosmos-sdk/store/types"
+	store "github.com/tendermint/classic/sdk/store/types"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-	dbm "github.com/tendermint/tm-db"
+	abci "github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/classic/libs/log"
+	dbm "github.com/tendermint/classic/db"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/classic/sdk/codec"
+	sdk "github.com/tendermint/classic/sdk/types"
 )
 
 var (

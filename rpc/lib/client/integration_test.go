@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/libs/log"
+	"github.com/tendermint/classic/libs/log"
 )
 
 func TestWSClientReconnectWithJitter(t *testing.T) {

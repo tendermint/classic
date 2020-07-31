@@ -8,12 +8,12 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/tendermint/classic/db"
 
-	"github.com/cosmos/cosmos-sdk/store/dbadapter"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	"github.com/cosmos/cosmos-sdk/store/tracekv"
-	"github.com/cosmos/cosmos-sdk/store/types"
+	"github.com/tendermint/classic/sdk/store/dbadapter"
+	"github.com/tendermint/classic/sdk/store/prefix"
+	"github.com/tendermint/classic/sdk/store/tracekv"
+	"github.com/tendermint/classic/sdk/store/types"
 )
 
 func bz(s string) []byte { return []byte(s) }

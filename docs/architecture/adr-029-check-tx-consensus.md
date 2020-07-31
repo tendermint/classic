@@ -3,7 +3,7 @@
 ## Changelog
 
 04-10-2018: Update with link to issue
-[#2384](https://github.com/tendermint/tendermint/issues/2384) and reason for rejection
+[#2384](https://github.com/tendermint/classic/issues/2384) and reason for rejection
 19-09-2018: Initial Draft
 
 ## Context
@@ -110,7 +110,7 @@ Rejected
 
 ## Decision
 
-Performance impact is considered too great. See [#2384](https://github.com/tendermint/tendermint/issues/2384)
+Performance impact is considered too great. See [#2384](https://github.com/tendermint/classic/issues/2384)
 
 ## Consequences
 

@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/libs/log"
-	dbm "github.com/tendermint/tm-db"
+	"github.com/tendermint/classic/libs/log"
+	dbm "github.com/tendermint/classic/db"
 
-	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/tendermint/classic/sdk/codec"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/tendermint/classic/abci/types"
 )
 
 func TestSimAppExport(t *testing.T) {

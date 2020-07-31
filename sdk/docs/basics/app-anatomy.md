@@ -56,7 +56,7 @@ The blockchain full-node presents itself as a binary, generally suffixed by `-d`
 
 To learn more about the `main.go` function, [click here](./node.md#main-function).
 
-Once the main binary is built, the node can be started by running the `start` command. The core logic behind the `start` command is implemented in the SDK itself in the [`/server/start.go`](https://github.com/cosmos/cosmos-sdk/blob/master/server/start.go) file. The main [`start` command function](https://github.com/cosmos/cosmos-sdk/blob/master/server/start.go#L31) takes a [`context`](https://godoc.org/github.com/cosmos/cosmos-sdk/client/context) and [`appCreator`](#constructor-function-(`appCreator`)) as arguments. The `appCreator` is a constructor function for the SDK application, and is used in the starting process of the full-node. 
+Once the main binary is built, the node can be started by running the `start` command. The core logic behind the `start` command is implemented in the SDK itself in the [`/server/start.go`](https://github.com/tendermint/classic/sdk/blob/master/server/start.go) file. The main [`start` command function](https://github.com/tendermint/classic/sdk/blob/master/server/start.go#L31) takes a [`context`](https://godoc.org/github.com/tendermint/classic/sdk/client/context) and [`appCreator`](#constructor-function-(`appCreator`)) as arguments. The `appCreator` is a constructor function for the SDK application, and is used in the starting process of the full-node. 
 
 The `start` command function primarily does three things:
 
@@ -84,7 +84,7 @@ You can see an example of application type definition [here](https://github.com/
 
 ### Constructor Function
 
-This function constructs a new application of the type defined above. It is called every time the full-node is started with the [`start`](https://github.com/cosmos/cosmos-sdk/blob/master/server/start.go#L117) command. Here are the main actions performed by this function:
+This function constructs a new application of the type defined above. It is called every time the full-node is started with the [`start`](https://github.com/tendermint/classic/sdk/blob/master/server/start.go#L117) command. Here are the main actions performed by this function:
 
 - Instantiate a new application with a reference to a `baseapp` instance, a codec and all the appropriate store keys.
 - Instantiate all the [`keeper`s](#keeper) defined in the application's `type` using the `NewKeeper` function of each of the application's modules. Note that `keepers` must be instantiated in the correct order, as the `NewKeeper` of one module might require a reference to another module's `keeper`. 
@@ -105,7 +105,7 @@ You can see an example of application constructor [here](https://github.com/cosm
 
 ### InitChainer
 
-The `InitChainer` is a function that initializes the state of the application from a [genesis file](./genesis.md) (i.e. token balances of genesis accounts). It is called when the application receives the `InitChain` message from the Tendermint engine, which happens when the node is started at `appBlockHeight == 0` (i.e. on genesis). The application must set the `InitChainer` in its constructor via the [`SetInitChainer`](https://godoc.org/github.com/cosmos/cosmos-sdk/baseapp#BaseApp.SetInitChainer) method. 
+The `InitChainer` is a function that initializes the state of the application from a [genesis file](./genesis.md) (i.e. token balances of genesis accounts). It is called when the application receives the `InitChain` message from the Tendermint engine, which happens when the node is started at `appBlockHeight == 0` (i.e. on genesis). The application must set the `InitChainer` in its constructor via the [`SetInitChainer`](https://godoc.org/github.com/tendermint/classic/sdk/baseapp#BaseApp.SetInitChainer) method. 
 
 In general, the `InitChainer` is mostly composed of the `InitGenesis` function of each of the application's modules. This is done by calling the `InitGenesis` function of the module manager, which in turn will call the `InitGenesis` function of each of the modules it contains. Note that the order in which the modules' `InitGenesis` functions must be called has to be set in the module manager using the `SetOrderInitGenesis` method. This is done in the [application's constructor](#application-constructor), and the `SetOrderInitGenesis` has to be called before the `SetInitChainer`. 
 
@@ -113,7 +113,7 @@ You can see an example of an `InitChainer` [here](https://github.com/cosmos/gaia
 
 ### BeginBlocker and EndBlocker
 
-The SDK offers developers the possibility to implement automatic execution of code as part of their application. This is implemented through two function called `BeginBlocker` and `EndBlocker`. They are called when the application receives respectively the `BeginBlock` and `EndBlock` messages from the Tendermint engine, which happens at the beginning and at the end of each block. The application must set the `BeginBlocker` and `EndBlocker` in its constructor via the [`SetBeginBlocker`](https://godoc.org/github.com/cosmos/cosmos-sdk/baseapp#BaseApp.SetBeginBlocker) and [`SetEndBlocker`](https://godoc.org/github.com/cosmos/cosmos-sdk/baseapp#BaseApp.SetEndBlocker) methods. 
+The SDK offers developers the possibility to implement automatic execution of code as part of their application. This is implemented through two function called `BeginBlocker` and `EndBlocker`. They are called when the application receives respectively the `BeginBlock` and `EndBlock` messages from the Tendermint engine, which happens at the beginning and at the end of each block. The application must set the `BeginBlocker` and `EndBlocker` in its constructor via the [`SetBeginBlocker`](https://godoc.org/github.com/tendermint/classic/sdk/baseapp#BaseApp.SetBeginBlocker) and [`SetEndBlocker`](https://godoc.org/github.com/tendermint/classic/sdk/baseapp#BaseApp.SetEndBlocker) methods. 
 
 In general, the `BeginBlocker` and `EndBlocker` functions are mostly composed of the `BeginBlock` and `EndBlock` functions of each of the application's modules. This is done by calling the `BeginBlock` and `EndBlock` functions of the module manager, which in turn will call the `BeginBLock` and `EndBlock` functions of each of the modules it contains. Note that the order in which the modules' `BegingBlock` and `EndBlock` functions must be called has to be set in the module manager using the `SetOrderBeginBlock` and `SetOrderEndBlock` methods respectively. This is done in the [application's constructor](#application-constructor), and the `SetOrderBeginBlock` and `SetOrderEndBlock` methods have to be called before the `SetBeginBlocker` and `SetEndBlocker` functions.
 
@@ -137,7 +137,7 @@ To learn more about modules, [click here](./modules.md)
 
 ### Application Module Interface
 
-Modules implement two interfaces defined in the Cosmos SDK, [`AppModuleBasic`](https://github.com/cosmos/cosmos-sdk/blob/master/types/module/module.go#L44-L57) and [`AppModule`](https://github.com/cosmos/cosmos-sdk/blob/master/types/module/module.go#L44-L57). The former implements basic non-dependant elements of the module, such as the `codec`, while the latter handles the bulk of the module methods (including methods that require references to other modules' `keeper`s). Both the `AppModule` and `AppModuleBasic` types are defined in a file called `./module.go`. 
+Modules implement two interfaces defined in the Cosmos SDK, [`AppModuleBasic`](https://github.com/tendermint/classic/sdk/blob/master/types/module/module.go#L44-L57) and [`AppModule`](https://github.com/tendermint/classic/sdk/blob/master/types/module/module.go#L44-L57). The former implements basic non-dependant elements of the module, such as the `codec`, while the latter handles the bulk of the module methods (including methods that require references to other modules' `keeper`s). Both the `AppModule` and `AppModuleBasic` types are defined in a file called `./module.go`. 
 
 `AppModule` exposes a collection of useful methods on the module that facilitates the composition of modules into a coherent application. Important methods include:
 
@@ -152,16 +152,16 @@ To learn more about the application module interface, [click here](./modules.md#
 
 ### Message Types
 
-A message is a custom type defined by each module that implements the [`message`](https://github.com/cosmos/cosmos-sdk/blob/master/types/tx_msg.go#L8-L29) interface. Each `transaction` contains one or multiple `messages`. When a valid block of transactions is received by the full-node, Tendermint relays each one to the application via [`DeliverTx`](https://tendermint.com/docs/app-dev/abci-spec.html#delivertx). Then, the application handles the transaction:
+A message is a custom type defined by each module that implements the [`message`](https://github.com/tendermint/classic/sdk/blob/master/types/tx_msg.go#L8-L29) interface. Each `transaction` contains one or multiple `messages`. When a valid block of transactions is received by the full-node, Tendermint relays each one to the application via [`DeliverTx`](https://tendermint.com/docs/app-dev/abci-spec.html#delivertx). Then, the application handles the transaction:
 
 1. Upon receiving the transaction, the application first unmarshalls it from `[]bytes`.
 2. Then, it verifies a few things about the transaction like [fee payment and signatures](#accounts-fees-gas.md) before extracting the message(s) contained in the transaction. 
-3. With the [`Type()`](https://github.com/cosmos/cosmos-sdk/blob/master/types/tx_msg.go#L16) method, `baseapp` is able to know which modules defines the message. It is then able to route it to the appropriate module's [handler](#handler) in order for the message to be processed. 
+3. With the [`Type()`](https://github.com/tendermint/classic/sdk/blob/master/types/tx_msg.go#L16) method, `baseapp` is able to know which modules defines the message. It is then able to route it to the appropriate module's [handler](#handler) in order for the message to be processed. 
 4. If the message is successfully processed, the state is updated. 
 
 For a more detailed look at a transaction lifecycle, click [here](./tx-lifecycle.md).
 
-Module developers create custom message types when they build their own module. The general practice is to prefix the type declaration of the message with `Msg`. For example, the message type [`MsgSend`](https://github.com/cosmos/cosmos-sdk/blob/master/x/bank/types/msgs.go#L10-L15) allows users to transfer tokens. It is processed by the handler of the `bank` module, which ultimately calls the `keeper` of the `auth` module in order to update the state.
+Module developers create custom message types when they build their own module. The general practice is to prefix the type declaration of the message with `Msg`. For example, the message type [`MsgSend`](https://github.com/tendermint/classic/sdk/blob/master/x/bank/types/msgs.go#L10-L15) allows users to transfer tokens. It is processed by the handler of the `bank` module, which ultimately calls the `keeper` of the `auth` module in order to update the state.
 
 To learn more about messages, [click here](./tx-msgs.md).
 
@@ -174,7 +174,7 @@ The handler of a module is generally defined in a file called `handler.go` and c
 - A **switch function** `NewHandler` to route the message to the appropriate handler function. This function returns a `handler` function, and is registered in the [`AppModule`](#application-module-interface) to be used in the application's module manager to initialize the [application's router](./baseapp.md#routing). See an example of such a switch [here](https://github.com/cosmos/sdk-application-tutorial/blob/master/x/nameservice/handler.go#L10-L22).
 - **One handler function for each message type defined by the module**. Developers write the message processing logic in these functions. This generally involves doing stateful checks to ensure the message is valid and calling [`keeper`](#keeper)'s methods to update the state. 
 
-Handler functions return a result of type [`sdk.Result`](https://github.com/cosmos/cosmos-sdk/blob/master/types/result.go#L14-L37), which informs the application on whether the message was successfully processed.
+Handler functions return a result of type [`sdk.Result`](https://github.com/tendermint/classic/sdk/blob/master/types/result.go#L14-L37), which informs the application on whether the message was successfully processed.
 
 To learn more about handlers, [click here](./handler.md).
 
@@ -198,7 +198,7 @@ To learn more about `keepers`, [click here](./keeper.md).
 
 ### Querier 
 
-`Queriers` are very similar to `handlers`, except they serve user queries to the state as opposed to processing transactions. A query is initiated from an [interface](#intefaces) by an end-user who provides a `queryRoute` and some `data`. The query is then routed to the correct application's `querier` by `baseapp`'s [`handleQueryCustom`](https://github.com/cosmos/cosmos-sdk/blob/master/baseapp/baseapp.go#L519-L556) method using `queryRoute`. 
+`Queriers` are very similar to `handlers`, except they serve user queries to the state as opposed to processing transactions. A query is initiated from an [interface](#intefaces) by an end-user who provides a `queryRoute` and some `data`. The query is then routed to the correct application's `querier` by `baseapp`'s [`handleQueryCustom`](https://github.com/tendermint/classic/sdk/blob/master/baseapp/baseapp.go#L519-L556) method using `queryRoute`. 
 
 The `Querier` of a module is defined in a file called `querier.go`, and consists of:
 
@@ -225,7 +225,7 @@ To learn more about modules CLI, [click here](./module-interfaces.md#cli).
 The module's REST interface lets users generate transactions and query the state through REST calls to the application's [light client daemon](./node.md#lcd) (LCD). REST routes are defined in a file `client/rest/rest.go`, which is composed of:
 
 - A `RegisterRoutes` function, which registers each route defined in the file. This function is called from the [main application's interface](#application-interfaces) for each module used within the application. The router used in the SDK is [Gorilla's mux](https://github.com/gorilla/mux).
-- Custom request type definitions for each query or transaction creation function that needs to be exposed. These custom request types build on the [base `request` type](https://github.com/cosmos/cosmos-sdk/blob/master/types/rest/rest.go#L32-L43) of the Cosmos SDK. 
+- Custom request type definitions for each query or transaction creation function that needs to be exposed. These custom request types build on the [base `request` type](https://github.com/tendermint/classic/sdk/blob/master/types/rest/rest.go#L32-L43) of the Cosmos SDK. 
 - One handler function for each request that can be routed to the given module. These functions implement the core logic necessary to serve the request.
 
 See an example of a module's `rest.go` file [here](https://github.com/cosmos/sdk-application-tutorial/blob/master/x/nameservice/client/rest/rest.go).

@@ -138,7 +138,7 @@ The `GasUsed` field is ignored completely by Tendermint. That said, applications
 
 In the future, we intend to add a `Priority` field to the responses that can be
 used to explicitly prioritize txs in the mempool for inclusion in a block
-proposal. See [#1861](https://github.com/tendermint/tendermint/issues/1861).
+proposal. See [#1861](https://github.com/tendermint/classic/issues/1861).
 
 ### CheckTx
 
@@ -166,7 +166,7 @@ Both the `Code` and `Data` are included in a structure that is hashed into the
 the transaction by. This allows transactions to be queried according to what
 events took place during their execution.
 
-See issue [#1007](https://github.com/tendermint/tendermint/issues/1007) for how
+See issue [#1007](https://github.com/tendermint/classic/issues/1007) for how
 the tags will be hashed into the next block header.
 
 ## Validator Updates
@@ -386,7 +386,7 @@ The expectation is for there to be some number of high level paths
 differentiating concerns, like `/p2p`, `/store`, and `/app`. Currently,
 Tendermint only uses `/p2p`, for filtering peers. For more advanced use, see the
 implementation of
-[Query in the Cosmos-SDK](https://github.com/cosmos/cosmos-sdk/blob/v0.23.1/baseapp/baseapp.go#L333).
+[Query in the Cosmos-SDK](https://github.com/tendermint/classic/sdk/blob/v0.23.1/baseapp/baseapp.go#L333).
 
 ## Crash Recovery
 

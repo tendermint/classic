@@ -4,17 +4,17 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
+	abci "github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/classic/libs/log"
 
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/tendermint/classic/db"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/cosmos/cosmos-sdk/x/params/subspace"
-	"github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/tendermint/classic/sdk/codec"
+	"github.com/tendermint/classic/sdk/store"
+	sdk "github.com/tendermint/classic/sdk/types"
+	"github.com/tendermint/classic/sdk/x/params"
+	"github.com/tendermint/classic/sdk/x/params/subspace"
+	"github.com/tendermint/classic/sdk/x/params/types"
 )
 
 type testInput struct {

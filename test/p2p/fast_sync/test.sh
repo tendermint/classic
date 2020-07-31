@@ -6,7 +6,7 @@ NETWORK_NAME=$2
 N=$3
 PROXY_APP=$4
 
-cd $GOPATH/src/github.com/tendermint/tendermint
+cd $GOPATH/src/github.com/tendermint/classic
 
 # run it on each of them
 for i in `seq 1 $N`; do

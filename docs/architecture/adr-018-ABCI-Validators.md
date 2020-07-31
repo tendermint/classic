@@ -32,7 +32,7 @@ message ValidatorUpdate {
 }
 ```
 
-As noted in ADR-009[https://github.com/tendermint/tendermint/blob/master/docs/architecture/adr-009-ABCI-design.md],
+As noted in ADR-009[https://github.com/tendermint/classic/blob/master/docs/architecture/adr-009-ABCI-design.md],
 the `Validator` does not contain a pubkey because quantum public keys are
 quite large and it would be wasteful to send them all over ABCI with every block.
 Thus, applications that want to take advantage of the information in BeginBlock
@@ -94,7 +94,7 @@ Proposal.
 
 ## References
 
-- [Latest ABCI Spec](https://github.com/tendermint/tendermint/blob/v0.22.8/docs/app-dev/abci-spec.md)
-- [ADR-009](https://github.com/tendermint/tendermint/blob/v0.22.8/docs/architecture/adr-009-ABCI-design.md)
+- [Latest ABCI Spec](https://github.com/tendermint/classic/blob/v0.22.8/docs/app-dev/abci-spec.md)
+- [ADR-009](https://github.com/tendermint/classic/blob/v0.22.8/docs/architecture/adr-009-ABCI-design.md)
 - [Issue #1712 - Don't send PubKey in
-  RequestBeginBlock](https://github.com/tendermint/tendermint/issues/1712)
+  RequestBeginBlock](https://github.com/tendermint/classic/issues/1712)

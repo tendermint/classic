@@ -3,9 +3,9 @@ package store
 import (
 	"bytes"
 
-	cmn "github.com/tendermint/tendermint/libs/common"
+	cmn "github.com/tendermint/classic/libs/common"
 
-	"github.com/cosmos/cosmos-sdk/store/types"
+	"github.com/tendermint/classic/sdk/store/types"
 )
 
 // Gets the first item.

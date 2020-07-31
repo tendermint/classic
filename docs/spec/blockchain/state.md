@@ -41,7 +41,7 @@ It returns a result code and an arbitrary byte array (ie. a return value).
 
 NOTE: the Result needs to be updated to include more fields returned from
 processing transactions, like gas variables and tags - see
-[issue 1007](https://github.com/tendermint/tendermint/issues/1007).
+[issue 1007](https://github.com/tendermint/classic/issues/1007).
 
 ### Validator
 

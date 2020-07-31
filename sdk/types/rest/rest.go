@@ -12,11 +12,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tendermint/tendermint/types"
+	"github.com/tendermint/classic/types"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/classic/sdk/client/context"
+	"github.com/tendermint/classic/sdk/codec"
+	sdk "github.com/tendermint/classic/sdk/types"
 )
 
 const (

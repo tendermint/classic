@@ -55,8 +55,8 @@ Compute ED25519 addresses as the first 20-bytes of the SHA256 of the raw 32-byte
 
 Make the following changes:
 
-- Use xChaCha20 instead of xSalsa20 - https://github.com/tendermint/tendermint/issues/1124
-- Use an HKDF instead of RIPEMD160 to compute nonces - https://github.com/tendermint/tendermint/issues/1165
+- Use xChaCha20 instead of xSalsa20 - https://github.com/tendermint/classic/issues/1124
+- Use an HKDF instead of RIPEMD160 to compute nonces - https://github.com/tendermint/classic/issues/1165
 
 ## Status
 

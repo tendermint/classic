@@ -1,9 +1,9 @@
 package supply
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	autypes "github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/supply/internal/types"
+	sdk "github.com/tendermint/classic/sdk/types"
+	autypes "github.com/tendermint/classic/sdk/x/auth"
+	"github.com/tendermint/classic/sdk/x/supply/internal/types"
 )
 
 // InitGenesis sets supply information for genesis.

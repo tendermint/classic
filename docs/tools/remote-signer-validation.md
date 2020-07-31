@@ -1,7 +1,7 @@
 # tm-signer-harness
 
 Located under the `tools/tm-signer-harness` folder in the [Tendermint
-repository](https://github.com/tendermint/tendermint).
+repository](https://github.com/tendermint/classic).
 
 The Tendermint remote signer test harness facilitates integration testing
 between Tendermint and remote signers such as
@@ -22,7 +22,7 @@ When executed, `tm-signer-harness`:
 
 ## Prerequisites
 Requires the same prerequisites as for building
-[Tendermint](https://github.com/tendermint/tendermint).
+[Tendermint](https://github.com/tendermint/classic).
 
 ## Building
 From the `tools/tm-signer-harness` directory in your Tendermint source

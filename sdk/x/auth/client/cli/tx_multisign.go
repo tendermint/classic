@@ -9,17 +9,17 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/tendermint/tendermint/crypto/multisig"
-	"github.com/tendermint/tendermint/libs/cli"
+	"github.com/tendermint/classic/crypto/multisig"
+	"github.com/tendermint/classic/libs/cli"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/keys"
-	"github.com/cosmos/cosmos-sdk/codec"
-	crkeys "github.com/cosmos/cosmos-sdk/crypto/keys"
-	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/tendermint/classic/sdk/client/context"
+	"github.com/tendermint/classic/sdk/client/flags"
+	"github.com/tendermint/classic/sdk/client/keys"
+	"github.com/tendermint/classic/sdk/codec"
+	crkeys "github.com/tendermint/classic/sdk/crypto/keys"
+	"github.com/tendermint/classic/sdk/version"
+	"github.com/tendermint/classic/sdk/x/auth/client/utils"
+	"github.com/tendermint/classic/sdk/x/auth/types"
 )
 
 // GetSignCommand returns the sign command

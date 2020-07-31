@@ -11,17 +11,17 @@ import (
 	"github.com/spf13/viper"
 	yaml "gopkg.in/yaml.v2"
 
-	"github.com/tendermint/tendermint/libs/cli"
-	"github.com/tendermint/tendermint/libs/log"
-	tmlite "github.com/tendermint/tendermint/lite"
-	tmliteProxy "github.com/tendermint/tendermint/lite/proxy"
-	rpcclient "github.com/tendermint/tendermint/rpc/client"
+	"github.com/tendermint/classic/libs/cli"
+	"github.com/tendermint/classic/libs/log"
+	tmlite "github.com/tendermint/classic/lite"
+	tmliteProxy "github.com/tendermint/classic/lite/proxy"
+	rpcclient "github.com/tendermint/classic/rpc/client"
 
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/keys"
-	"github.com/cosmos/cosmos-sdk/codec"
-	cryptokeys "github.com/cosmos/cosmos-sdk/crypto/keys"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/classic/sdk/client/flags"
+	"github.com/tendermint/classic/sdk/client/keys"
+	"github.com/tendermint/classic/sdk/codec"
+	cryptokeys "github.com/tendermint/classic/sdk/crypto/keys"
+	sdk "github.com/tendermint/classic/sdk/types"
 )
 
 var (

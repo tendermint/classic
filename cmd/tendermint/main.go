@@ -4,11 +4,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/tendermint/tendermint/libs/cli"
+	"github.com/tendermint/classic/libs/cli"
 
-	cmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
-	cfg "github.com/tendermint/tendermint/config"
-	nm "github.com/tendermint/tendermint/node"
+	cmd "github.com/tendermint/classic/cmd/tendermint/commands"
+	cfg "github.com/tendermint/classic/config"
+	nm "github.com/tendermint/classic/node"
 )
 
 func main() {

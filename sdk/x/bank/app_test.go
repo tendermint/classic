@@ -3,16 +3,16 @@ package bank_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/bank/internal/types"
-	"github.com/cosmos/cosmos-sdk/x/mock"
+	sdk "github.com/tendermint/classic/sdk/types"
+	"github.com/tendermint/classic/sdk/x/auth"
+	"github.com/tendermint/classic/sdk/x/bank/internal/types"
+	"github.com/tendermint/classic/sdk/x/mock"
 
 	"github.com/stretchr/testify/require"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
+	abci "github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/classic/crypto"
+	"github.com/tendermint/classic/crypto/secp256k1"
 )
 
 type (

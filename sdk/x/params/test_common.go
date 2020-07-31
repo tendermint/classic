@@ -2,13 +2,13 @@
 package params
 
 import (
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-	dbm "github.com/tendermint/tm-db"
+	abci "github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/classic/libs/log"
+	dbm "github.com/tendermint/classic/db"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/classic/sdk/codec"
+	"github.com/tendermint/classic/sdk/store"
+	sdk "github.com/tendermint/classic/sdk/types"
 )
 
 type invalid struct{}

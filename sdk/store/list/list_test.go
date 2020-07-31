@@ -4,16 +4,16 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/tendermint/tendermint/libs/log"
-	dbm "github.com/tendermint/tm-db"
+	"github.com/tendermint/classic/libs/log"
+	dbm "github.com/tendermint/classic/db"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/tendermint/classic/abci/types"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/rootmulti"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/classic/sdk/codec"
+	"github.com/tendermint/classic/sdk/store/rootmulti"
+	sdk "github.com/tendermint/classic/sdk/types"
 )
 
 type TestStruct struct {

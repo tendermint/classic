@@ -8,7 +8,7 @@ Author: Daniil Lashin (@danil-lashin)
 
 ## Context
 
-Initial conversation: https://github.com/tendermint/tendermint/issues/2901
+Initial conversation: https://github.com/tendermint/classic/issues/2901
 
 Some applications can handle transactions in parallel, or at least some
 part of tx processing can be parallelized. Now it is not possible for developer
@@ -22,7 +22,7 @@ step. It will allow developers of applications to decide how they want to
 execute transactions (in parallel or consequentially). Also it will simplify and
 speed up communications between application and Tendermint.
 
-As @jaekwon [mentioned](https://github.com/tendermint/tendermint/issues/2901#issuecomment-477746128)
+As @jaekwon [mentioned](https://github.com/tendermint/classic/issues/2901#issuecomment-477746128)
 in discussion not all application will benefit from this solution. In some cases,
 when application handles transaction consequentially, it way slow down the blockchain,
 because it need to wait until full block is transmitted to application to start

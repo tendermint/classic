@@ -62,10 +62,10 @@ gopath-setup:
 
 build-tendermint: git-branch gopath-setup
 	@echo "*** Building tendermint"
-	go get -d -u github.com/tendermint/tendermint/cmd/tendermint
-	cd $(GOPATH)/src/github.com/tendermint/tendermint && git checkout "$(GIT_BRANCH)" && git pull
-	export PATH=$(GOPATH)/bin:$(PATH) && $(MAKE) -C $(GOPATH)/src/github.com/tendermint/tendermint tools build
-	cp $(GOPATH)/src/github.com/tendermint/tendermint/build/tendermint $(GOPATH)/bin
+	go get -d -u github.com/tendermint/classic/cmd/tendermint
+	cd $(GOPATH)/src/github.com/tendermint/classic && git checkout "$(GIT_BRANCH)" && git pull
+	export PATH=$(GOPATH)/bin:$(PATH) && $(MAKE) -C $(GOPATH)/src/github.com/tendermint/classic tools build
+	cp $(GOPATH)/src/github.com/tendermint/classic/build/tendermint $(GOPATH)/bin
 	@echo "*** Built tendermint"
 
 build-ethermint: git-branch gopath-setup
@@ -85,10 +85,10 @@ build-gaia: git-branch gopath-setup
 
 build-basecoind: git-branch gopath-setup
 	@echo "*** Building basecoind from cosmos-sdk"
-	go get -d -u github.com/cosmos/cosmos-sdk/examples/basecoin/cmd/basecoind
-	cd $(GOPATH)/src/github.com/cosmos/cosmos-sdk && git checkout "$(GIT_BRANCH)" && git pull
-	export PATH=$(GOPATH)/bin:$(PATH) && $(MAKE) -C $(GOPATH)/src/github.com/cosmos/cosmos-sdk tools build
-	cp $(GOPATH)/src/github.com/cosmos/cosmos-sdk/build/basecoind $(GOPATH)/bin/basecoind
+	go get -d -u github.com/tendermint/classic/sdk/examples/basecoin/cmd/basecoind
+	cd $(GOPATH)/src/github.com/tendermint/classic/sdk && git checkout "$(GIT_BRANCH)" && git pull
+	export PATH=$(GOPATH)/bin:$(PATH) && $(MAKE) -C $(GOPATH)/src/github.com/tendermint/classic/sdk tools build
+	cp $(GOPATH)/src/github.com/tendermint/classic/sdk/build/basecoind $(GOPATH)/bin/basecoind
 	@echo "*** Built basecoind from cosmos-sdk"
 
 ###
@@ -277,8 +277,8 @@ clean: mostlyclean
 	rm -rf {BUILD,RPMS}
 
 distclean: clean
-	rm -rf $(GOPATH)/src/github.com/tendermint/tendermint
-	rm -rf $(GOPATH)/src/github.com/cosmos/cosmos-sdk
+	rm -rf $(GOPATH)/src/github.com/tendermint/classic
+	rm -rf $(GOPATH)/src/github.com/tendermint/classic/sdk
 	rm -rf $(GOPATH)/src/github.com/tendermint/ethermint 
 	rm -rf $(GOPATH)/bin/tendermint
 	rm -rf $(GOPATH)/bin/basecoind

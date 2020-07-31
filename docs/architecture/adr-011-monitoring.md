@@ -10,7 +10,7 @@
 
 In order to bring more visibility into Tendermint, we would like it to report
 metrics and, maybe later, traces of transactions and RPC queries. See
-https://github.com/tendermint/tendermint/issues/986.
+https://github.com/tendermint/classic/issues/986.
 
 A few solutions were considered:
 

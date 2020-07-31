@@ -1,10 +1,10 @@
 package distribution
 
 import (
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/tendermint/classic/abci/types"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/distribution/keeper"
+	sdk "github.com/tendermint/classic/sdk/types"
+	"github.com/tendermint/classic/sdk/x/distribution/keeper"
 )
 
 // set the proposer for determining distribution during endblock
@@ -20,7 +20,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 	}
 
 	// TODO this is Tendermint-dependent
-	// ref https://github.com/cosmos/cosmos-sdk/issues/3095
+	// ref https://github.com/tendermint/classic/sdk/issues/3095
 	if ctx.BlockHeight() > 1 {
 		previousProposer := k.GetPreviousProposerConsAddr(ctx)
 		k.AllocateTokens(ctx, sumPreviousPrecommitPower, previousTotalPower, previousProposer, req.LastCommitInfo.GetVotes())

@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	abci "github.com/tendermint/tendermint/abci/types"
+	sdk "github.com/tendermint/classic/sdk/types"
+	abci "github.com/tendermint/classic/abci/types"
 
 	"github.com/stretchr/testify/require"
 )

@@ -3,11 +3,11 @@ package keys
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/multisig"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
+	"github.com/tendermint/classic/crypto"
+	"github.com/tendermint/classic/crypto/multisig"
+	"github.com/tendermint/classic/crypto/secp256k1"
 )
 
 func TestBech32KeysOutput(t *testing.T) {

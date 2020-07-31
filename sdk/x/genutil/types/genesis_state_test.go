@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/classic/crypto/ed25519"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	sdk "github.com/tendermint/classic/sdk/types"
+	authtypes "github.com/tendermint/classic/sdk/x/auth/types"
+	stakingtypes "github.com/tendermint/classic/sdk/x/staking/types"
 )
 
 var (

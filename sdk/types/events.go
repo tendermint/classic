@@ -5,8 +5,8 @@ import (
 	"sort"
 	"strings"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	cmn "github.com/tendermint/tendermint/libs/common"
+	abci "github.com/tendermint/classic/abci/types"
+	cmn "github.com/tendermint/classic/libs/common"
 )
 
 // ----------------------------------------------------------------------------

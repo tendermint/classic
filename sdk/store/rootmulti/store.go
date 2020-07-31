@@ -5,18 +5,18 @@ import (
 	"io"
 	"strings"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/crypto/merkle"
-	"github.com/tendermint/tendermint/crypto/tmhash"
-	dbm "github.com/tendermint/tm-db"
+	abci "github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/classic/crypto/merkle"
+	"github.com/tendermint/classic/crypto/tmhash"
+	dbm "github.com/tendermint/classic/db"
 
-	"github.com/cosmos/cosmos-sdk/store/cachemulti"
-	"github.com/cosmos/cosmos-sdk/store/dbadapter"
-	"github.com/cosmos/cosmos-sdk/store/errors"
-	"github.com/cosmos/cosmos-sdk/store/iavl"
-	"github.com/cosmos/cosmos-sdk/store/tracekv"
-	"github.com/cosmos/cosmos-sdk/store/transient"
-	"github.com/cosmos/cosmos-sdk/store/types"
+	"github.com/tendermint/classic/sdk/store/cachemulti"
+	"github.com/tendermint/classic/sdk/store/dbadapter"
+	"github.com/tendermint/classic/sdk/store/errors"
+	"github.com/tendermint/classic/sdk/store/iavl"
+	"github.com/tendermint/classic/sdk/store/tracekv"
+	"github.com/tendermint/classic/sdk/store/transient"
+	"github.com/tendermint/classic/sdk/store/types"
 )
 
 const (

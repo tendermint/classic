@@ -4,16 +4,16 @@ import (
 	"crypto/rand"
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/store/dbadapter"
-	"github.com/cosmos/cosmos-sdk/store/gaskv"
-	"github.com/cosmos/cosmos-sdk/store/iavl"
-	"github.com/cosmos/cosmos-sdk/store/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/classic/sdk/store/dbadapter"
+	"github.com/tendermint/classic/sdk/store/gaskv"
+	"github.com/tendermint/classic/sdk/store/iavl"
+	"github.com/tendermint/classic/sdk/store/types"
+	sdk "github.com/tendermint/classic/sdk/types"
 
 	"github.com/stretchr/testify/require"
 
 	tiavl "github.com/tendermint/iavl"
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/tendermint/classic/db"
 )
 
 // copied from iavl/store_test.go
@@ -234,7 +234,7 @@ func TestPrefixStoreReverseIteratorEdgeCase(t *testing.T) {
 	iter.Close()
 }
 
-// Tests below are ported from https://github.com/tendermint/tendermint/blob/master/libs/db/prefix_db_test.go
+// Tests below are ported from https://github.com/tendermint/classic/blob/master/libs/db/prefix_db_test.go
 
 func mockStoreWithStuff() types.KVStore {
 	db := dbm.NewMemDB()

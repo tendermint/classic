@@ -5,9 +5,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/tendermint/classic/abci/types"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdk "github.com/tendermint/classic/sdk/types"
 )
 
 var testQuerier = func(_ sdk.Context, _ []string, _ abci.RequestQuery) (res []byte, err sdk.Error) {

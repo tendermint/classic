@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	cmn "github.com/tendermint/tendermint/libs/common"
+	cmn "github.com/tendermint/classic/libs/common"
 )
 
 // TestAddListenerForEventFireOnce sets up an EventSwitch, subscribes a single

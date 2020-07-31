@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/cosmos-sdk/client/keys"
-	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/tendermint/classic/sdk/client/keys"
+	"github.com/tendermint/classic/sdk/server"
 )
 
 func TestGenerateCoinKey(t *testing.T) {

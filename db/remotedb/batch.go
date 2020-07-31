@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	db "github.com/tendermint/tm-db"
-	protodb "github.com/tendermint/tm-db/remotedb/proto"
+	db "github.com/tendermint/classic/db"
+	protodb "github.com/tendermint/classic/db/remotedb/proto"
 )
 
 var errBatchClosed = errors.New("batch has been written or closed")

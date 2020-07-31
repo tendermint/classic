@@ -2,9 +2,9 @@
 
 
 
-[Cosmos-SDK](https://github.com/cosmos/cosmos-sdk)는 코스모스 허브 같은 멀티애셋 지분증명(Proof-of-Stake) 블록체인 또는 권한증명(Proof-of-Authority) 같은 블록체인들을 만들 수 있는 하나의 프레임워크입니다.
+[Cosmos-SDK](https://github.com/tendermint/classic/sdk)는 코스모스 허브 같은 멀티애셋 지분증명(Proof-of-Stake) 블록체인 또는 권한증명(Proof-of-Authority) 같은 블록체인들을 만들 수 있는 하나의 프레임워크입니다.
 
-코스모스 SDK의 목표는 개발자들이 본인만의 커스텀 블록체인을 처음부터 쉽게 만들고, 이런 블록체인들이 상호호환성을 가질 수 있게 하는 것입니다. 우리는 코스모스 SDK가 [Tendermint](https://github.com/tendermint/tendermint) 기반의 안전한 블록체인 애플리케이션의 npm 프레임워크 같은 역할을 할수 있을 것을 기대하고 있습니다.
+코스모스 SDK의 목표는 개발자들이 본인만의 커스텀 블록체인을 처음부터 쉽게 만들고, 이런 블록체인들이 상호호환성을 가질 수 있게 하는 것입니다. 우리는 코스모스 SDK가 [Tendermint](https://github.com/tendermint/classic) 기반의 안전한 블록체인 애플리케이션의 npm 프레임워크 같은 역할을 할수 있을 것을 기대하고 있습니다.
 
 코스모스 SDK는 다음과 같은 원칙에 의거합니다:
 

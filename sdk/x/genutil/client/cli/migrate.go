@@ -5,14 +5,14 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/tendermint/tendermint/types"
+	"github.com/tendermint/classic/types"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/server"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/version"
-	extypes "github.com/cosmos/cosmos-sdk/x/genutil"
-	v036 "github.com/cosmos/cosmos-sdk/x/genutil/legacy/v036"
+	"github.com/tendermint/classic/sdk/codec"
+	"github.com/tendermint/classic/sdk/server"
+	sdk "github.com/tendermint/classic/sdk/types"
+	"github.com/tendermint/classic/sdk/version"
+	extypes "github.com/tendermint/classic/sdk/x/genutil"
+	v036 "github.com/tendermint/classic/sdk/x/genutil/legacy/v036"
 )
 
 var migrationMap = extypes.MigrationMap{

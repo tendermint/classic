@@ -2,11 +2,11 @@
 
 ## Changelog
 
-25-06-2018: Initial draft based on [#1776](https://github.com/tendermint/tendermint/issues/1776)
+25-06-2018: Initial draft based on [#1776](https://github.com/tendermint/classic/issues/1776)
 
 ## Context
 
-[#1776](https://github.com/tendermint/tendermint/issues/1776) was
+[#1776](https://github.com/tendermint/classic/issues/1776) was
 opened in relation to implementation of a Plasma child chain using Tendermint
 Core as consensus/replication engine.
 
@@ -128,7 +128,7 @@ message ResponseProposeTx {
 ```
 
 `ProposeTx` would be called by before `mempool.Reap` at this
-[line](https://github.com/tendermint/tendermint/blob/master/consensus/state.go#L906).
+[line](https://github.com/tendermint/classic/blob/master/consensus/state.go#L906).
 Depending on whether `exclusive` is `true` or `false`, the proposed
 transactions are then pushed on top of the transactions received from
 `mempool.Reap`.
@@ -178,6 +178,6 @@ Pending
 
 ## References
 
-- [#1776 Plasma and "Internal" Transactions in ABCI Apps](https://github.com/tendermint/tendermint/issues/1776)
+- [#1776 Plasma and "Internal" Transactions in ABCI Apps](https://github.com/tendermint/classic/issues/1776)
 - [Minimal Viable Plasma](https://ethresear.ch/t/minimal-viable-plasma/426)
 - [Plasma Cash: Plasma with much less per-user data checking](https://ethresear.ch/t/plasma-cash-plasma-with-much-less-per-user-data-checking/1298)

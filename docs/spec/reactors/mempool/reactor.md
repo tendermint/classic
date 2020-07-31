@@ -2,7 +2,7 @@
 
 ## Channels
 
-See [this issue](https://github.com/tendermint/tendermint/issues/1503)
+See [this issue](https://github.com/tendermint/classic/issues/1503)
 
 Mempool maintains a cache of the last 10000 transactions to prevent
 replaying old transactions (plus transactions coming from other

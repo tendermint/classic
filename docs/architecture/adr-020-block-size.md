@@ -25,7 +25,7 @@ We could also consider using a MaxDataBytes instead of or in addition to MaxByte
 
 ## MaxBytes vs MaxDataBytes
 
-The [PR #3045](https://github.com/tendermint/tendermint/pull/3045) suggested
+The [PR #3045](https://github.com/tendermint/classic/pull/3045) suggested
 additional clarity/justification was necessary here, wither respect to the use
 of MaxDataBytes in addition to, or instead of, MaxBytes.
 

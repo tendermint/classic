@@ -8,9 +8,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/tendermint/tendermint/config"
-	cmn "github.com/tendermint/tendermint/libs/common"
-	"github.com/tendermint/tendermint/p2p/conn"
+	"github.com/tendermint/classic/config"
+	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/classic/p2p/conn"
 )
 
 const (
@@ -345,7 +345,7 @@ func (sw *Switch) stopAndRemovePeer(peer Peer, reason interface{}) {
 	// Removing a peer should go last to avoid a situation where a peer
 	// reconnect to our node and the switch calls InitPeer before
 	// RemovePeer is finished.
-	// https://github.com/tendermint/tendermint/issues/3338
+	// https://github.com/tendermint/classic/issues/3338
 	if sw.peers.Remove(peer) {
 		sw.metrics.Peers.Add(float64(-1))
 	}

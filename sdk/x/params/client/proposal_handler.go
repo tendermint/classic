@@ -1,9 +1,9 @@
 package client
 
 import (
-	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
-	"github.com/cosmos/cosmos-sdk/x/params/client/cli"
-	"github.com/cosmos/cosmos-sdk/x/params/client/rest"
+	govclient "github.com/tendermint/classic/sdk/x/gov/client"
+	"github.com/tendermint/classic/sdk/x/params/client/cli"
+	"github.com/tendermint/classic/sdk/x/params/client/rest"
 )
 
 // param change proposal handler

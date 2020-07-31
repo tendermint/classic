@@ -1,8 +1,8 @@
 package types // noalias
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/supply/exported"
+	sdk "github.com/tendermint/classic/sdk/types"
+	"github.com/tendermint/classic/sdk/x/supply/exported"
 )
 
 // StakingKeeper defines the expected staking keeper
@@ -15,7 +15,7 @@ type StakingKeeper interface {
 type SupplyKeeper interface {
 	GetModuleAddress(name string) sdk.AccAddress
 
-	// TODO remove with genesis 2-phases refactor https://github.com/cosmos/cosmos-sdk/issues/2862
+	// TODO remove with genesis 2-phases refactor https://github.com/tendermint/classic/sdk/issues/2862
 	SetModuleAccount(sdk.Context, exported.ModuleAccountI)
 
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) sdk.Error

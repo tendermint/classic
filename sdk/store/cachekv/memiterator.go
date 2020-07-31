@@ -3,8 +3,8 @@ package cachekv
 import (
 	"container/list"
 
-	cmn "github.com/tendermint/tendermint/libs/common"
-	dbm "github.com/tendermint/tm-db"
+	cmn "github.com/tendermint/classic/libs/common"
+	dbm "github.com/tendermint/classic/db"
 )
 
 // Iterates over iterKVCache items.

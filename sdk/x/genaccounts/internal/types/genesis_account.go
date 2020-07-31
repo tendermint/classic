@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strings"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	"github.com/cosmos/cosmos-sdk/x/supply"
-	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	sdk "github.com/tendermint/classic/sdk/types"
+	"github.com/tendermint/classic/sdk/x/auth"
+	authexported "github.com/tendermint/classic/sdk/x/auth/exported"
+	"github.com/tendermint/classic/sdk/x/supply"
+	supplyexported "github.com/tendermint/classic/sdk/x/supply/exported"
 )
 
 // GenesisAccount is a struct for account initialization used exclusively during genesis

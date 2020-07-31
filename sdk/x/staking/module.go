@@ -7,18 +7,18 @@ import (
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/crypto"
+	abci "github.com/tendermint/classic/abci/types"
+	cfg "github.com/tendermint/classic/config"
+	"github.com/tendermint/classic/crypto"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/staking/client/cli"
-	"github.com/cosmos/cosmos-sdk/x/staking/client/rest"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/tendermint/classic/sdk/client/context"
+	"github.com/tendermint/classic/sdk/codec"
+	sdk "github.com/tendermint/classic/sdk/types"
+	"github.com/tendermint/classic/sdk/types/module"
+	authtypes "github.com/tendermint/classic/sdk/x/auth/types"
+	"github.com/tendermint/classic/sdk/x/staking/client/cli"
+	"github.com/tendermint/classic/sdk/x/staking/client/rest"
+	"github.com/tendermint/classic/sdk/x/staking/types"
 )
 
 var (

@@ -9,19 +9,19 @@ import (
 
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
-	abciServer "github.com/tendermint/tendermint/abci/server"
-	tcmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
-	"github.com/tendermint/tendermint/libs/cli"
-	"github.com/tendermint/tendermint/libs/log"
+	abciServer "github.com/tendermint/classic/abci/server"
+	tcmd "github.com/tendermint/classic/cmd/tendermint/commands"
+	"github.com/tendermint/classic/libs/cli"
+	"github.com/tendermint/classic/libs/log"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/server/mock"
-	"github.com/cosmos/cosmos-sdk/tests"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/genutil"
+	"github.com/tendermint/classic/sdk/client"
+	"github.com/tendermint/classic/sdk/codec"
+	"github.com/tendermint/classic/sdk/server"
+	"github.com/tendermint/classic/sdk/server/mock"
+	"github.com/tendermint/classic/sdk/tests"
+	sdk "github.com/tendermint/classic/sdk/types"
+	"github.com/tendermint/classic/sdk/types/module"
+	"github.com/tendermint/classic/sdk/x/genutil"
 )
 
 var testMbm = module.NewBasicManager(genutil.AppModuleBasic{})

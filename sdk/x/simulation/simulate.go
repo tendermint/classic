@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/tendermint/classic/abci/types"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/classic/sdk/baseapp"
+	sdk "github.com/tendermint/classic/sdk/types"
 )
 
 // AppStateFn returns the app state json bytes, the genesis accounts, and the chain identifier

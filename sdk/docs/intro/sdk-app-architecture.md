@@ -61,7 +61,7 @@ The main part of a Cosmos SDK application is a blockchain daemon that is run by 
 
 ## ABCI
 
-Tendermint passes transactions from the network to the application through an interface called the [ABCI](https://github.com/tendermint/tendermint/tree/master/abci), which the application must implement. 
+Tendermint passes transactions from the network to the application through an interface called the [ABCI](https://github.com/tendermint/classic/tree/master/abci), which the application must implement. 
 
 ```
 +---------------------+

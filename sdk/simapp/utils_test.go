@@ -9,20 +9,20 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	cmn "github.com/tendermint/tendermint/libs/common"
+	"github.com/tendermint/classic/sdk/codec"
+	"github.com/tendermint/classic/crypto/ed25519"
+	cmn "github.com/tendermint/classic/libs/common"
 
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/distribution"
-	distr "github.com/cosmos/cosmos-sdk/x/distribution"
-	"github.com/cosmos/cosmos-sdk/x/gov"
-	"github.com/cosmos/cosmos-sdk/x/mint"
-	"github.com/cosmos/cosmos-sdk/x/slashing"
-	"github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/cosmos/cosmos-sdk/x/supply"
+	"github.com/tendermint/classic/sdk/x/auth"
+	"github.com/tendermint/classic/sdk/x/distribution"
+	distr "github.com/tendermint/classic/sdk/x/distribution"
+	"github.com/tendermint/classic/sdk/x/gov"
+	"github.com/tendermint/classic/sdk/x/mint"
+	"github.com/tendermint/classic/sdk/x/slashing"
+	"github.com/tendermint/classic/sdk/x/staking"
+	"github.com/tendermint/classic/sdk/x/supply"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdk "github.com/tendermint/classic/sdk/types"
 )
 
 var (

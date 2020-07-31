@@ -1,7 +1,7 @@
 package proxy
 
 import (
-	"github.com/tendermint/tendermint/crypto/merkle"
+	"github.com/tendermint/classic/crypto/merkle"
 )
 
 func defaultProofRuntime() *merkle.ProofRuntime {

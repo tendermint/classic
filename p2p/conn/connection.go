@@ -16,9 +16,9 @@ import (
 	"github.com/pkg/errors"
 
 	amino "github.com/tendermint/go-amino"
-	cmn "github.com/tendermint/tendermint/libs/common"
-	flow "github.com/tendermint/tendermint/libs/flowrate"
-	"github.com/tendermint/tendermint/libs/log"
+	cmn "github.com/tendermint/classic/libs/common"
+	flow "github.com/tendermint/classic/libs/flowrate"
+	"github.com/tendermint/classic/libs/log"
 )
 
 const (
@@ -589,7 +589,7 @@ FOR_LOOP:
 		switch pkt := packet.(type) {
 		case PacketPing:
 			// TODO: prevent abuse, as they cause flush()'s.
-			// https://github.com/tendermint/tendermint/issues/1190
+			// https://github.com/tendermint/classic/issues/1190
 			c.Logger.Debug("Receive Ping")
 			select {
 			case c.pong <- struct{}{}:

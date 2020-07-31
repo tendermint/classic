@@ -3,9 +3,9 @@ package mock
 import (
 	"io"
 
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/tendermint/classic/db"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdk "github.com/tendermint/classic/sdk/types"
 )
 
 var _ sdk.MultiStore = multiStore{}

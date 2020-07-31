@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	v034gov "github.com/cosmos/cosmos-sdk/x/gov/legacy/v0_34"
+	"github.com/tendermint/classic/sdk/codec"
+	sdk "github.com/tendermint/classic/sdk/types"
+	v034gov "github.com/tendermint/classic/sdk/x/gov/legacy/v0_34"
 )
 
 const (

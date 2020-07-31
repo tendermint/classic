@@ -3,8 +3,8 @@ package mempool
 import (
 	"fmt"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/types"
+	abci "github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/classic/types"
 )
 
 // Mempool defines the mempool interface.

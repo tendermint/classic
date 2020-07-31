@@ -3,12 +3,12 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/distribution/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/tendermint/classic/sdk/codec"
+	sdk "github.com/tendermint/classic/sdk/types"
+	"github.com/tendermint/classic/sdk/x/distribution/types"
+	"github.com/tendermint/classic/sdk/x/params"
 
-	"github.com/tendermint/tendermint/libs/log"
+	"github.com/tendermint/classic/libs/log"
 )
 
 // Keeper of the distribution store

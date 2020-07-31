@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"time"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/common"
-	tmtypes "github.com/tendermint/tendermint/types"
+	abci "github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/classic/libs/common"
+	tmtypes "github.com/tendermint/classic/types"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	sdk "github.com/tendermint/classic/sdk/types"
+	"github.com/tendermint/classic/sdk/x/staking/keeper"
+	"github.com/tendermint/classic/sdk/x/staking/types"
 )
 
 func NewHandler(k keeper.Keeper) sdk.Handler {

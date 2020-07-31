@@ -5,13 +5,13 @@ import (
 
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
-	tcmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/libs/log"
+	tcmd "github.com/tendermint/classic/cmd/tendermint/commands"
+	cfg "github.com/tendermint/classic/config"
+	"github.com/tendermint/classic/crypto"
+	"github.com/tendermint/classic/libs/log"
 
-	"github.com/cosmos/cosmos-sdk/server"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/classic/sdk/server"
+	sdk "github.com/tendermint/classic/sdk/types"
 )
 
 func TestPrepareFlagsForTxCreateValidator(t *testing.T) {

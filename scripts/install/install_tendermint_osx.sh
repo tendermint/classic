@@ -5,7 +5,7 @@
 
 # as written, this script will install
 # tendermint core from master branch
-REPO=github.com/tendermint/tendermint
+REPO=github.com/tendermint/classic
 
 # change this to a specific release or branch
 BRANCH=master

@@ -6,13 +6,13 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/tendermint/tendermint/crypto/merkle"
-	cmn "github.com/tendermint/tendermint/libs/common"
-	"github.com/tendermint/tendermint/lite"
-	lerr "github.com/tendermint/tendermint/lite/errors"
-	rpcclient "github.com/tendermint/tendermint/rpc/client"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	"github.com/tendermint/tendermint/types"
+	"github.com/tendermint/classic/crypto/merkle"
+	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/classic/lite"
+	lerr "github.com/tendermint/classic/lite/errors"
+	rpcclient "github.com/tendermint/classic/rpc/client"
+	ctypes "github.com/tendermint/classic/rpc/core/types"
+	"github.com/tendermint/classic/types"
 )
 
 // GetWithProof will query the key on the given node, and verify it has

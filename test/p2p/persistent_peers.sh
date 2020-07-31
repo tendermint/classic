@@ -4,7 +4,7 @@ set -eu
 N=$1
 DOCKER_IMAGE=$2
 
-cd "$GOPATH/src/github.com/tendermint/tendermint"
+cd "$GOPATH/src/github.com/tendermint/classic"
 
 persistent_peers="$(test/p2p/ip_plus_id.sh 1 $DOCKER_IMAGE):26656"
 for i in $(seq 2 $N); do

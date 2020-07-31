@@ -5,5 +5,5 @@ Tendermint stack can be found at the [ecosystem page](https://tendermint.com/eco
 
 We thank the community for their contributions and welcome the
 addition of new projects. A pull request can be submitted to [this
-file](https://github.com/tendermint/tendermint/blob/master/docs/app-dev/ecosystem.json)
+file](https://github.com/tendermint/classic/blob/master/docs/app-dev/ecosystem.json)
 to include your project.

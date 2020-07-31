@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/tendermint/classic/sdk/x/params"
 )
 
 const (

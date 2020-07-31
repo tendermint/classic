@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"time"
 
-	cmn "github.com/tendermint/tendermint/libs/common"
-	"github.com/tendermint/tendermint/p2p"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	rpctypes "github.com/tendermint/tendermint/rpc/lib/types"
-	sm "github.com/tendermint/tendermint/state"
-	"github.com/tendermint/tendermint/types"
+	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/classic/p2p"
+	ctypes "github.com/tendermint/classic/rpc/core/types"
+	rpctypes "github.com/tendermint/classic/rpc/lib/types"
+	sm "github.com/tendermint/classic/state"
+	"github.com/tendermint/classic/types"
 )
 
 // Get Tendermint status including node info, pubkey, latest block

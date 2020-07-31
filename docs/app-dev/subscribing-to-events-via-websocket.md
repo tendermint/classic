@@ -4,7 +4,7 @@ Tendermint emits different events, to which you can subscribe via
 [Websocket](https://en.wikipedia.org/wiki/WebSocket). This can be useful
 for third-party applications (for analysis) or inspecting state.
 
-[List of events](https://godoc.org/github.com/tendermint/tendermint/types#pkg-constants)
+[List of events](https://godoc.org/github.com/tendermint/classic/types#pkg-constants)
 
 You can subscribe to any of the events above by calling `subscribe` RPC
 method via Websocket.

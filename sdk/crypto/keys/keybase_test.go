@@ -7,12 +7,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/classic/crypto"
+	"github.com/tendermint/classic/crypto/ed25519"
 
-	"github.com/cosmos/cosmos-sdk/crypto/keys/hd"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/mintkey"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/classic/sdk/crypto/keys/hd"
+	"github.com/tendermint/classic/sdk/crypto/keys/mintkey"
+	sdk "github.com/tendermint/classic/sdk/types"
 )
 
 func init() {

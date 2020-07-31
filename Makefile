@@ -9,7 +9,7 @@ OUTPUT?=build/tendermint
 
 INCLUDE = -I=. -I=${GOPATH}/src -I=${GOPATH}/src/github.com/gogo/protobuf/protobuf
 BUILD_TAGS?='tendermint'
-LD_FLAGS = -X github.com/tendermint/tendermint/version.GitCommit=`git rev-parse --short=8 HEAD` -s -w
+LD_FLAGS = -X github.com/tendermint/classic/version.GitCommit=`git rev-parse --short=8 HEAD` -s -w
 BUILD_FLAGS = -mod=readonly -ldflags "$(LD_FLAGS)"
 
 all: check build test install
@@ -97,7 +97,7 @@ go.sum: go.mod
 draw_deps:
 	@# requires brew install graphviz or apt-get install graphviz
 	go get github.com/RobotsAndPencils/goviz
-	@goviz -i github.com/tendermint/tendermint/cmd/tendermint -d 3 | dot -Tpng -o dependency-graph.png
+	@goviz -i github.com/tendermint/classic/cmd/tendermint -d 3 | dot -Tpng -o dependency-graph.png
 
 get_deps_bin_size:
 	@# Copy of build recipe with additional flags to perform binary size analysis

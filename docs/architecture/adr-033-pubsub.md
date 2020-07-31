@@ -241,7 +241,7 @@ In review
 ### Neutral
 
 
-[#951]: https://github.com/tendermint/tendermint/issues/951
-[#1879]: https://github.com/tendermint/tendermint/issues/1879
-[#1880]: https://github.com/tendermint/tendermint/issues/1880
-[#2826]: https://github.com/tendermint/tendermint/issues/2826
+[#951]: https://github.com/tendermint/classic/issues/951
+[#1879]: https://github.com/tendermint/classic/issues/1879
+[#1880]: https://github.com/tendermint/classic/issues/1880
+[#2826]: https://github.com/tendermint/classic/issues/2826

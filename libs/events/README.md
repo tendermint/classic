@@ -1,7 +1,7 @@
 
 
 # events
-`import "github.com/tendermint/tendermint/libs/events"`
+`import "github.com/tendermint/classic/libs/events"`
 
 * [Overview](#pkg-overview)
 * [Index](#pkg-index)
@@ -26,7 +26,7 @@ Pub-Sub in go with event caching
 
 
 #### <a name="pkg-files">Package files</a>
-[event_cache.go](/src/github.com/tendermint/tendermint/libs/events/event_cache.go) [events.go](/src/github.com/tendermint/tendermint/libs/events/events.go) 
+[event_cache.go](/src/github.com/tendermint/classic/libs/events/event_cache.go) [events.go](/src/github.com/tendermint/classic/libs/events/events.go) 
 
 
 

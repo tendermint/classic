@@ -6,7 +6,7 @@ The documentation for Tendermint Core is hosted at:
 - https://tendermint-staging.interblock.io/docs/
 
 built from the files in this (`/docs`) directory for
-[master](https://github.com/tendermint/tendermint/tree/master/docs) respectively.
+[master](https://github.com/tendermint/classic/tree/master/docs) respectively.
 
 ## How It Works
 
@@ -99,4 +99,4 @@ We are using [Algolia](https://www.algolia.com) to power full-text search. This 
 ## Consistency
 
 Because the build processes are identical (as is the information contained herein), this file should be kept in sync as
-much as possible with its [counterpart in the Cosmos SDK repo](https://github.com/cosmos/cosmos-sdk/blob/master/docs/DOCS_README.md).
+much as possible with its [counterpart in the Cosmos SDK repo](https://github.com/tendermint/classic/sdk/blob/master/docs/DOCS_README.md).

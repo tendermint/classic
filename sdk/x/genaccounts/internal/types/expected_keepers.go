@@ -1,8 +1,8 @@
 package types
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	sdk "github.com/tendermint/classic/sdk/types"
+	authexported "github.com/tendermint/classic/sdk/x/auth/exported"
 )
 
 // AccountKeeper defines the expected account keeper (noalias)

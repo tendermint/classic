@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tendermint/tendermint/libs/log"
+	"github.com/tendermint/classic/libs/log"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/exported"
-	"github.com/cosmos/cosmos-sdk/x/bank/internal/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	sdk "github.com/tendermint/classic/sdk/types"
+	"github.com/tendermint/classic/sdk/x/auth/exported"
+	"github.com/tendermint/classic/sdk/x/bank/internal/types"
+	"github.com/tendermint/classic/sdk/x/params"
 )
 
 var _ Keeper = (*BaseKeeper)(nil)

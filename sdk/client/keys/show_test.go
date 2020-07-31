@@ -6,14 +6,14 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/multisig"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
+	"github.com/tendermint/classic/crypto"
+	"github.com/tendermint/classic/crypto/multisig"
+	"github.com/tendermint/classic/crypto/secp256k1"
 
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/crypto/keys"
-	"github.com/cosmos/cosmos-sdk/tests"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/classic/sdk/client/flags"
+	"github.com/tendermint/classic/sdk/crypto/keys"
+	"github.com/tendermint/classic/sdk/tests"
+	sdk "github.com/tendermint/classic/sdk/types"
 )
 
 func Test_multiSigKey_Properties(t *testing.T) {

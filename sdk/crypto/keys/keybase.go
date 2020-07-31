@@ -9,18 +9,18 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/cosmos/cosmos-sdk/crypto"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/hd"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/keyerror"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/mintkey"
-	"github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/classic/sdk/crypto"
+	"github.com/tendermint/classic/sdk/crypto/keys/hd"
+	"github.com/tendermint/classic/sdk/crypto/keys/keyerror"
+	"github.com/tendermint/classic/sdk/crypto/keys/mintkey"
+	"github.com/tendermint/classic/sdk/types"
 
 	bip39 "github.com/cosmos/go-bip39"
 
-	tmcrypto "github.com/tendermint/tendermint/crypto"
-	cryptoAmino "github.com/tendermint/tendermint/crypto/encoding/amino"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
-	dbm "github.com/tendermint/tm-db"
+	tmcrypto "github.com/tendermint/classic/crypto"
+	cryptoAmino "github.com/tendermint/classic/crypto/encoding/amino"
+	"github.com/tendermint/classic/crypto/secp256k1"
+	dbm "github.com/tendermint/classic/db"
 )
 
 var _ Keybase = dbKeybase{}

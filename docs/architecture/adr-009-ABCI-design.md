@@ -264,8 +264,8 @@ Accepted.
 - [Ed25519 addresses](https://github.com/tendermint/go-crypto/issues/103)
 - [InitChain contains the
   Genesis](https://github.com/tendermint/abci/issues/216)
-- [PubKeys](https://github.com/tendermint/tendermint/issues/1524)
+- [PubKeys](https://github.com/tendermint/classic/issues/1524)
 - [Notes on
-  Header](https://github.com/tendermint/tendermint/issues/1605)
+  Header](https://github.com/tendermint/classic/issues/1605)
 - [Gogoproto issues](https://github.com/tendermint/abci/issues/256)
 - [Absent Validators](https://github.com/tendermint/abci/issues/231)

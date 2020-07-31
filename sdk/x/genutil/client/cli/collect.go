@@ -6,14 +6,14 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/tendermint/tendermint/libs/cli"
-	tmtypes "github.com/tendermint/tendermint/types"
+	"github.com/tendermint/classic/libs/cli"
+	tmtypes "github.com/tendermint/classic/types"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/x/genutil"
-	"github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/tendermint/classic/sdk/client"
+	"github.com/tendermint/classic/sdk/codec"
+	"github.com/tendermint/classic/sdk/server"
+	"github.com/tendermint/classic/sdk/x/genutil"
+	"github.com/tendermint/classic/sdk/x/genutil/types"
 )
 
 const flagGenTxDir = "gentx-dir"

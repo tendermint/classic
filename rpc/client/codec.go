@@ -2,7 +2,7 @@ package client
 
 import (
 	amino "github.com/tendermint/go-amino"
-	"github.com/tendermint/tendermint/types"
+	"github.com/tendermint/classic/types"
 )
 
 var cdc = amino.NewCodec()

@@ -6,16 +6,16 @@ import (
 
 	"github.com/pkg/errors"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/crypto/merkle"
-	cmn "github.com/tendermint/tendermint/libs/common"
-	tmliteErr "github.com/tendermint/tendermint/lite/errors"
-	tmliteProxy "github.com/tendermint/tendermint/lite/proxy"
-	rpcclient "github.com/tendermint/tendermint/rpc/client"
-	tmtypes "github.com/tendermint/tendermint/types"
+	abci "github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/classic/crypto/merkle"
+	cmn "github.com/tendermint/classic/libs/common"
+	tmliteErr "github.com/tendermint/classic/lite/errors"
+	tmliteProxy "github.com/tendermint/classic/lite/proxy"
+	rpcclient "github.com/tendermint/classic/rpc/client"
+	tmtypes "github.com/tendermint/classic/types"
 
-	"github.com/cosmos/cosmos-sdk/store/rootmulti"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/classic/sdk/store/rootmulti"
+	sdk "github.com/tendermint/classic/sdk/types"
 )
 
 // GetNode returns an RPC client. If the context's client is not defined, an

@@ -9,13 +9,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	db "github.com/tendermint/tm-db"
+	db "github.com/tendermint/classic/db"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	cmn "github.com/tendermint/tendermint/libs/common"
-	"github.com/tendermint/tendermint/libs/pubsub/query"
-	"github.com/tendermint/tendermint/state/txindex"
-	"github.com/tendermint/tendermint/types"
+	abci "github.com/tendermint/classic/abci/types"
+	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/classic/libs/pubsub/query"
+	"github.com/tendermint/classic/state/txindex"
+	"github.com/tendermint/classic/types"
 )
 
 func TestTxIndex(t *testing.T) {
@@ -257,7 +257,7 @@ func TestTxSearchMultipleTxs(t *testing.T) {
 	require.NoError(t, err)
 
 	// indexed fourth (to test we don't include txs with similar tags)
-	// https://github.com/tendermint/tendermint/issues/2908
+	// https://github.com/tendermint/classic/issues/2908
 	txResult4 := txResultWithEvents([]abci.Event{
 		{Type: "account", Attributes: []cmn.KVPair{{Key: []byte("number.id"), Value: []byte("1")}}},
 	})

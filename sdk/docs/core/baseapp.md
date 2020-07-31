@@ -56,9 +56,9 @@ Extending the application with `baseapp` gives the former access to all of `base
 
 ## Type Definition
 
-The [`baseapp` type](https://github.com/cosmos/cosmos-sdk/blob/master/baseapp/baseapp.go#L45-L91) holds many important parameters for any Cosmos SDK based application. Let us go through the most important components.
+The [`baseapp` type](https://github.com/tendermint/classic/sdk/blob/master/baseapp/baseapp.go#L45-L91) holds many important parameters for any Cosmos SDK based application. Let us go through the most important components.
 
-*Note: Not all parameters are described, only the most important ones. Refer to the [type definition](https://github.com/cosmos/cosmos-sdk/blob/master/baseapp/baseapp.go#L45-L91) for the full list* 
+*Note: Not all parameters are described, only the most important ones. Refer to the [type definition](https://github.com/tendermint/classic/sdk/blob/master/baseapp/baseapp.go#L45-L91) for the full list* 
 
 First, the important parameters that are initialized during the initialization of the application:
 
@@ -66,7 +66,7 @@ First, the important parameters that are initialized during the initialization o
 - [Database](./store.md#database): The `db` is used by the `CommitMultiStore` to handle data storage.
 - [Router](#message-routing): The `router` facilitates the routing of [`messages`](./tx-msgs.md) to the appropriate module for it to be processed. Here `message` refers to the transaction components that need to be processed by the application in order to update the state, and not to ABCI messages which implement the interface between the application and the underlying consensus engine. 
 - [Query Router](#query-routing): The `query router` facilitates the routing of [queries](./querier.md) to the appropriate module for it to be processed. These `queries` are not ABCI messages themselves, but they are relayed to the application from the underlying consensus engine via the ABCI message [`Query`](#query).
-- [`TxDecoder`](https://godoc.org/github.com/cosmos/cosmos-sdk/types#TxDecoder): It is used to decode transaction `[]byte` relayed by the underlying Tendermint engine.
+- [`TxDecoder`](https://godoc.org/github.com/tendermint/classic/sdk/types#TxDecoder): It is used to decode transaction `[]byte` relayed by the underlying Tendermint engine.
 - [`BaseKey`]: This key is used to access the [main store](./store.md#main-store) in the `CommitMultiStore`. The main store is used to persist data related to the core of the application, like consensus parameters.  
 - [`AnteHandler`](#antehandler): This handler is used to handle signature verification and fee payment when a transaction is received.
 - [`initChainer`](../basics/app-anatomy.md#initchainer), [`beginBlocker` and `endBlocker`](../basics/app-anatomy.md#beginblocker-and-endblocker): These  are the functions executed when the application receives the [InitChain], [BeginBlock] and [EndBlock] ABCI messages from the underlying Tendermint engine. 
@@ -86,9 +86,9 @@ Finally, a few more important parameters:
 
 `NewBaseApp(name string, logger log.Logger, db dbm.DB, txDecoder sdk.TxDecoder, options ...func(*BaseApp),)` is the constructor function for `baseapp`. It is called from the [application's constructor function](../basics/app-anatomy.md#constructor-function) each time the full-node is started. 
 
-`baseapp`'s constructor function is pretty straightforward. The only thing worth noting is the possibility to add additional [`options`](https://github.com/cosmos/cosmos-sdk/blob/master/baseapp/options.go) to `baseapp` by passing `options functions` to the constructor function, which will execute them in order. `options` are generally `setter` functions for important parameters, like `SetPruning()` to active pruning or `SetMinGasPrices()` to set the node's `min-gas-prices`. 
+`baseapp`'s constructor function is pretty straightforward. The only thing worth noting is the possibility to add additional [`options`](https://github.com/tendermint/classic/sdk/blob/master/baseapp/options.go) to `baseapp` by passing `options functions` to the constructor function, which will execute them in order. `options` are generally `setter` functions for important parameters, like `SetPruning()` to active pruning or `SetMinGasPrices()` to set the node's `min-gas-prices`. 
 
-A list of `options` examples can be found [here](https://github.com/cosmos/cosmos-sdk/blob/master/baseapp/options.go). Naturally, developers can add additional `options` based on their application's needs. 
+A list of `options` examples can be found [here](https://github.com/tendermint/classic/sdk/blob/master/baseapp/options.go). Naturally, developers can add additional `options` based on their application's needs. 
 
 ## States 
 
@@ -164,9 +164,9 @@ Volatile - or cached - states are used in between [`Commit`s](#commit) to manage
 - `checkState`: This cached state is initialized during [`InitChain`](#initchain), updated during [`CheckTx`](#abci-checktx) when an unconfirmed transaction is received, and reset to the [main state](#main-state) on [`Commit`](#abci-commit). 
 - `deliverState`: This cached state is initialized during [`BeginBlock`](#beginblock), updated during [`DeliverTx`](#abci-delivertx) when a transaction included in a block is processed, and reset to the [main state](#main-state) on [`Commit`](#abci-commit).
 
-Both `checkState` and `deliverState` are of type [`state`](https://github.com/cosmos/cosmos-sdk/blob/master/baseapp/baseapp.go#L973-L976), which includes:
+Both `checkState` and `deliverState` are of type [`state`](https://github.com/tendermint/classic/sdk/blob/master/baseapp/baseapp.go#L973-L976), which includes:
 
-- A [`CacheMultiStore`](https://github.com/cosmos/cosmos-sdk/blob/master/store/cachemulti/store.go), which is a cached version of the main `CommitMultiStore`. A new version of this store is committed at the end of each successful `CheckTx()`/`DeliverTx()` execution. 
+- A [`CacheMultiStore`](https://github.com/tendermint/classic/sdk/blob/master/store/cachemulti/store.go), which is a cached version of the main `CommitMultiStore`. A new version of this store is committed at the end of each successful `CheckTx()`/`DeliverTx()` execution. 
 - A [`Context`](./context.md), which carries general information (like raw transaction size, block height, ...) that might be needed in order to process the transaction during `CheckTx()` and `DeliverTx()`. The `context` also holds a cache-wrapped version of the `CacheMultiStore`, so that the `CacheMultiStore` can maintain the correct version even if an internal step of `CheckTx()` or `DeliverTx()` fails. 
 
 ## Routing
@@ -175,13 +175,13 @@ When messages and queries are received by the application, they must be routed t
 
 ### Message Routing
 
-[`Message`s](../building-modules/messages.md) need to be routed after they are extracted from transactions, which are sent from the underlying Tendermint engine via the [`CheckTx`](#checktx) and [`DeliverTx`](#delivertx) ABCI messages. To do so, `baseapp` holds a [`router`](https://github.com/cosmos/cosmos-sdk/blob/master/baseapp/router.go) which maps `paths` (`string`) to the appropriate module [`handler`](./handler.md). Usually, the `path` is the name of the module.
+[`Message`s](../building-modules/messages.md) need to be routed after they are extracted from transactions, which are sent from the underlying Tendermint engine via the [`CheckTx`](#checktx) and [`DeliverTx`](#delivertx) ABCI messages. To do so, `baseapp` holds a [`router`](https://github.com/tendermint/classic/sdk/blob/master/baseapp/router.go) which maps `paths` (`string`) to the appropriate module [`handler`](./handler.md). Usually, the `path` is the name of the module.
 
 The application's `router` is initilalized with all the routes using the application's [module manager](./modules.md#module-manager), which itself is initialized with all the application's modules in the application's [constructor](../basics/app-anatomy.md#app-constructor). 
 
 ### Query Routing
 
-Similar to messages, queries need to be routed to the appropriate module's [querier](./querier.md). To do so, `baseapp` holds a [`query router`](https://github.com/cosmos/cosmos-sdk/blob/master/baseapp/queryrouter.go), which maps `paths` (`string`) to the appropriate module [`querier`](./querier.md). Usually, the `path` is the name of the module. 
+Similar to messages, queries need to be routed to the appropriate module's [querier](./querier.md). To do so, `baseapp` holds a [`query router`](https://github.com/tendermint/classic/sdk/blob/master/baseapp/queryrouter.go), which maps `paths` (`string`) to the appropriate module [`querier`](./querier.md). Usually, the `path` is the name of the module. 
 
 Just like the `router`, the `query router` is initilalized with all the query routes using the application's [module manager](./modules.md#module-manager), which itself is initialized with all the application's modules in the application's [constructor](../basics/app-anatomy.md#app-constructor).
 
@@ -218,7 +218,7 @@ Steps 2. and 3. are  performed by the [`anteHandler`](./accounts-fees-gas.md#ant
 - `Log (string):` The output of the application's logger. May be non-deterministic.
 - `Info (string):` Additional information. May be non-deterministic.
 - `GasWanted (int64)`: Amount of gas requested for transaction. It is provided by users when they generate the transaction. 
-- `GasUsed (int64)`: Amount of gas consumed by transaction. During `CheckTx`, this value is computed by multiplying the standard cost of a transaction byte by the size of the raw transaction (click [here](https://github.com/cosmos/cosmos-sdk/blob/master/x/auth/ante.go#L101) for an example). 
+- `GasUsed (int64)`: Amount of gas consumed by transaction. During `CheckTx`, this value is computed by multiplying the standard cost of a transaction byte by the size of the raw transaction (click [here](https://github.com/tendermint/classic/sdk/blob/master/x/auth/ante.go#L101) for an example). 
 - `Tags ([]cmn.KVPair)`: Key-Value tags for filtering and indexing transactions (eg. by account).
 - `Codespace (string)`: Namespace for the Code.
 
@@ -233,7 +233,7 @@ Before the first transaction of a given block is processed, a [volatile state](#
 3. The `anteHandler` does **not** check that the transaction's `gas-prices` is sufficient. That is because the `min-gas-prices` value `gas-prices` is checked against is local to the node, and therefore what is enough for one full-node might not be for another. This means that the proposer can potentially include transactions for free, although they are not incentivised to do so, as they earn a bonus on the total fee of the block they propose. 
 5. For each `message` in the transaction, route to the appropriate module's [`handler`](../building-modules/handler.md). Additional *stateful* checks are performed, and the cache-wrapped multistore held in `deliverState`'s `context` is updated by the module's `keeper`. If the `handler` returns successfully, the cache-wrapped multistore held in `context` is written to `deliverState` `CacheMultiStore`. 
 
-During step 5., each read/write to the store increases the value of `GasConsumed`. You can find the default cost of each operation [here](https://github.com/cosmos/cosmos-sdk/blob/master/store/types/gas.go#L142-L150). At any point, if `GasConsumed > GasWanted`, the function returns with `Code != 0` and `DeliverTx()` fails. 
+During step 5., each read/write to the store increases the value of `GasConsumed`. You can find the default cost of each operation [here](https://github.com/tendermint/classic/sdk/blob/master/store/types/gas.go#L142-L150). At any point, if `GasConsumed > GasWanted`, the function returns with `Code != 0` and `DeliverTx()` fails. 
 
 `DeliverTx()` returns a response to the underlying consensus engine of type [`abci.ResponseCheckTx`](https://tendermint.com/docs/spec/abci/abci.html#messages). The response contains:
 
@@ -242,7 +242,7 @@ During step 5., each read/write to the store increases the value of `GasConsumed
 - `Log (string):` The output of the application's logger. May be non-deterministic.
 - `Info (string):` Additional information. May be non-deterministic.
 - `GasWanted (int64)`: Amount of gas requested for transaction. It is provided by users when they generate the transaction. 
-- `GasUsed (int64)`: Amount of gas consumed by transaction. During `DeliverTx`, this value is computed by multiplying the standard cost of a transaction byte by the size of the raw transaction (click [here](https://github.com/cosmos/cosmos-sdk/blob/master/x/auth/ante.go#L101) for an example), and by adding gas each time a read/write to the store occurs. 
+- `GasUsed (int64)`: Amount of gas consumed by transaction. During `DeliverTx`, this value is computed by multiplying the standard cost of a transaction byte by the size of the raw transaction (click [here](https://github.com/tendermint/classic/sdk/blob/master/x/auth/ante.go#L101) for an example), and by adding gas each time a read/write to the store occurs. 
 - `Tags ([]cmn.KVPair)`: Key-Value tags for filtering and indexing transactions (eg. by account).
 - `Codespace (string)`: Namespace for the Code.
 
@@ -256,13 +256,13 @@ The first thing `RunTx()` does upon being called is to retrieve the `context`'s 
 
 After that, `RunTx()` calls `ValidateBasic()` on each `message`in the `Tx`, which runs prelimary *stateless* validity checks. If any `message` fails to pass `ValidateBasic()`, `RunTx()` returns with an error. 
 
-Then, the [`anteHandler`](#antehandler) of the application is run (if it exists). In preparation of this step, both the `checkState`/`deliverState`'s `context` and `context`'s `CacheMultiStore` are cached-wrapped using the [`cacheTxContext()`](https://github.com/cosmos/cosmos-sdk/blob/master/baseapp/baseapp.go#L781-L798) function. This allows `RunTx()` not to commit the changes made to the state during the execution of `anteHandler` if it ends up failing. It also prevents the module implementing the `anteHandler` from writing to state, which is an important part of the [object-capabilities](./ocap.md) of the Cosmos SDK. 
+Then, the [`anteHandler`](#antehandler) of the application is run (if it exists). In preparation of this step, both the `checkState`/`deliverState`'s `context` and `context`'s `CacheMultiStore` are cached-wrapped using the [`cacheTxContext()`](https://github.com/tendermint/classic/sdk/blob/master/baseapp/baseapp.go#L781-L798) function. This allows `RunTx()` not to commit the changes made to the state during the execution of `anteHandler` if it ends up failing. It also prevents the module implementing the `anteHandler` from writing to state, which is an important part of the [object-capabilities](./ocap.md) of the Cosmos SDK. 
 
 Finally, the [`RunMsgs()`](#runmsgs()) function is called to process the `messages`s in the `Tx`. In preparation of this step, just like with the `anteHandler`, both the `checkState`/`deliverState`'s `context` and `context`'s `CacheMultiStore` are cached-wrapped using the `cacheTxContext()` function.
 
 ### AnteHandler
 
-The `AnteHandler` is a special handler that implements the [`anteHandler` interface](https://github.com/cosmos/cosmos-sdk/blob/master/types/handler.go#L8) and is used to authenticate the transaction before the transaction's internal messages are processed.
+The `AnteHandler` is a special handler that implements the [`anteHandler` interface](https://github.com/tendermint/classic/sdk/blob/master/types/handler.go#L8) and is used to authenticate the transaction before the transaction's internal messages are processed.
 
 The `AnteHandler` is theoretically optional, but still a very important component of public blockchain networks. It serves 3 primary purposes:
 
@@ -270,7 +270,7 @@ The `AnteHandler` is theoretically optional, but still a very important componen
 - Perform preliminary *stateful* validity checks like ensuring signatures are valid or that the sender has enough funds to pay for fees. 
 - Play a role in the incentivisation of stakeholders via the collection of transaction fees. 
 
-`baseapp` holds an `anteHandler` as parameter, which is initialized in the [application's constructor](../basics/app-anatomy.md#application-constructor). The most widely used `anteHandler` today is that of the [`auth` module](https://github.com/cosmos/cosmos-sdk/blob/master/x/auth/ante.go).
+`baseapp` holds an `anteHandler` as parameter, which is initialized in the [application's constructor](../basics/app-anatomy.md#application-constructor). The most widely used `anteHandler` today is that of the [`auth` module](https://github.com/tendermint/classic/sdk/blob/master/x/auth/ante.go).
 
 ### RunMsgs()
 
@@ -294,7 +294,7 @@ Finally, the `InitChain(req abci.RequestInitChain)` method of `baseapp` calls th
 
 The [`BeginBlock` ABCI message](#https://tendermint.com/docs/app-dev/abci-spec.html#beginblock) is sent from the underlying Tendermint engine when a block proposal created by the correct proposer is received, before [`DeliverTx()`](#delivertx) is run for each transaction in the block. It allows developers to have logic be executed at the beginning of each block. In the Cosmos SDK, the `BeginBlock(req abci.RequestBeginBlock)` method does the following:
 
-- Initialize [`deliverState`](#volatile-states) with the latest header using the `req abci.RequestBeginBlock` passed as parameter via the [`setDeliverState`](https://github.com/cosmos/cosmos-sdk/blob/master/baseapp/baseapp.go#L283-L289) function. 
+- Initialize [`deliverState`](#volatile-states) with the latest header using the `req abci.RequestBeginBlock` passed as parameter via the [`setDeliverState`](https://github.com/tendermint/classic/sdk/blob/master/baseapp/baseapp.go#L283-L289) function. 
 - Initialize the [block gas meter](../basics/accounts-fees-gas.md#block-gas-meter) with the `maxGas` limit. The `gas` consumed within the block cannot go above `maxGas`. This parameter is defined in the application's consensus parameters. 
 - Run the application's [`begingBlocker()`](../basics/app-anatomy.md#beginblocker-and-endblock), which mainly runs the `BeginBlocker()` method of each of the application's modules.
 - Set the [`VoteInfos`](https://tendermint.com/docs/app-dev/abci-spec.html#voteinfo) of the application, i.e. the list of validators whose *precommit* for the previous block was included by the proposer of the current block. This information is carried into the [`Context`](./context.md) so that it can be used during `DeliverTx` and `EndBlock`.

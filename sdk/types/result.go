@@ -7,9 +7,9 @@ import (
 	"math"
 	"strings"
 
-	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/tendermint/classic/sdk/codec"
 
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
+	ctypes "github.com/tendermint/classic/rpc/core/types"
 )
 
 // Result is the union of ResponseFormat and ResponseCheckTx.

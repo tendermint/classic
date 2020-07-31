@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/cosmos/cosmos-sdk/store/types"
+	"github.com/tendermint/classic/sdk/store/types"
 )
 
 const (

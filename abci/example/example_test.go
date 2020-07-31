@@ -13,14 +13,14 @@ import (
 
 	"golang.org/x/net/context"
 
-	cmn "github.com/tendermint/tendermint/libs/common"
-	"github.com/tendermint/tendermint/libs/log"
+	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/classic/libs/log"
 
-	abcicli "github.com/tendermint/tendermint/abci/client"
-	"github.com/tendermint/tendermint/abci/example/code"
-	"github.com/tendermint/tendermint/abci/example/kvstore"
-	abciserver "github.com/tendermint/tendermint/abci/server"
-	"github.com/tendermint/tendermint/abci/types"
+	abcicli "github.com/tendermint/classic/abci/client"
+	"github.com/tendermint/classic/abci/example/code"
+	"github.com/tendermint/classic/abci/example/kvstore"
+	abciserver "github.com/tendermint/classic/abci/server"
+	"github.com/tendermint/classic/abci/types"
 )
 
 func TestKVStore(t *testing.T) {

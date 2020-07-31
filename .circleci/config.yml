@@ -4,7 +4,7 @@ executors:
   golang:
     docker:
       - image: tendermintdev/docker-tendermint-build
-    working_directory: /go/src/github.com/tendermint/tendermint
+    working_directory: /go/src/github.com/tendermint/classic
     environment:
       GOBIN: /tmp/bin
   release:
@@ -80,7 +80,7 @@ jobs:
           script_path: abci/tests/test_app/test.sh
 
   # if this test fails, fix it and update the docs at:
-  # https://github.com/tendermint/tendermint/blob/develop/docs/abci-cli.md
+  # https://github.com/tendermint/classic/blob/develop/docs/abci-cli.md
   test_abci_cli:
     executor: golang
     steps:
@@ -118,7 +118,7 @@ jobs:
             export VERSION="$(git describe --tags --long | sed 's/v\(.*\)/\1/')"
             export GO111MODULE=on
             mkdir -p /tmp/logs /tmp/workspace/profiles
-            for pkg in $(go list github.com/tendermint/tendermint/... | circleci tests split --split-by=timings); do
+            for pkg in $(go list github.com/tendermint/classic/... | circleci tests split --split-by=timings); do
               id=$(basename "$pkg")
               go test -v -timeout 5m -mod=readonly -race -coverprofile=/tmp/workspace/profiles/$id.out -covermode=atomic "$pkg" | tee "/tmp/logs/$id-$RANDOM.log"
             done
@@ -130,7 +130,7 @@ jobs:
           path: /tmp/logs
 
   localnet:
-    working_directory: /home/circleci/.go_workspace/src/github.com/tendermint/tendermint
+    working_directory: /home/circleci/.go_workspace/src/github.com/tendermint/classic
     machine:
       image: circleci/classic:latest
     environment:
@@ -145,7 +145,7 @@ jobs:
           name: run localnet and exit on failure
           command: |
             set -x
-            docker run --rm -v "$PWD":/go/src/github.com/tendermint/tendermint -w /go/src/github.com/tendermint/tendermint golang make build-linux
+            docker run --rm -v "$PWD":/go/src/github.com/tendermint/classic -w /go/src/github.com/tendermint/classic golang make build-linux
             make localnet-start &
             ./scripts/localnet-blocks-test.sh 40 5 10 localhost
 
@@ -158,7 +158,7 @@ jobs:
     steps:
       - checkout
       - run: mkdir -p $GOPATH/src/github.com/tendermint
-      - run: ln -sf /home/circleci/project $GOPATH/src/github.com/tendermint/tendermint
+      - run: ln -sf /home/circleci/project $GOPATH/src/github.com/tendermint/classic
       - run: bash test/p2p/circleci.sh
       - store_artifacts:
           path: /home/circleci/project/test/p2p/logs
@@ -356,17 +356,17 @@ jobs:
               rm -rf gitian-build-${os}/
             done
       - store_artifacts:
-          path: /go/src/github.com/tendermint/tendermint/tendermint-darwin-res.yml
+          path: /go/src/github.com/tendermint/classic/tendermint-darwin-res.yml
       - store_artifacts:
-          path: /go/src/github.com/tendermint/tendermint/tendermint-linux-res.yml
+          path: /go/src/github.com/tendermint/classic/tendermint-linux-res.yml
       - store_artifacts:
-          path: /go/src/github.com/tendermint/tendermint/tendermint-windows-res.yml
+          path: /go/src/github.com/tendermint/classic/tendermint-windows-res.yml
       - store_artifacts:
-          path: /go/src/github.com/tendermint/tendermint/tendermint-*.tar.gz
+          path: /go/src/github.com/tendermint/classic/tendermint-*.tar.gz
 
   # Test RPC implementation against the swagger documented specs
   contract_tests:
-    working_directory: /home/circleci/.go_workspace/src/github.com/tendermint/tendermint
+    working_directory: /home/circleci/.go_workspace/src/github.com/tendermint/classic
     machine:
       image: circleci/classic:latest
     environment:
@@ -387,7 +387,7 @@ jobs:
             ./scripts/get_nodejs.sh
 
             # build the binaries with a proper version of Go
-            docker run --rm -v "$PWD":/go/src/github.com/tendermint/tendermint -w /go/src/github.com/tendermint/tendermint golang make build-linux build-contract-tests-hooks
+            docker run --rm -v "$PWD":/go/src/github.com/tendermint/classic -w /go/src/github.com/tendermint/classic golang make build-linux build-contract-tests-hooks
 
             # This docker image works with go 1.7, we can install here the hook handler that contract-tests is going to use
             go get github.com/snikch/goodman/cmd/goodman

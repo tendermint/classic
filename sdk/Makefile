@@ -7,7 +7,6 @@ COMMIT := $(shell git log -1 --format='%H')
 LEDGER_ENABLED ?= true
 BINDIR ?= $(GOPATH)/bin
 SIMAPP = ./simapp
-MOCKS_DIR = $(CURDIR)/tests/mocks
 
 export GO111MODULE = on
 
@@ -32,13 +31,6 @@ update-swagger-docs: statik
     	echo "\033[92mSwagger docs are in sync\033[0m";\
     fi
 .PHONY: update-swagger-docs
-
-mocks: $(MOCKS_DIR)
-	mockgen -source=x/auth/types/account_retriever.go -package mocks -destination tests/mocks/account_retriever.go
-.PHONY: mocks
-
-$(MOCKS_DIR):
-	mkdir -p $(MOCKS_DIR)
 
 ########################################
 ### Tools & dependencies
@@ -65,7 +57,7 @@ distclean:
 ### Documentation
 
 godocs:
-	@echo "--> Wait a few seconds and visit http://localhost:6060/pkg/github.com/cosmos/cosmos-sdk/types"
+	@echo "--> Wait a few seconds and visit http://localhost:6060/pkg/github.com/tendermint/classic/sdk/types"
 	godoc -http=:6060
 
 ########################################
@@ -74,10 +66,10 @@ godocs:
 test: test_unit
 
 test_ledger_mock:
-	@go test -mod=readonly `go list github.com/cosmos/cosmos-sdk/crypto` -tags='cgo ledger test_ledger_mock'
+	@go test -mod=readonly `go list github.com/tendermint/classic/sdk/crypto` -tags='cgo ledger test_ledger_mock'
 
 test_ledger: test_ledger_mock
-	@go test -mod=readonly -v `go list github.com/cosmos/cosmos-sdk/crypto` -tags='cgo ledger'
+	@go test -mod=readonly -v `go list github.com/tendermint/classic/sdk/crypto` -tags='cgo ledger'
 
 test_unit:
 	@VERSION=$(VERSION) go test -mod=readonly $(PACKAGES_NOSIMULATION) -tags='ledger test_ledger_mock'
@@ -159,7 +151,7 @@ lint: golangci-lint
 format: tools
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs gofmt -w -s
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs misspell -w
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs goimports -w -local github.com/cosmos/cosmos-sdk
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs goimports -w -local github.com/tendermint/classic/sdk
 .PHONY: format
 
 benchmark:
@@ -172,12 +164,12 @@ benchmark:
 DEVDOC_SAVE = docker commit `docker ps -a -n 1 -q` devdoc:local
 
 devdoc_init:
-	docker run -it -v "$(CURDIR):/go/src/github.com/cosmos/cosmos-sdk" -w "/go/src/github.com/cosmos/cosmos-sdk" tendermint/devdoc echo
+	docker run -it -v "$(CURDIR):/go/src/github.com/tendermint/classic/sdk" -w "/go/src/github.com/tendermint/classic/sdk" tendermint/devdoc echo
 	# TODO make this safer
 	$(call DEVDOC_SAVE)
 
 devdoc:
-	docker run -it -v "$(CURDIR):/go/src/github.com/cosmos/cosmos-sdk" -w "/go/src/github.com/cosmos/cosmos-sdk" devdoc:local bash
+	docker run -it -v "$(CURDIR):/go/src/github.com/tendermint/classic/sdk" -w "/go/src/github.com/tendermint/classic/sdk" devdoc:local bash
 
 devdoc_save:
 	# TODO make this safer

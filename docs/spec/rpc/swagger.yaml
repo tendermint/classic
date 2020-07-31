@@ -5,7 +5,7 @@ info:
   description: A REST interface for state queries, transaction generation and broadcasting.
   license:
     name: Apache 2.0
-    url: https://github.com/tendermint/tendermint/blob/master/LICENSE
+    url: https://github.com/tendermint/classic/blob/master/LICENSE
 tags:
   - name: Websocket
     description: Subscribe/unsubscribe are reserved for websocket events.
@@ -41,7 +41,7 @@ paths:
         1. malicious node can drop or pretend it had committed your tx
         2. malicious proposer (not necessary the one you're communicating with) can
         drop transactions, which might become valid in the future
-        (https://github.com/tendermint/tendermint/issues/3322)
+        (https://github.com/tendermint/classic/issues/3322)
 
 
         Please refer to
@@ -82,7 +82,7 @@ paths:
         1. malicious node can drop or pretend it had committed your tx
         2. malicious proposer (not necessary the one you're communicating with) can
         drop transactions, which might become valid in the future
-        (https://github.com/tendermint/tendermint/issues/3322)
+        (https://github.com/tendermint/classic/issues/3322)
         3. node can be offline
 
         Please refer to
@@ -171,8 +171,8 @@ paths:
         DeliverTx response.
 
         import (
-            abci "github.com/tendermint/tendermint/abci/types"
-            "github.com/tendermint/tendermint/libs/pubsub/query"
+            abci "github.com/tendermint/classic/abci/types"
+            "github.com/tendermint/classic/libs/pubsub/query"
         )
 
         abci.ResponseDeliverTx{
@@ -239,13 +239,13 @@ paths:
         query.MustParse("tm.event = 'Tx' AND rewards.withdraw.source = 'W'")
 
         See list of all possible events here
-        https://godoc.org/github.com/tendermint/tendermint/types#pkg-constants
+        https://godoc.org/github.com/tendermint/classic/types#pkg-constants
 
         For complete query syntax, check out
-        https://godoc.org/github.com/tendermint/tendermint/libs/pubsub/query.
+        https://godoc.org/github.com/tendermint/classic/libs/pubsub/query.
 
         ```go
-        import "github.com/tendermint/tendermint/types"
+        import "github.com/tendermint/classic/types"
 
         client := client.NewHTTP("tcp:0.0.0.0:26657", "/websocket")
         err := client.Start()

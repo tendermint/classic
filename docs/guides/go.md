@@ -22,7 +22,7 @@ called kvstore, a (very) simple distributed BFT key-value store.
 ## Built-in app vs external app
 
 To get maximum performance it is better to run your application alongside
-Tendermint Core. [Cosmos SDK](https://github.com/cosmos/cosmos-sdk) is written
+Tendermint Core. [Cosmos SDK](https://github.com/tendermint/classic/sdk) is written
 this way. Please refer to [Writing a built-in Tendermint Core application in
 Go](./go-built-in.md) guide for details.
 
@@ -83,7 +83,7 @@ Hello, Tendermint Core
 
 Tendermint Core communicates with the application through the Application
 BlockChain Interface (ABCI). All message types are defined in the [protobuf
-file](https://github.com/tendermint/tendermint/blob/develop/abci/types/types.proto).
+file](https://github.com/tendermint/classic/blob/develop/abci/types/types.proto).
 This allows Tendermint Core to run applications written in any programming
 language.
 
@@ -93,7 +93,7 @@ Create a file called `app.go` with the following content:
 package main
 
 import (
-	abcitypes "github.com/tendermint/tendermint/abci/types"
+	abcitypes "github.com/tendermint/classic/abci/types"
 )
 
 type KVStoreApplication struct {}
@@ -285,7 +285,7 @@ the application's `Query` method.
 
 Applications are free to provide their own APIs. But by using Tendermint Core
 as a proxy, clients (including [light client
-package](https://godoc.org/github.com/tendermint/tendermint/lite)) can leverage
+package](https://godoc.org/github.com/tendermint/classic/lite)) can leverage
 the unified API across different applications. Plus they won't have to call the
 otherwise separate Tendermint Core API for additional proofs.
 
@@ -336,8 +336,8 @@ import (
 
 	"github.com/dgraph-io/badger"
 
-	abciserver "github.com/tendermint/tendermint/abci/server"
-	"github.com/tendermint/tendermint/libs/log"
+	abciserver "github.com/tendermint/classic/abci/server"
+	"github.com/tendermint/classic/libs/log"
 )
 
 var socketAddr string
@@ -432,7 +432,7 @@ Tendermint Core.
 
 ```sh
 $ rm -rf /tmp/example
-$ cd $GOPATH/src/github.com/tendermint/tendermint
+$ cd $GOPATH/src/github.com/tendermint/classic
 $ make install
 $ TMHOME="/tmp/example" tendermint init
 
@@ -525,5 +525,5 @@ $ curl -s 'localhost:26657/abci_query?data="tendermint"'
 
 I hope everything went smoothly and your first, but hopefully not the last,
 Tendermint Core application is up and running. If not, please [open an issue on
-Github](https://github.com/tendermint/tendermint/issues/new/choose). To dig
+Github](https://github.com/tendermint/classic/issues/new/choose). To dig
 deeper, read [the docs](https://tendermint.com/docs/).

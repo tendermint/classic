@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: tendermint
-Source: https://github.com/tendermint/tendermint
+Source: https://github.com/tendermint/classic
 
 Files: *
 Copyright: 2017 All In Bits, Inc.

@@ -12,15 +12,15 @@ import (
 	"sort"
 	"strings"
 
-	cfg "github.com/tendermint/tendermint/config"
-	tmtypes "github.com/tendermint/tendermint/types"
+	cfg "github.com/tendermint/classic/config"
+	tmtypes "github.com/tendermint/classic/types"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/genutil/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/tendermint/classic/sdk/codec"
+	sdk "github.com/tendermint/classic/sdk/types"
+	authexported "github.com/tendermint/classic/sdk/x/auth/exported"
+	authtypes "github.com/tendermint/classic/sdk/x/auth/types"
+	"github.com/tendermint/classic/sdk/x/genutil/types"
+	stakingtypes "github.com/tendermint/classic/sdk/x/staking/types"
 )
 
 // GenAppStateFromConfig gets the genesis app state from the config

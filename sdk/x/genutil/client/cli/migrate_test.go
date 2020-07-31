@@ -8,13 +8,13 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
-	tcmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
-	"github.com/tendermint/tendermint/libs/cli"
-	"github.com/tendermint/tendermint/libs/log"
+	tcmd "github.com/tendermint/classic/cmd/tendermint/commands"
+	"github.com/tendermint/classic/libs/cli"
+	"github.com/tendermint/classic/libs/log"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/tests"
+	"github.com/tendermint/classic/sdk/client"
+	"github.com/tendermint/classic/sdk/server"
+	"github.com/tendermint/classic/sdk/tests"
 )
 
 func setupCmd(genesisTime string, chainId string) *cobra.Command {

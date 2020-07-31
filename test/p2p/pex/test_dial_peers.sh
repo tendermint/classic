@@ -8,7 +8,7 @@ PROXY_APP=$4
 
 ID=1
 
-cd $GOPATH/src/github.com/tendermint/tendermint
+cd $GOPATH/src/github.com/tendermint/classic
 
 echo "----------------------------------------------------------------------"
 echo "Testing full network connection using one /dial_peers call"

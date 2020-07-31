@@ -10,17 +10,17 @@ import (
 
 	"github.com/pkg/errors"
 
-	cmn "github.com/tendermint/tendermint/libs/common"
-	"github.com/tendermint/tendermint/libs/fail"
-	"github.com/tendermint/tendermint/libs/log"
-	tmtime "github.com/tendermint/tendermint/types/time"
+	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/classic/libs/fail"
+	"github.com/tendermint/classic/libs/log"
+	tmtime "github.com/tendermint/classic/types/time"
 
-	cfg "github.com/tendermint/tendermint/config"
-	cstypes "github.com/tendermint/tendermint/consensus/types"
-	tmevents "github.com/tendermint/tendermint/libs/events"
-	"github.com/tendermint/tendermint/p2p"
-	sm "github.com/tendermint/tendermint/state"
-	"github.com/tendermint/tendermint/types"
+	cfg "github.com/tendermint/classic/config"
+	cstypes "github.com/tendermint/classic/consensus/types"
+	tmevents "github.com/tendermint/classic/libs/events"
+	"github.com/tendermint/classic/p2p"
+	sm "github.com/tendermint/classic/state"
+	"github.com/tendermint/classic/types"
 )
 
 //-----------------------------------------------------------------------------
@@ -698,7 +698,7 @@ func (cs *ConsensusState) handleMsg(mi msgInfo) {
 		// We probably don't want to stop the peer here. The vote does not
 		// necessarily comes from a malicious peer but can be just broadcasted by
 		// a typical peer.
-		// https://github.com/tendermint/tendermint/issues/1281
+		// https://github.com/tendermint/classic/issues/1281
 		// }
 
 		// NOTE: the vote is broadcast to peers by the reactor listening
@@ -714,7 +714,7 @@ func (cs *ConsensusState) handleMsg(mi msgInfo) {
 
 	if err != nil { // nolint:staticcheck
 		// Causes TestReactorValidatorSetChanges to timeout
-		// https://github.com/tendermint/tendermint/issues/3406
+		// https://github.com/tendermint/classic/issues/3406
 		// cs.Logger.Error("Error with msg", "height", cs.Height, "round", cs.Round,
 		// 	"peer", peerID, "err", err, "msg", msg)
 	}
@@ -1543,7 +1543,7 @@ func (cs *ConsensusState) tryAddVote(vote *types.Vote, peerID p2p.ID) (bool, err
 			// Either
 			// 1) bad peer OR
 			// 2) not a bad peer? this can also err sometimes with "Unexpected step" OR
-			// 3) tmkms use with multiple validators connecting to a single tmkms instance (https://github.com/tendermint/tendermint/issues/3839).
+			// 3) tmkms use with multiple validators connecting to a single tmkms instance (https://github.com/tendermint/classic/issues/3839).
 			cs.Logger.Info("Error attempting to add vote", "err", err)
 			return added, ErrAddingVote
 		}

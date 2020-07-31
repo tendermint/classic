@@ -37,7 +37,7 @@ dist: build-all
 
 build-docker:
 	rm -f ./tm-bench
-	docker run -it --rm -v "$(PWD)/../../:/go/src/github.com/tendermint/tendermint" -w "/go/src/github.com/tendermint/tendermint/tools/tm-bench" -e "CGO_ENABLED=0" golang:alpine go build -ldflags "-s -w" -o tm-bench
+	docker run -it --rm -v "$(PWD)/../../:/go/src/github.com/tendermint/classic" -w "/go/src/github.com/tendermint/classic/tools/tm-bench" -e "CGO_ENABLED=0" golang:alpine go build -ldflags "-s -w" -o tm-bench
 	docker build -t "tendermint/bench" .
 
 clean:

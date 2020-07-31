@@ -3,8 +3,8 @@ package keeper
 import (
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	types "github.com/cosmos/cosmos-sdk/x/staking/types"
+	sdk "github.com/tendermint/classic/sdk/types"
+	types "github.com/tendermint/classic/sdk/x/staking/types"
 )
 
 // Slash a validator for an infraction committed at a known height
@@ -33,7 +33,7 @@ func (k Keeper) Slash(ctx sdk.Context, consAddr sdk.ConsAddress, infractionHeigh
 	slashAmountDec := amount.ToDec().Mul(slashFactor)
 	slashAmount := slashAmountDec.TruncateInt()
 
-	// ref https://github.com/cosmos/cosmos-sdk/issues/1348
+	// ref https://github.com/tendermint/classic/sdk/issues/1348
 
 	validator, found := k.GetValidatorByConsAddr(ctx, consAddr)
 	if !found {
@@ -137,7 +137,7 @@ func (k Keeper) Slash(ctx sdk.Context, consAddr sdk.ConsAddress, infractionHeigh
 		"validator %s slashed by slash factor of %s; burned %v tokens",
 		validator.GetOperator(), slashFactor.String(), tokensToBurn))
 
-	// TODO Return event(s), blocked on https://github.com/tendermint/tendermint/pull/1803
+	// TODO Return event(s), blocked on https://github.com/tendermint/classic/pull/1803
 	return
 }
 
@@ -147,7 +147,7 @@ func (k Keeper) Jail(ctx sdk.Context, consAddr sdk.ConsAddress) {
 	k.jailValidator(ctx, validator)
 	logger := k.Logger(ctx)
 	logger.Info(fmt.Sprintf("validator %s jailed", consAddr))
-	// TODO Return event(s), blocked on https://github.com/tendermint/tendermint/pull/1803
+	// TODO Return event(s), blocked on https://github.com/tendermint/classic/pull/1803
 	return
 }
 
@@ -157,7 +157,7 @@ func (k Keeper) Unjail(ctx sdk.Context, consAddr sdk.ConsAddress) {
 	k.unjailValidator(ctx, validator)
 	logger := k.Logger(ctx)
 	logger.Info(fmt.Sprintf("validator %s unjailed", consAddr))
-	// TODO Return event(s), blocked on https://github.com/tendermint/tendermint/pull/1803
+	// TODO Return event(s), blocked on https://github.com/tendermint/classic/pull/1803
 	return
 }
 

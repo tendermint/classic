@@ -48,9 +48,9 @@ open ABCI connection with the application, which hosts an ABCI server.
 Shown are the request and response types sent on each connection.
 
 Most of the examples below are from [kvstore
-application](https://github.com/tendermint/tendermint/blob/master/abci/example/kvstore/kvstore.go),
+application](https://github.com/tendermint/classic/blob/master/abci/example/kvstore/kvstore.go),
 which is a part of the abci repo. [persistent_kvstore
-application](https://github.com/tendermint/tendermint/blob/master/abci/example/kvstore/persistent_kvstore.go)
+application](https://github.com/tendermint/classic/blob/master/abci/example/kvstore/persistent_kvstore.go)
 is used to show `BeginBlock`, `EndBlock` and `InitChain` example
 implementations.
 
@@ -313,7 +313,7 @@ field can be left empty. Tendermint core will take care of updating the
 validator set. Note the change in voting power must be strictly less than 1/3
 per block if you want a light client to be able to prove the transition
 externally. See the [light client
-docs](https://godoc.org/github.com/tendermint/tendermint/lite#hdr-How_We_Track_Validators)
+docs](https://godoc.org/github.com/tendermint/classic/lite#hdr-How_We_Track_Validators)
 for details on how it tracks validators.
 
 In go:

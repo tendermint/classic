@@ -7,12 +7,12 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/viper"
-	"github.com/tendermint/tendermint/libs/cli"
+	"github.com/tendermint/classic/libs/cli"
 	"gopkg.in/yaml.v2"
 
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/input"
-	"github.com/cosmos/cosmos-sdk/crypto/keys"
+	"github.com/tendermint/classic/sdk/client/flags"
+	"github.com/tendermint/classic/sdk/client/input"
+	"github.com/tendermint/classic/sdk/crypto/keys"
 )
 
 // available output formats.

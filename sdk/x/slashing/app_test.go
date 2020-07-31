@@ -4,17 +4,17 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
+	abci "github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/classic/crypto/secp256k1"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/cosmos-sdk/x/mock"
-	"github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/cosmos/cosmos-sdk/x/supply"
-	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	sdk "github.com/tendermint/classic/sdk/types"
+	"github.com/tendermint/classic/sdk/x/auth"
+	"github.com/tendermint/classic/sdk/x/bank"
+	"github.com/tendermint/classic/sdk/x/mock"
+	"github.com/tendermint/classic/sdk/x/staking"
+	"github.com/tendermint/classic/sdk/x/staking/types"
+	"github.com/tendermint/classic/sdk/x/supply"
+	supplyexported "github.com/tendermint/classic/sdk/x/supply/exported"
 )
 
 var (

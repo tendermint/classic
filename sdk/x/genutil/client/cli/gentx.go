@@ -13,23 +13,23 @@ import (
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/libs/common"
-	tmtypes "github.com/tendermint/tendermint/types"
+	cfg "github.com/tendermint/classic/config"
+	"github.com/tendermint/classic/crypto"
+	"github.com/tendermint/classic/libs/common"
+	tmtypes "github.com/tendermint/classic/types"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/context"
-	"github.com/cosmos/cosmos-sdk/codec"
-	kbkeys "github.com/cosmos/cosmos-sdk/crypto/keys"
-	"github.com/cosmos/cosmos-sdk/server"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	"github.com/tendermint/classic/sdk/client"
+	"github.com/tendermint/classic/sdk/client/context"
+	"github.com/tendermint/classic/sdk/codec"
+	kbkeys "github.com/tendermint/classic/sdk/crypto/keys"
+	"github.com/tendermint/classic/sdk/server"
+	sdk "github.com/tendermint/classic/sdk/types"
+	"github.com/tendermint/classic/sdk/types/module"
+	"github.com/tendermint/classic/sdk/x/auth/client/utils"
 
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/genutil"
-	"github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/tendermint/classic/sdk/x/auth"
+	"github.com/tendermint/classic/sdk/x/genutil"
+	"github.com/tendermint/classic/sdk/x/genutil/types"
 )
 
 // StakingMsgBuildingHelpers helpers for message building gen-tx command

@@ -5,14 +5,14 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/tendermint/tendermint/libs/cli"
+	"github.com/tendermint/classic/libs/cli"
 
-	"github.com/cosmos/cosmos-sdk/client/keys"
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/server"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/genaccounts"
-	"github.com/cosmos/cosmos-sdk/x/genutil"
+	"github.com/tendermint/classic/sdk/client/keys"
+	"github.com/tendermint/classic/sdk/codec"
+	"github.com/tendermint/classic/sdk/server"
+	sdk "github.com/tendermint/classic/sdk/types"
+	"github.com/tendermint/classic/sdk/x/genaccounts"
+	"github.com/tendermint/classic/sdk/x/genutil"
 )
 
 const (

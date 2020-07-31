@@ -19,7 +19,7 @@ In a [previous conversation](https://github.com/tendermint/abci/issues/165#issue
 it was suggested that not all non-zero codes need to be errors, hence why it's called `code` and not `error code`.
 It is unclear exactly how the semantics of the `code` field will evolve, though
 better lite-client proofs (like discussed for tags
-[here](https://github.com/tendermint/tendermint/issues/1007#issuecomment-413917763))
+[here](https://github.com/tendermint/classic/issues/1007#issuecomment-413917763))
 may play a role.
 
 Note that having all type information in a single integer

@@ -17,19 +17,19 @@ import (
 
 	"sort"
 
-	"github.com/tendermint/tendermint/abci/example/kvstore"
-	abci "github.com/tendermint/tendermint/abci/types"
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/crypto"
-	cmn "github.com/tendermint/tendermint/libs/common"
-	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/mock"
-	"github.com/tendermint/tendermint/privval"
-	"github.com/tendermint/tendermint/proxy"
-	sm "github.com/tendermint/tendermint/state"
-	"github.com/tendermint/tendermint/types"
-	"github.com/tendermint/tendermint/version"
-	dbm "github.com/tendermint/tm-db"
+	"github.com/tendermint/classic/abci/example/kvstore"
+	abci "github.com/tendermint/classic/abci/types"
+	cfg "github.com/tendermint/classic/config"
+	"github.com/tendermint/classic/crypto"
+	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/classic/libs/log"
+	"github.com/tendermint/classic/mock"
+	"github.com/tendermint/classic/privval"
+	"github.com/tendermint/classic/proxy"
+	sm "github.com/tendermint/classic/state"
+	"github.com/tendermint/classic/types"
+	"github.com/tendermint/classic/version"
+	dbm "github.com/tendermint/classic/db"
 )
 
 func TestMain(m *testing.M) {

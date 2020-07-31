@@ -12,17 +12,17 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/tendermint/classic/abci/types"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	"github.com/tendermint/tendermint/crypto/tmhash"
-	cmn "github.com/tendermint/tendermint/libs/common"
-	"github.com/tendermint/tendermint/privval"
-	"github.com/tendermint/tendermint/rpc/client"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	rpcclient "github.com/tendermint/tendermint/rpc/lib/client"
-	rpctest "github.com/tendermint/tendermint/rpc/test"
-	"github.com/tendermint/tendermint/types"
+	"github.com/tendermint/classic/crypto/ed25519"
+	"github.com/tendermint/classic/crypto/tmhash"
+	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/classic/privval"
+	"github.com/tendermint/classic/rpc/client"
+	ctypes "github.com/tendermint/classic/rpc/core/types"
+	rpcclient "github.com/tendermint/classic/rpc/lib/client"
+	rpctest "github.com/tendermint/classic/rpc/test"
+	"github.com/tendermint/classic/types"
 )
 
 func getHTTPClient() *client.HTTP {

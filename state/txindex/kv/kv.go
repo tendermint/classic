@@ -11,12 +11,12 @@ import (
 
 	"github.com/pkg/errors"
 
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/tendermint/classic/db"
 
-	cmn "github.com/tendermint/tendermint/libs/common"
-	"github.com/tendermint/tendermint/libs/pubsub/query"
-	"github.com/tendermint/tendermint/state/txindex"
-	"github.com/tendermint/tendermint/types"
+	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/classic/libs/pubsub/query"
+	"github.com/tendermint/classic/state/txindex"
+	"github.com/tendermint/classic/types"
 )
 
 const (

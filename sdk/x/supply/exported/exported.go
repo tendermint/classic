@@ -1,9 +1,9 @@
 package exported
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdk "github.com/tendermint/classic/sdk/types"
 
-	"github.com/cosmos/cosmos-sdk/x/auth/exported"
+	"github.com/tendermint/classic/sdk/x/auth/exported"
 )
 
 // ModuleAccountI defines an account interface for modules that hold tokens in an escrow

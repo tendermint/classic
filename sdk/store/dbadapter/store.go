@@ -3,11 +3,11 @@ package dbadapter
 import (
 	"io"
 
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/tendermint/classic/db"
 
-	"github.com/cosmos/cosmos-sdk/store/cachekv"
-	"github.com/cosmos/cosmos-sdk/store/tracekv"
-	"github.com/cosmos/cosmos-sdk/store/types"
+	"github.com/tendermint/classic/sdk/store/cachekv"
+	"github.com/tendermint/classic/sdk/store/tracekv"
+	"github.com/tendermint/classic/sdk/store/types"
 )
 
 // Wrapper type for dbm.Db with implementation of KVStore

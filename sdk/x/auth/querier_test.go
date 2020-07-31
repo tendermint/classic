@@ -6,9 +6,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/tendermint/classic/abci/types"
 
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/tendermint/classic/sdk/x/auth/types"
 )
 
 func Test_queryAccount(t *testing.T) {

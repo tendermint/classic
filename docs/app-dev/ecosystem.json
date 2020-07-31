@@ -2,7 +2,7 @@
   "abciApps": [
     {
       "name": "Cosmos SDK",
-      "url": "https://github.com/cosmos/cosmos-sdk",
+      "url": "https://github.com/tendermint/classic/sdk",
       "language": "Go",
       "author": "Cosmos",
       "description": "A prototypical account based crypto currency state machine supporting plugins"
@@ -130,7 +130,7 @@
   "abciServers": [
     {
       "name": "go-abci",
-      "url": "https://github.com/tendermint/tendermint/tree/master/abci",
+      "url": "https://github.com/tendermint/classic/tree/master/abci",
       "language": "Go",
       "author": "Tendermint"
     },

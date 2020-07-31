@@ -6,11 +6,11 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	tmtypes "github.com/tendermint/tendermint/types"
+	tmtypes "github.com/tendermint/classic/types"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/tendermint/classic/sdk/codec"
+	"github.com/tendermint/classic/sdk/server"
+	"github.com/tendermint/classic/sdk/types/module"
 )
 
 // Validate genesis command takes

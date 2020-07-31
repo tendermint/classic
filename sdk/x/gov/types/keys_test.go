@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/classic/crypto/ed25519"
 )
 
 var addr = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address())
