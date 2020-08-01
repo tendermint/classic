@@ -11,7 +11,7 @@ import (
 	"github.com/tendermint/classic/sdk/store/types"
 
 	"github.com/pkg/errors"
-	"github.com/tendermint/iavl"
+	"github.com/tendermint/classic/iavl"
 	abci "github.com/tendermint/classic/abci/types"
 	"github.com/tendermint/classic/crypto/merkle"
 	cmn "github.com/tendermint/classic/libs/common"

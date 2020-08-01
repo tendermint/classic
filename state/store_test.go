@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cfg "github.com/tendermint/classic/config"
+	dbm "github.com/tendermint/classic/db"
 	sm "github.com/tendermint/classic/state"
 	"github.com/tendermint/classic/types"
-	dbm "github.com/tendermint/classic/db"
 )
 
 func TestStoreLoadValidators(t *testing.T) {
@@ -59,7 +59,7 @@ func BenchmarkLoadValidators(b *testing.B) {
 
 	config := cfg.ResetTestRoot("state_")
 	defer os.RemoveAll(config.RootDir)
-	dbType := dbm.DBBackendType(config.DBBackend)
+	dbType := dbm.BackendType(config.DBBackend)
 	stateDB := dbm.NewDB("state", dbType, config.DBDir())
 	state, err := sm.LoadStateFromDBOrGenesisFile(stateDB, config.GenesisFile())
 	if err != nil {

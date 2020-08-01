@@ -16,7 +16,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
 
-	amino "github.com/tendermint/go-amino"
 	abci "github.com/tendermint/classic/abci/types"
 	bcv0 "github.com/tendermint/classic/blockchain/v0"
 	bcv1 "github.com/tendermint/classic/blockchain/v1"
@@ -24,6 +23,7 @@ import (
 	"github.com/tendermint/classic/consensus"
 	cs "github.com/tendermint/classic/consensus"
 	"github.com/tendermint/classic/crypto"
+	dbm "github.com/tendermint/classic/db"
 	"github.com/tendermint/classic/evidence"
 	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/classic/libs/log"
@@ -45,7 +45,7 @@ import (
 	"github.com/tendermint/classic/types"
 	tmtime "github.com/tendermint/classic/types/time"
 	"github.com/tendermint/classic/version"
-	dbm "github.com/tendermint/classic/db"
+	amino "github.com/tendermint/go-amino"
 )
 
 //------------------------------------------------------------------------------
@@ -59,10 +59,10 @@ type DBContext struct {
 // DBProvider takes a DBContext and returns an instantiated DB.
 type DBProvider func(*DBContext) (dbm.DB, error)
 
-// DefaultDBProvider returns a database using the DBBackend and DBDir
+// DefaultDBProvider returns a database using the db.Backend and DBDir
 // specified in the ctx.Config.
 func DefaultDBProvider(ctx *DBContext) (dbm.DB, error) {
-	dbType := dbm.DBBackendType(ctx.Config.DBBackend)
+	dbType := dbm.BackendType(ctx.Config.DBBackend)
 	return dbm.NewDB(ctx.ID, dbType, ctx.Config.DBDir()), nil
 }
 

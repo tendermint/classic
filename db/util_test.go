@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 	"testing"
-
-	"github.com/stretchr/testify/require"
 )
 
 // Empty iterator for empty db.
@@ -14,8 +12,7 @@ func TestPrefixIteratorNoMatchNil(t *testing.T) {
 		t.Run(fmt.Sprintf("Prefix w/ backend %s", backend), func(t *testing.T) {
 			db, dir := newTempDB(t, backend)
 			defer os.RemoveAll(dir)
-			itr, err := IteratePrefix(db, []byte("2"))
-			require.NoError(t, err)
+			itr := IteratePrefix(db, []byte("2"))
 
 			checkInvalid(t, itr)
 		})
@@ -33,10 +30,8 @@ func TestPrefixIteratorNoMatch1(t *testing.T) {
 		t.Run(fmt.Sprintf("Prefix w/ backend %s", backend), func(t *testing.T) {
 			db, dir := newTempDB(t, backend)
 			defer os.RemoveAll(dir)
-			itr, err := IteratePrefix(db, []byte("2"))
-			require.NoError(t, err)
-			err = db.SetSync(bz("1"), bz("value_1"))
-			require.NoError(t, err)
+			itr := IteratePrefix(db, []byte("2"))
+			db.SetSync(bz("1"), bz("value_1"))
 
 			checkInvalid(t, itr)
 		})
@@ -49,10 +44,8 @@ func TestPrefixIteratorNoMatch2(t *testing.T) {
 		t.Run(fmt.Sprintf("Prefix w/ backend %s", backend), func(t *testing.T) {
 			db, dir := newTempDB(t, backend)
 			defer os.RemoveAll(dir)
-			err := db.SetSync(bz("3"), bz("value_3"))
-			require.NoError(t, err)
-			itr, err := IteratePrefix(db, []byte("4"))
-			require.NoError(t, err)
+			db.SetSync(bz("3"), bz("value_3"))
+			itr := IteratePrefix(db, []byte("4"))
 
 			checkInvalid(t, itr)
 		})
@@ -65,10 +58,8 @@ func TestPrefixIteratorMatch1(t *testing.T) {
 		t.Run(fmt.Sprintf("Prefix w/ backend %s", backend), func(t *testing.T) {
 			db, dir := newTempDB(t, backend)
 			defer os.RemoveAll(dir)
-			err := db.SetSync(bz("2"), bz("value_2"))
-			require.NoError(t, err)
-			itr, err := IteratePrefix(db, bz("2"))
-			require.NoError(t, err)
+			db.SetSync(bz("2"), bz("value_2"))
+			itr := IteratePrefix(db, bz("2"))
 
 			checkValid(t, itr, true)
 			checkItem(t, itr, bz("2"), bz("value_2"))
@@ -88,22 +79,15 @@ func TestPrefixIteratorMatches1N(t *testing.T) {
 			defer os.RemoveAll(dir)
 
 			// prefixed
-			err := db.SetSync(bz("a/1"), bz("value_1"))
-			require.NoError(t, err)
-			err = db.SetSync(bz("a/3"), bz("value_3"))
-			require.NoError(t, err)
+			db.SetSync(bz("a/1"), bz("value_1"))
+			db.SetSync(bz("a/3"), bz("value_3"))
 
 			// not
-			err = db.SetSync(bz("b/3"), bz("value_3"))
-			require.NoError(t, err)
-			err = db.SetSync(bz("a-3"), bz("value_3"))
-			require.NoError(t, err)
-			err = db.SetSync(bz("a.3"), bz("value_3"))
-			require.NoError(t, err)
-			err = db.SetSync(bz("abcdefg"), bz("value_3"))
-			require.NoError(t, err)
-			itr, err := IteratePrefix(db, bz("a/"))
-			require.NoError(t, err)
+			db.SetSync(bz("b/3"), bz("value_3"))
+			db.SetSync(bz("a-3"), bz("value_3"))
+			db.SetSync(bz("a.3"), bz("value_3"))
+			db.SetSync(bz("abcdefg"), bz("value_3"))
+			itr := IteratePrefix(db, bz("a/"))
 
 			checkValid(t, itr, true)
 			checkItem(t, itr, bz("a/1"), bz("value_1"))

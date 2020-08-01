@@ -2,6 +2,7 @@ package subspace
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 
 	"github.com/tendermint/classic/sdk/codec"
@@ -189,6 +190,7 @@ func (s Subspace) Update(ctx sdk.Context, key []byte, param []byte) error {
 	ty := attr.ty
 	dest := reflect.New(ty).Interface()
 	s.GetIfExists(ctx, key, dest)
+	fmt.Println("!!!!! GOT", dest)
 	err := s.cdc.UnmarshalJSON(param, dest)
 	if err != nil {
 		return err

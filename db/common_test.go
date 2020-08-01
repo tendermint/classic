@@ -3,8 +3,10 @@ package db
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"io/ioutil"
 	"math/rand"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,8 +17,7 @@ import (
 // Helper functions.
 
 func checkValue(t *testing.T, db DB, key []byte, valueWanted []byte) {
-	valueGot, err := db.Get(key)
-	assert.NoError(t, err)
+	valueGot := db.Get(key)
 	assert.Equal(t, valueWanted, valueGot)
 }
 
@@ -27,13 +28,12 @@ func checkValid(t *testing.T, itr Iterator, expected bool) {
 
 func checkNext(t *testing.T, itr Iterator, expected bool) {
 	itr.Next()
-	// assert.NoError(t, err) TODO: look at fixing this
 	valid := itr.Valid()
 	require.Equal(t, expected, valid)
 }
 
 func checkNextPanics(t *testing.T, itr Iterator) {
-	assert.Panics(t, func() { itr.Next() }, "checkNextPanics expected an error but didn't")
+	assert.Panics(t, func() { itr.Next() }, "checkNextPanics expected panic but didn't")
 }
 
 func checkDomain(t *testing.T, itr Iterator, start, end []byte) {
@@ -43,10 +43,7 @@ func checkDomain(t *testing.T, itr Iterator, start, end []byte) {
 }
 
 func checkItem(t *testing.T, itr Iterator, key []byte, value []byte) {
-	v := itr.Value()
-
-	k := itr.Key()
-
+	k, v := itr.Key(), itr.Value()
 	assert.Exactly(t, key, k)
 	assert.Exactly(t, value, v)
 }
@@ -63,47 +60,136 @@ func checkKeyPanics(t *testing.T, itr Iterator) {
 }
 
 func checkValuePanics(t *testing.T, itr Iterator) {
-	assert.Panics(t, func() { itr.Value() })
+	assert.Panics(t, func() { itr.Value() }, "checkValuePanics expected panic but didn't")
 }
 
 func newTempDB(t *testing.T, backend BackendType) (db DB, dbDir string) {
 	dirname, err := ioutil.TempDir("", "db_common_test")
-	require.NoError(t, err)
-	db, err = NewDB("testdb", backend, dirname)
-	require.NoError(t, err)
-	return db, dirname
+	require.Nil(t, err)
+	return NewDB("testdb", backend, dirname), dirname
 }
 
-func benchmarkRangeScans(b *testing.B, db DB, dbSize int64) {
-	b.StopTimer()
+//----------------------------------------
+// mockDB
 
-	rangeSize := int64(10000)
-	if dbSize < rangeSize {
-		b.Errorf("db size %v cannot be less than range size %v", dbSize, rangeSize)
-	}
+// NOTE: not actually goroutine safe.
+// If you want something goroutine safe, maybe you just want a MemDB.
+type mockDB struct {
+	mtx   sync.Mutex
+	calls map[string]int
+}
 
-	for i := int64(0); i < dbSize; i++ {
-		bytes := int642Bytes(i)
-		err := db.Set(bytes, bytes)
-		if err != nil {
-			// require.NoError() is very expensive (according to profiler), so check manually
-			b.Fatal(b, err)
-		}
+func newMockDB() *mockDB {
+	return &mockDB{
+		calls: make(map[string]int),
 	}
-	b.StartTimer()
+}
 
-	for i := 0; i < b.N; i++ {
-		start := rand.Int63n(dbSize - rangeSize)
-		end := start + rangeSize
-		iter, err := db.Iterator(int642Bytes(start), int642Bytes(end))
-		require.NoError(b, err)
-		count := 0
-		for ; iter.Valid(); iter.Next() {
-			count++
-		}
-		iter.Close()
-		require.EqualValues(b, rangeSize, count)
+func (mdb *mockDB) Mutex() *sync.Mutex {
+	return &(mdb.mtx)
+}
+
+func (mdb *mockDB) Get([]byte) []byte {
+	mdb.calls["Get"]++
+	return nil
+}
+
+func (mdb *mockDB) Has([]byte) bool {
+	mdb.calls["Has"]++
+	return false
+}
+
+func (mdb *mockDB) Set([]byte, []byte) {
+	mdb.calls["Set"]++
+}
+
+func (mdb *mockDB) SetSync([]byte, []byte) {
+	mdb.calls["SetSync"]++
+}
+
+func (mdb *mockDB) SetNoLock([]byte, []byte) {
+	mdb.calls["SetNoLock"]++
+}
+
+func (mdb *mockDB) SetNoLockSync([]byte, []byte) {
+	mdb.calls["SetNoLockSync"]++
+}
+
+func (mdb *mockDB) Delete([]byte) {
+	mdb.calls["Delete"]++
+}
+
+func (mdb *mockDB) DeleteSync([]byte) {
+	mdb.calls["DeleteSync"]++
+}
+
+func (mdb *mockDB) DeleteNoLock([]byte) {
+	mdb.calls["DeleteNoLock"]++
+}
+
+func (mdb *mockDB) DeleteNoLockSync([]byte) {
+	mdb.calls["DeleteNoLockSync"]++
+}
+
+func (mdb *mockDB) Iterator(start, end []byte) Iterator {
+	mdb.calls["Iterator"]++
+	return &mockIterator{}
+}
+
+func (mdb *mockDB) ReverseIterator(start, end []byte) Iterator {
+	mdb.calls["ReverseIterator"]++
+	return &mockIterator{}
+}
+
+func (mdb *mockDB) Close() {
+	mdb.calls["Close"]++
+}
+
+func (mdb *mockDB) NewBatch() Batch {
+	mdb.calls["NewBatch"]++
+	return &memBatch{db: mdb}
+}
+
+func (mdb *mockDB) Print() {
+	mdb.calls["Print"]++
+	fmt.Printf("mockDB{%v}", mdb.Stats())
+}
+
+func (mdb *mockDB) Stats() map[string]string {
+	mdb.calls["Stats"]++
+
+	res := make(map[string]string)
+	for key, count := range mdb.calls {
+		res[key] = fmt.Sprintf("%d", count)
 	}
+	return res
+}
+
+//----------------------------------------
+// mockIterator
+
+type mockIterator struct{}
+
+func (mockIterator) Domain() (start []byte, end []byte) {
+	return nil, nil
+}
+
+func (mockIterator) Valid() bool {
+	return false
+}
+
+func (mockIterator) Next() {
+}
+
+func (mockIterator) Key() []byte {
+	return nil
+}
+
+func (mockIterator) Value() []byte {
+	return nil
+}
+
+func (mockIterator) Close() {
 }
 
 func benchmarkRandomReadsWrites(b *testing.B, db DB) {
@@ -122,29 +208,21 @@ func benchmarkRandomReadsWrites(b *testing.B, db DB) {
 	for i := 0; i < b.N; i++ {
 		// Write something
 		{
-			idx := rand.Int63n(numItems)
+			idx := int64(rand.Int()) % numItems // nolint:gosec testing file, so accepting weak random number generator
 			internal[idx]++
 			val := internal[idx]
 			idxBytes := int642Bytes(idx)
 			valBytes := int642Bytes(val)
 			//fmt.Printf("Set %X -> %X\n", idxBytes, valBytes)
-			err := db.Set(idxBytes, valBytes)
-			if err != nil {
-				// require.NoError() is very expensive (according to profiler), so check manually
-				b.Fatal(b, err)
-			}
+			db.Set(idxBytes, valBytes)
 		}
 
 		// Read something
 		{
-			idx := rand.Int63n(numItems)
+			idx := int64(rand.Int()) % numItems // nolint:gosec testing file, so accepting weak random number generator
 			valExp := internal[idx]
 			idxBytes := int642Bytes(idx)
-			valBytes, err := db.Get(idxBytes)
-			if err != nil {
-				// require.NoError() is very expensive (according to profiler), so check manually
-				b.Fatal(b, err)
-			}
+			valBytes := db.Get(idxBytes)
 			//fmt.Printf("Get %X -> %X\n", idxBytes, valBytes)
 			if valExp == 0 {
 				if !bytes.Equal(valBytes, nil) {

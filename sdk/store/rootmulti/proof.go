@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/tendermint/iavl"
+	"github.com/tendermint/classic/iavl"
 	"github.com/tendermint/classic/crypto/merkle"
 	cmn "github.com/tendermint/classic/libs/common"
 )

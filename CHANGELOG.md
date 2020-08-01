@@ -295,7 +295,7 @@ over again.
 This release contains many fixes and improvements, primarily for p2p functionality.
 It also fixes a security issue in the mempool package.
 
-With this release, Tendermint now supports [boltdb](https://github.com/etcd-io/bbolt), although
+With this release, Tendermint now supports [boltdb](https://go.etcd.io/bbolt), although
 in experimental mode. Feel free to try and report to us any findings/issues.
 Note also that the build tags for compiling CLevelDB have changed.
 

@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func BenchmarkRandomReadsWrites2(b *testing.B) {
@@ -49,10 +48,7 @@ func BenchmarkRandomReadsWrites2(b *testing.B) {
 			idx := (int64(rand.Int()) % numItems)
 			val := internal[idx]
 			idxBytes := int642Bytes(int64(idx))
-			valBytes, err := db.Get(idxBytes)
-			if err != nil {
-				b.Error(err)
-			}
+			valBytes := db.Get(idxBytes)
 			//fmt.Printf("Get %X -> %X\n", idxBytes, valBytes)
 			if val == 0 {
 				if !bytes.Equal(valBytes, nil) {
@@ -79,13 +75,24 @@ func BenchmarkRandomReadsWrites2(b *testing.B) {
 	db.Close()
 }
 
+/*
+func int642Bytes(i int64) []byte {
+	buf := make([]byte, 8)
+	binary.BigEndian.PutUint64(buf, uint64(i))
+	return buf
+}
+
+func bytes2Int64(buf []byte) int64 {
+	return int64(binary.BigEndian.Uint64(buf))
+}
+*/
+
 func TestCLevelDBBackend(t *testing.T) {
 	name := fmt.Sprintf("test_%x", randStr(12))
 	// Can't use "" (current directory) or "./" here because levigo.Open returns:
 	// "Error initializing DB: IO error: test_XXX.db: Invalid argument"
 	dir := os.TempDir()
-	db, err := NewDB(name, CLevelDBBackend, dir)
-	require.NoError(t, err)
+	db := NewDB(name, CLevelDBBackend, dir)
 	defer cleanupDBDir(dir, name)
 
 	_, ok := db.(*CLevelDB)
@@ -95,8 +102,7 @@ func TestCLevelDBBackend(t *testing.T) {
 func TestCLevelDBStats(t *testing.T) {
 	name := fmt.Sprintf("test_%x", randStr(12))
 	dir := os.TempDir()
-	db, err := NewDB(name, CLevelDBBackend, dir)
-	require.NoError(t, err)
+	db := NewDB(name, CLevelDBBackend, dir)
 	defer cleanupDBDir(dir, name)
 
 	assert.NotEmpty(t, db.Stats())

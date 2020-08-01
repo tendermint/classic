@@ -168,7 +168,7 @@ type BaseConfig struct {
 	//   - fast
 	//   - requires gcc
 	//   - use cleveldb build tag (go build -tags cleveldb)
-	// * boltdb (uses etcd's fork of bolt - github.com/etcd-io/bbolt)
+	// * boltdb (uses etcd's fork of bolt - go.etcd.io/bbolt)
 	//   - EXPERIMENTAL
 	//   - may be faster is some use-cases (random reads - indexer)
 	//   - use boltdb build tag (go build -tags boltdb)
