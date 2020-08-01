@@ -1,5 +1,12 @@
 # Changelog
 
+## Tendermint/Classic
+
+* Import tm-db v0.3
+* Import iavl v0.12.4
+* Import cosmos sdk v0.37.4
+* Replace amino with amino-x (in progress)
+
 ## v0.32.7
 
 *October 18, 2019*
