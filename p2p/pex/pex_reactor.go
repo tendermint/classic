@@ -8,7 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	amino "github.com/tendermint/go-amino"
+	amino "github.com/tendermint/go-amino-x"
 	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/classic/p2p"
 	"github.com/tendermint/classic/p2p/conn"

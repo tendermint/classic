@@ -3,7 +3,7 @@ package cryptoAmino
 import (
 	"reflect"
 
-	amino "github.com/tendermint/go-amino"
+	amino "github.com/tendermint/go-amino-x"
 	"github.com/tendermint/classic/crypto"
 	"github.com/tendermint/classic/crypto/ed25519"
 	"github.com/tendermint/classic/crypto/multisig"
@@ -23,7 +23,7 @@ func init() {
 	// as that would change the canonical representations,
 	// and therefore change the address.
 	// TODO: Remove above note when
-	// https://github.com/tendermint/go-amino/issues/9
+	// https://github.com/tendermint/go-amino-x/issues/9
 	// is resolved
 	RegisterAmino(cdc)
 

@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	amino "github.com/tendermint/go-amino"
+	amino "github.com/tendermint/go-amino-x"
 
 	cfg "github.com/tendermint/classic/config"
 	"github.com/tendermint/classic/libs/clist"

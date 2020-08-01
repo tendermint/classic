@@ -40,7 +40,7 @@ func main() {
 		}
 		if writeImportTime && !wroteImport {
 			wroteImport = true
-			fmt.Fprintf(outFile, "import \"github.com/tendermint/go-amino/data\"\n")
+			fmt.Fprintf(outFile, "import \"github.com/tendermint/go-amino-x/data\"\n")
 
 		}
 		if gotPackageLine {

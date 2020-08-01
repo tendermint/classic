@@ -1,7 +1,7 @@
 package core_types
 
 import (
-	amino "github.com/tendermint/go-amino"
+	amino "github.com/tendermint/go-amino-x"
 	"github.com/tendermint/classic/types"
 )
 

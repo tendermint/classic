@@ -10,7 +10,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	amino "github.com/tendermint/go-amino"
+	amino "github.com/tendermint/go-amino-x"
 	auto "github.com/tendermint/classic/libs/autofile"
 	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/classic/libs/log"

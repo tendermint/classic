@@ -9,7 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	amino "github.com/tendermint/go-amino"
+	amino "github.com/tendermint/go-amino-x"
 
 	cmn "github.com/tendermint/classic/libs/common"
 	tmpubsub "github.com/tendermint/classic/libs/pubsub"

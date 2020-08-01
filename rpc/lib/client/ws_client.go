@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 	metrics "github.com/rcrowley/go-metrics"
 
-	amino "github.com/tendermint/go-amino"
+	amino "github.com/tendermint/go-amino-x"
 	cmn "github.com/tendermint/classic/libs/common"
 	types "github.com/tendermint/classic/rpc/lib/types"
 )

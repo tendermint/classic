@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/tendermint/go-amino"
+	"github.com/tendermint/go-amino-x"
 	cryptoamino "github.com/tendermint/classic/crypto/encoding/amino"
 	tmtypes "github.com/tendermint/classic/types"
 )

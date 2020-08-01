@@ -8,7 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	amino "github.com/tendermint/go-amino"
+	amino "github.com/tendermint/go-amino-x"
 	cstypes "github.com/tendermint/classic/consensus/types"
 	cmn "github.com/tendermint/classic/libs/common"
 	tmevents "github.com/tendermint/classic/libs/events"

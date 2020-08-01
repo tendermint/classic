@@ -7,7 +7,7 @@ import (
 
 	"context"
 
-	amino "github.com/tendermint/go-amino"
+	amino "github.com/tendermint/go-amino-x"
 	core_grpc "github.com/tendermint/classic/rpc/grpc"
 )
 

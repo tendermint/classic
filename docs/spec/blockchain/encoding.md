@@ -2,13 +2,13 @@
 
 ## Amino
 
-Tendermint uses the proto3 derivative [Amino](https://github.com/tendermint/go-amino) for all data structures.
+Tendermint uses the proto3 derivative [Amino](https://github.com/tendermint/go-amino-x) for all data structures.
 Think of Amino as an object-oriented proto3 with native JSON support.
 The goal of the Amino encoding protocol is to bring parity between application
 logic objects and persistence objects.
 
 Please see the [Amino
-specification](https://github.com/tendermint/go-amino#amino-encoding-for-go) for
+specification](https://github.com/tendermint/go-amino-x#amino-encoding-for-go) for
 more details.
 
 Notably, every object that satisfies an interface (eg. a particular kind of p2p message,
@@ -50,7 +50,7 @@ derived the same way as the others using Amino.
 All registered objects are encoded by Amino using a 4-byte PrefixBytes that
 uniquely identifies the object and includes information about its underlying
 type. For details on how PrefixBytes are computed, see the [Amino
-spec](https://github.com/tendermint/go-amino#computing-the-prefix-and-disambiguation-bytes).
+spec](https://github.com/tendermint/go-amino-x#computing-the-prefix-and-disambiguation-bytes).
 
 In what follows, we provide the type names and prefix bytes directly.
 Notice that when encoding byte-arrays, the length of the byte-array is appended

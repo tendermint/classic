@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	amino "github.com/tendermint/go-amino"
+	amino "github.com/tendermint/go-amino-x"
 
 	abci "github.com/tendermint/classic/abci/types"
 	"github.com/tendermint/classic/crypto/merkle"

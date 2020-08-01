@@ -12,7 +12,7 @@ import (
 	"io"
 	"os"
 
-	amino "github.com/tendermint/go-amino"
+	amino "github.com/tendermint/go-amino-x"
 	cs "github.com/tendermint/classic/consensus"
 	"github.com/tendermint/classic/types"
 )

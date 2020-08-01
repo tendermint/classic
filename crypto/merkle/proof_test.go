@@ -5,7 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
-	amino "github.com/tendermint/go-amino"
+	amino "github.com/tendermint/go-amino-x"
 )
 
 const ProofOpDomino = "test:domino"

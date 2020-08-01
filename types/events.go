@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	amino "github.com/tendermint/go-amino"
+	amino "github.com/tendermint/go-amino-x"
 	abci "github.com/tendermint/classic/abci/types"
 	tmpubsub "github.com/tendermint/classic/libs/pubsub"
 	tmquery "github.com/tendermint/classic/libs/pubsub/query"

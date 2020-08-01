@@ -1,7 +1,7 @@
 package multisig
 
 import (
-	amino "github.com/tendermint/go-amino"
+	amino "github.com/tendermint/go-amino-x"
 	"github.com/tendermint/classic/crypto"
 	"github.com/tendermint/classic/crypto/ed25519"
 	"github.com/tendermint/classic/crypto/secp256k1"

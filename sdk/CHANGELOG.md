@@ -2123,7 +2123,7 @@ IMPROVEMENTS:
 ## 0.15.0 (April 29, 2018)
 
 NOTE: v0.15.0 is a large breaking change that updates the encoding scheme to use
-[Amino](github.com/tendermint/go-amino).
+[Amino](github.com/tendermint/go-amino-x).
 
 For details on how this changes encoding for public keys and addresses,
 see the [docs](https://github.com/tendermint/classic/blob/v0.19.1/docs/specification/new-spec/encoding.md#public-key-cryptography).

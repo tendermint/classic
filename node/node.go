@@ -17,8 +17,7 @@ import (
 	"github.com/rs/cors"
 
 	abci "github.com/tendermint/classic/abci/types"
-	bcv0 "github.com/tendermint/classic/blockchain/v0"
-	bcv1 "github.com/tendermint/classic/blockchain/v1"
+	bc "github.com/tendermint/classic/blockchain"
 	cfg "github.com/tendermint/classic/config"
 	"github.com/tendermint/classic/consensus"
 	cs "github.com/tendermint/classic/consensus"
@@ -45,7 +44,7 @@ import (
 	"github.com/tendermint/classic/types"
 	tmtime "github.com/tendermint/classic/types/time"
 	"github.com/tendermint/classic/version"
-	amino "github.com/tendermint/go-amino"
+	amino "github.com/tendermint/go-amino-x"
 )
 
 //------------------------------------------------------------------------------
@@ -353,15 +352,7 @@ func createBlockchainReactor(config *cfg.Config,
 	blockStore *store.BlockStore,
 	fastSync bool,
 	logger log.Logger) (bcReactor p2p.Reactor, err error) {
-
-	switch config.FastSync.Version {
-	case "v0":
-		bcReactor = bcv0.NewBlockchainReactor(state.Copy(), blockExec, blockStore, fastSync)
-	case "v1":
-		bcReactor = bcv1.NewBlockchainReactor(state.Copy(), blockExec, blockStore, fastSync)
-	default:
-		return nil, fmt.Errorf("unknown fastsync version %s", config.FastSync.Version)
-	}
+	bcReactor = bc.NewBlockchainReactor(state.Copy(), blockExec, blockStore, fastSync)
 
 	bcReactor.SetLogger(logger.With("module", "blockchain"))
 	return bcReactor, nil
@@ -1057,15 +1048,7 @@ func makeNodeInfo(
 		txIndexerStatus = "off"
 	}
 
-	var bcChannel byte
-	switch config.FastSync.Version {
-	case "v0":
-		bcChannel = bcv0.BlockchainChannel
-	case "v1":
-		bcChannel = bcv1.BlockchainChannel
-	default:
-		return nil, fmt.Errorf("unknown fastsync version %s", config.FastSync.Version)
-	}
+	var bcChannel = bc.BlockchainChannel
 
 	nodeInfo := p2p.DefaultNodeInfo{
 		ProtocolVersion: p2p.NewProtocolVersion(

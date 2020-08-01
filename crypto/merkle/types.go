@@ -3,7 +3,7 @@ package merkle
 import (
 	"io"
 
-	amino "github.com/tendermint/go-amino"
+	amino "github.com/tendermint/go-amino-x"
 )
 
 // Tree is a Merkle tree interface.

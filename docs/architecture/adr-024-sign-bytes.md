@@ -81,7 +81,7 @@ use to sign the message. This is particularly relevant in the context of the KMS
 but is currently not considered in this ADR. 
 
 
-[amino]: https://github.com/tendermint/go-amino/
+[amino]: https://github.com/tendermint/go-amino-x/
 
 ### Vote
 

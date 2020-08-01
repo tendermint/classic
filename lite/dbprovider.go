@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strconv"
 
-	amino "github.com/tendermint/go-amino"
+	amino "github.com/tendermint/go-amino-x"
 	cryptoAmino "github.com/tendermint/classic/crypto/encoding/amino"
 	log "github.com/tendermint/classic/libs/log"
 	lerr "github.com/tendermint/classic/lite/errors"

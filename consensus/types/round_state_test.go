@@ -3,7 +3,7 @@ package types
 import (
 	"testing"
 
-	amino "github.com/tendermint/go-amino"
+	amino "github.com/tendermint/go-amino-x"
 	"github.com/tendermint/classic/crypto/ed25519"
 	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/classic/types"

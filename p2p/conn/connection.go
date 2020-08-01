@@ -15,7 +15,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	amino "github.com/tendermint/go-amino"
+	amino "github.com/tendermint/go-amino-x"
 	cmn "github.com/tendermint/classic/libs/common"
 	flow "github.com/tendermint/classic/libs/flowrate"
 	"github.com/tendermint/classic/libs/log"

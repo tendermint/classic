@@ -1,7 +1,7 @@
 package monitor
 
 import (
-	amino "github.com/tendermint/go-amino"
+	amino "github.com/tendermint/go-amino-x"
 	ctypes "github.com/tendermint/classic/rpc/core/types"
 )
 

@@ -21,7 +21,7 @@ Cosmos SDK是一个方便开发者开发基于Tendermint的安全可靠状态机
 
 ## Multistore
 
-Cosmos SDK 为状态持久化提供了 multistore 。multistore 允许开发者声明任意数量的[`KVStores`](https://github.com/blocklayerhq/chainkit)。`KVStores`只接受`[]byte`类型作为值，因此任何自定义的类型都需要在存储之前使用[go-amino](https://github.com/tendermint/go-amino)进行编码。
+Cosmos SDK 为状态持久化提供了 multistore 。multistore 允许开发者声明任意数量的[`KVStores`](https://github.com/blocklayerhq/chainkit)。`KVStores`只接受`[]byte`类型作为值，因此任何自定义的类型都需要在存储之前使用[go-amino](https://github.com/tendermint/go-amino-x)进行编码。
 
 multistore 抽象用于区分不同的模块的状态，每个都由其自身模块管理。要了解更多关于 multistore 的信息，点击[这里](../concepts/store.md)
 
