@@ -18,31 +18,17 @@ import (
 var _ crypto.PrivKey = PrivKeyEd25519{}
 
 const (
-	PrivKeyAminoName = "tendermint/PrivKeyEd25519"
-	PubKeyAminoName  = "tendermint/PubKeyEd25519"
 	// Size of an Edwards25519 signature. Namely the size of a compressed
 	// Edwards25519 point, and a field element. Both of which are 32 bytes.
 	SignatureSize = 64
 )
-
-var cdc = amino.NewCodec()
-
-func init() {
-	cdc.RegisterInterface((*crypto.PubKey)(nil), nil)
-	cdc.RegisterConcrete(PubKeyEd25519{},
-		PubKeyAminoName, nil)
-
-	cdc.RegisterInterface((*crypto.PrivKey)(nil), nil)
-	cdc.RegisterConcrete(PrivKeyEd25519{},
-		PrivKeyAminoName, nil)
-}
 
 // PrivKeyEd25519 implements crypto.PrivKey.
 type PrivKeyEd25519 [64]byte
 
 // Bytes marshals the privkey using amino encoding.
 func (privKey PrivKeyEd25519) Bytes() []byte {
-	return cdc.MustMarshalBinaryBare(privKey)
+	return amino.MustMarshalBinaryBare(privKey)
 }
 
 // Sign produces a signature on the provided message.
@@ -141,7 +127,7 @@ func (pubKey PubKeyEd25519) Address() crypto.Address {
 
 // Bytes marshals the PubKey using amino encoding.
 func (pubKey PubKeyEd25519) Bytes() []byte {
-	bz, err := cdc.MarshalBinaryBare(pubKey)
+	bz, err := amino.MarshalBinaryBare(pubKey)
 	if err != nil {
 		panic(err)
 	}

@@ -6,6 +6,7 @@ import (
 
 	"github.com/tendermint/classic/crypto"
 	"github.com/tendermint/classic/crypto/multisig/bitarray"
+	"github.com/tendermint/go-amino-x"
 )
 
 // Multisignature is used to represent the signature object used in the multisigs.
@@ -73,5 +74,5 @@ func (mSig *Multisignature) AddSignatureFromPubKey(sig []byte, pubkey crypto.Pub
 
 // Marshal the multisignature with amino
 func (mSig *Multisignature) Marshal() []byte {
-	return cdc.MustMarshalBinaryBare(mSig)
+	return amino.MustMarshalBinaryBare(mSig)
 }

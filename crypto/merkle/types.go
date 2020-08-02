@@ -31,3 +31,15 @@ type Tree interface {
 func encodeByteSlice(w io.Writer, bz []byte) (err error) {
 	return amino.EncodeByteSlice(w, bz)
 }
+
+//----------------------------------------
+
+type ProofOp struct {
+	Type string `json:"type"`
+	Key  []byte `json:"key"`
+	Data []byte `json:"data"`
+}
+
+type Proof struct {
+	Ops []ProofOp `json:"ops"`
+}

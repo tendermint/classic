@@ -2,6 +2,8 @@ module github.com/tendermint/classic
 
 go 1.12
 
+// replace github.com/tendermint/go-amino-x => /Users/jae/gocode/src/github.com/tendermint/go-amino-x
+
 require (
 	github.com/Workiva/go-datastructures v1.0.52
 	github.com/bartekn/go-bip39 v0.0.0-20171116152956-a05967ea095d
@@ -37,10 +39,11 @@ require (
 	github.com/tecbot/gorocksdb v0.0.0-20191217155057-f0fad39f321c
 	github.com/tendermint/btcd v0.1.1
 	github.com/tendermint/crypto v0.0.0-20191022145703-50d29ede1e15
-	github.com/tendermint/go-amino-x v1.0.0-rc.1
+	github.com/tendermint/go-amino-x v1.0.0-rc.3
 	go.etcd.io/bbolt v1.3.3
 	golang.org/x/crypto v0.0.0-20200429183012-4b2356b1ed79
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
 	google.golang.org/grpc v1.30.0
+	google.golang.org/protobuf v1.25.0
 	gopkg.in/yaml.v2 v2.2.5
 )

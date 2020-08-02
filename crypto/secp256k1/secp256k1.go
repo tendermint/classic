@@ -11,29 +11,9 @@ import (
 	"golang.org/x/crypto/ripemd160"
 
 	secp256k1 "github.com/btcsuite/btcd/btcec"
-
-	amino "github.com/tendermint/go-amino-x"
-
 	"github.com/tendermint/classic/crypto"
+	amino "github.com/tendermint/go-amino-x"
 )
-
-//-------------------------------------
-const (
-	PrivKeyAminoName = "tendermint/PrivKeySecp256k1"
-	PubKeyAminoName  = "tendermint/PubKeySecp256k1"
-)
-
-var cdc = amino.NewCodec()
-
-func init() {
-	cdc.RegisterInterface((*crypto.PubKey)(nil), nil)
-	cdc.RegisterConcrete(PubKeySecp256k1{},
-		PubKeyAminoName, nil)
-
-	cdc.RegisterInterface((*crypto.PrivKey)(nil), nil)
-	cdc.RegisterConcrete(PrivKeySecp256k1{},
-		PrivKeyAminoName, nil)
-}
 
 //-------------------------------------
 
@@ -44,7 +24,7 @@ type PrivKeySecp256k1 [32]byte
 
 // Bytes marshalls the private key using amino encoding.
 func (privKey PrivKeySecp256k1) Bytes() []byte {
-	return cdc.MustMarshalBinaryBare(privKey)
+	return amino.MustMarshalBinaryBare(privKey)
 }
 
 // PubKey performs the point-scalar multiplication from the privKey on the
@@ -152,7 +132,7 @@ func (pubKey PubKeySecp256k1) Address() crypto.Address {
 
 // Bytes returns the pubkey marshalled with amino encoding.
 func (pubKey PubKeySecp256k1) Bytes() []byte {
-	bz, err := cdc.MarshalBinaryBare(pubKey)
+	bz, err := amino.MarshalBinaryBare(pubKey)
 	if err != nil {
 		panic(err)
 	}

@@ -2,6 +2,7 @@ package multisig
 
 import (
 	"github.com/tendermint/classic/crypto"
+	"github.com/tendermint/go-amino-x"
 )
 
 // PubKeyMultisigThreshold implements a K of N threshold multisig.
@@ -37,7 +38,7 @@ func NewPubKeyMultisigThreshold(k int, pubkeys []crypto.PubKey) crypto.PubKey {
 // a concern.
 func (pk PubKeyMultisigThreshold) VerifyBytes(msg []byte, marshalledSig []byte) bool {
 	var sig Multisignature
-	err := cdc.UnmarshalBinaryBare(marshalledSig, &sig)
+	err := amino.UnmarshalBinaryBare(marshalledSig, &sig)
 	if err != nil {
 		return false
 	}
@@ -69,7 +70,7 @@ func (pk PubKeyMultisigThreshold) VerifyBytes(msg []byte, marshalledSig []byte) 
 
 // Bytes returns the amino encoded version of the PubKeyMultisigThreshold
 func (pk PubKeyMultisigThreshold) Bytes() []byte {
-	return cdc.MustMarshalBinaryBare(pk)
+	return amino.MustMarshalBinaryBare(pk)
 }
 
 // Address returns tmhash(PubKeyMultisigThreshold.Bytes())

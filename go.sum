@@ -383,6 +383,9 @@ github.com/tendermint/go-amino-x v0.14.1 h1:o2WudxNfdLNBwMyl2dqOJxiro5rfrEaU0Ugs
 github.com/tendermint/go-amino-x v0.14.1/go.mod h1:i/UKE5Uocn+argJJBb12qTZsCDBcAYMbR92AaJVmKso=
 github.com/tendermint/go-amino-x v1.0.0-rc.1 h1:8pAubs4g4wLmrYSouqXcoJA8MkEk+K5Sftrq1nvDRFQ=
 github.com/tendermint/go-amino-x v1.0.0-rc.1/go.mod h1:0necnnICD4WeKVwjHN+ofZXJbpLuCLrg6vaxzEcP6MM=
+github.com/tendermint/go-amino-x v1.0.0-rc.2 h1:XtRDLT86C2vue0VA8rquYhRHTjYYZUzQ75VJxg0hP/w=
+github.com/tendermint/go-amino-x v1.0.0-rc.2/go.mod h1:0necnnICD4WeKVwjHN+ofZXJbpLuCLrg6vaxzEcP6MM=
+github.com/tendermint/go-amino-x v1.0.0-rc1 h1:wSmmA+JNX8BUxoPJlkdE1iJIfwT1oX0FTRKIUkWr7kE=
 github.com/tendermint/tm-db v0.5.1/go.mod h1:g92zWjHpCYlEvQXvy9M168Su8V1IBEeawpXVVBaK4f4=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20170815181823-89b8d40f7ca8/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
