@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	abci "github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/bank/internal/types"
 )
@@ -37,7 +37,7 @@ func queryBalance(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk
 		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
 	}
 
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, k.GetCoins(ctx, params.Address))
+	bz, err := amino.MarshalJSONIndent(types.ModuleCdc, k.GetCoins(ctx, params.Address))
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}

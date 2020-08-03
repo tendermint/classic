@@ -4,10 +4,10 @@ package auth
 import (
 	abci "github.com/tendermint/classic/abci/types"
 	"github.com/tendermint/classic/crypto"
-	"github.com/tendermint/classic/libs/log"
 	dbm "github.com/tendermint/classic/db"
+	"github.com/tendermint/classic/libs/log"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/tendermint/classic/sdk/store"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/auth/types"
@@ -16,7 +16,6 @@ import (
 )
 
 type testInput struct {
-	cdc *codec.Codec
 	ctx sdk.Context
 	ak  AccountKeeper
 	sk  types.SupplyKeeper
@@ -52,12 +51,6 @@ func (ma moduleAccount) GetPermissions() []string {
 func setupTestInput() testInput {
 	db := dbm.NewMemDB()
 
-	cdc := codec.New()
-	types.RegisterCodec(cdc)
-	cdc.RegisterInterface((*exported.ModuleAccountI)(nil), nil)
-	cdc.RegisterConcrete(&moduleAccount{}, "cosmos-sdk/ModuleAccount", nil)
-	codec.RegisterCrypto(cdc)
-
 	authCapKey := sdk.NewKVStoreKey("authCapKey")
 	keyParams := sdk.NewKVStoreKey("subspace")
 	tkeyParams := sdk.NewTransientStoreKey("transient_subspace")
@@ -68,15 +61,15 @@ func setupTestInput() testInput {
 	ms.MountStoreWithDB(tkeyParams, sdk.StoreTypeTransient, db)
 	ms.LoadLatestVersion()
 
-	ps := subspace.NewSubspace(cdc, keyParams, tkeyParams, types.DefaultParamspace)
-	ak := NewAccountKeeper(cdc, authCapKey, ps, types.ProtoBaseAccount)
+	ps := subspace.NewSubspace(keyParams, tkeyParams, types.DefaultParamspace)
+	ak := NewAccountKeeper(authCapKey, ps, types.ProtoBaseAccount)
 	sk := NewDummySupplyKeeper(ak)
 
 	ctx := sdk.NewContext(ms, abci.Header{ChainID: "test-chain-id"}, false, log.NewNopLogger())
 
 	ak.SetParams(ctx, types.DefaultParams())
 
-	return testInput{cdc: cdc, ctx: ctx, ak: ak, sk: sk}
+	return testInput{ctx: ctx, ak: ak, sk: sk}
 }
 
 // DummySupplyKeeper defines a supply keeper used only for testing to avoid

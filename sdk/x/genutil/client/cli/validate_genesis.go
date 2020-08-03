@@ -7,14 +7,14 @@ import (
 
 	"github.com/spf13/cobra"
 	tmtypes "github.com/tendermint/classic/types"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/tendermint/classic/sdk/server"
 	"github.com/tendermint/classic/sdk/types/module"
 )
 
 // Validate genesis command takes
-func ValidateGenesisCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager) *cobra.Command {
+func ValidateGenesisCmd(ctx *server.Context, mbm module.BasicManager) *cobra.Command {
 	return &cobra.Command{
 		Use:   "validate-genesis [file]",
 		Args:  cobra.RangeArgs(0, 1),
@@ -37,7 +37,7 @@ func ValidateGenesisCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicM
 			}
 
 			var genState map[string]json.RawMessage
-			if err = cdc.UnmarshalJSON(genDoc.AppState, &genState); err != nil {
+			if err = amino.UnmarshalJSON(genDoc.AppState, &genState); err != nil {
 				return fmt.Errorf("error unmarshaling genesis doc %s: %s", genesis, err.Error())
 			}
 

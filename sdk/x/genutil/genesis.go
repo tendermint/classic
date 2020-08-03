@@ -2,14 +2,14 @@ package genutil
 
 import (
 	abci "github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/genutil/types"
 )
 
 // InitGenesis - initialize accounts and deliver genesis transactions
-func InitGenesis(ctx sdk.Context, cdc *codec.Codec, stakingKeeper types.StakingKeeper,
+func InitGenesis(ctx sdk.Context, stakingKeeper types.StakingKeeper,
 	deliverTx deliverTxfn, genesisState GenesisState) []abci.ValidatorUpdate {
 
 	var validators []abci.ValidatorUpdate

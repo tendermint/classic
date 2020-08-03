@@ -10,12 +10,11 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/tendermint/go-amino-x"
 
 	tmclient "github.com/tendermint/classic/rpc/client"
 	ctypes "github.com/tendermint/classic/rpc/core/types"
 	rpcclient "github.com/tendermint/classic/rpc/lib/client"
-
-	"github.com/tendermint/classic/sdk/codec"
 )
 
 // Wait for the next tendermint block from the Tendermint RPC
@@ -114,7 +113,7 @@ func waitForHeight(height int64, url string) {
 		}
 
 		var resultBlock ctypes.ResultBlock
-		if err = cdc.UnmarshalJSON(body, &resultBlock); err != nil {
+		if err = amino.UnmarshalJSON(body, &resultBlock); err != nil {
 			panic(err)
 		}
 
@@ -208,12 +207,6 @@ func NewTestCaseDir(t *testing.T) (string, func()) {
 	dir, err := ioutil.TempDir("", t.Name()+"_")
 	require.NoError(t, err)
 	return dir, func() { os.RemoveAll(dir) }
-}
-
-var cdc = codec.New()
-
-func init() {
-	ctypes.RegisterAmino(cdc)
 }
 
 //DONTCOVER

@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/tendermint/classic/libs/log"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/mint/internal/types"
 	"github.com/tendermint/classic/sdk/x/params"
@@ -13,7 +13,6 @@ import (
 
 // Keeper of the mint store
 type Keeper struct {
-	cdc              *codec.Codec
 	storeKey         sdk.StoreKey
 	paramSpace       params.Subspace
 	sk               types.StakingKeeper
@@ -23,7 +22,7 @@ type Keeper struct {
 
 // NewKeeper creates a new mint Keeper instance
 func NewKeeper(
-	cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace,
+	key sdk.StoreKey, paramSpace params.Subspace,
 	sk types.StakingKeeper, supplyKeeper types.SupplyKeeper, feeCollectorName string) Keeper {
 
 	// ensure mint module account is set
@@ -32,7 +31,6 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		cdc:              cdc,
 		storeKey:         key,
 		paramSpace:       paramSpace.WithKeyTable(types.ParamKeyTable()),
 		sk:               sk,
@@ -56,14 +54,14 @@ func (k Keeper) GetMinter(ctx sdk.Context) (minter types.Minter) {
 		panic("stored minter should not have been nil")
 	}
 
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &minter)
+	amino.MustUnmarshalBinaryLengthPrefixed(b, &minter)
 	return
 }
 
 // set the minter
 func (k Keeper) SetMinter(ctx sdk.Context, minter types.Minter) {
 	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalBinaryLengthPrefixed(minter)
+	b := amino.MustMarshalBinaryLengthPrefixed(minter)
 	store.Set(types.MinterKey, b)
 }
 

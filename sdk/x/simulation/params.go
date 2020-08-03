@@ -5,7 +5,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/tendermint/classic/sdk/codec"
+	"github.com/tendermint/go-amino-x"
+
 	sdk "github.com/tendermint/classic/sdk/types"
 )
 
@@ -158,9 +159,9 @@ type (
 // GetOrGenerate attempts to get a given parameter by key from the AppParams
 // object. If it exists, it'll be decoded and returned. Otherwise, the provided
 // ParamSimulator is used to generate a random value.
-func (sp AppParams) GetOrGenerate(cdc *codec.Codec, key string, ptr interface{}, r *rand.Rand, ps ParamSimulator) {
+func (sp AppParams) GetOrGenerate(key string, ptr interface{}, r *rand.Rand, ps ParamSimulator) {
 	if v, ok := sp[key]; ok && v != nil {
-		cdc.MustUnmarshalJSON(v, ptr)
+		amino.MustUnmarshalJSON(v, ptr)
 		return
 	}
 

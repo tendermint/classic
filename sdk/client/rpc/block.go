@@ -8,10 +8,10 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client/context"
 	"github.com/tendermint/classic/sdk/client/flags"
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/tendermint/classic/sdk/types/rest"
 
 	tmliteProxy "github.com/tendermint/classic/lite/proxy"
@@ -65,10 +65,10 @@ func getBlock(cliCtx context.CLIContext, height *int64) ([]byte, error) {
 	}
 
 	if cliCtx.Indent {
-		return codec.Cdc.MarshalJSONIndent(res, "", "  ")
+		return amino.MarshalJSONIndent(res, "", "  ")
 	}
 
-	return codec.Cdc.MarshalJSON(res)
+	return amino.MarshalJSON(res)
 }
 
 // get the current blockchain height

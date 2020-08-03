@@ -3,10 +3,10 @@ package params
 
 import (
 	abci "github.com/tendermint/classic/abci/types"
-	"github.com/tendermint/classic/libs/log"
 	dbm "github.com/tendermint/classic/db"
+	"github.com/tendermint/classic/libs/log"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/tendermint/classic/sdk/store"
 	sdk "github.com/tendermint/classic/sdk/types"
 )
@@ -15,14 +15,6 @@ type invalid struct{}
 
 type s struct {
 	I int
-}
-
-func createTestCodec() *codec.Codec {
-	cdc := codec.New()
-	sdk.RegisterCodec(cdc)
-	cdc.RegisterConcrete(s{}, "test/s", nil)
-	cdc.RegisterConcrete(invalid{}, "test/invalid", nil)
-	return cdc
 }
 
 func defaultContext(key sdk.StoreKey, tkey sdk.StoreKey) sdk.Context {
@@ -38,12 +30,11 @@ func defaultContext(key sdk.StoreKey, tkey sdk.StoreKey) sdk.Context {
 	return ctx
 }
 
-func testComponents() (*codec.Codec, sdk.Context, sdk.StoreKey, sdk.StoreKey, Keeper) {
-	cdc := createTestCodec()
+func testComponents() (sdk.Context, sdk.StoreKey, sdk.StoreKey, Keeper) {
 	mkey := sdk.NewKVStoreKey("test")
 	tkey := sdk.NewTransientStoreKey("transient_test")
 	ctx := defaultContext(mkey, tkey)
-	keeper := NewKeeper(cdc, mkey, tkey, DefaultCodespace)
+	keeper := NewKeeper(mkey, tkey, DefaultCodespace)
 
-	return cdc, ctx, mkey, tkey, keeper
+	return ctx, mkey, tkey, keeper
 }

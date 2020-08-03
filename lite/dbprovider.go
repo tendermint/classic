@@ -5,12 +5,11 @@ import (
 	"regexp"
 	"strconv"
 
-	amino "github.com/tendermint/go-amino-x"
-	cryptoAmino "github.com/tendermint/classic/crypto/encoding/amino"
+	dbm "github.com/tendermint/classic/db"
 	log "github.com/tendermint/classic/libs/log"
 	lerr "github.com/tendermint/classic/lite/errors"
 	"github.com/tendermint/classic/types"
-	dbm "github.com/tendermint/classic/db"
+	amino "github.com/tendermint/go-amino-x"
 )
 
 var _ PersistentProvider = (*DBProvider)(nil)
@@ -20,7 +19,6 @@ type DBProvider struct {
 	logger log.Logger
 	label  string
 	db     dbm.DB
-	cdc    *amino.Codec
 	limit  int
 }
 
@@ -29,13 +27,10 @@ func NewDBProvider(label string, db dbm.DB) *DBProvider {
 	// NOTE: when debugging, this type of construction might be useful.
 	//db = dbm.NewDebugDB("db provider "+cmn.RandStr(4), db)
 
-	cdc := amino.NewCodec()
-	cryptoAmino.RegisterAmino(cdc)
 	dbp := &DBProvider{
 		logger: log.NewNopLogger(),
 		label:  label,
 		db:     db,
-		cdc:    cdc,
 	}
 	return dbp
 }
@@ -60,7 +55,7 @@ func (dbp *DBProvider) SaveFullCommit(fc FullCommit) error {
 	// We might be overwriting what we already have, but
 	// it makes the logic easier for now.
 	vsKey := validatorSetKey(fc.ChainID(), fc.Height())
-	vsBz, err := dbp.cdc.MarshalBinaryLengthPrefixed(fc.Validators)
+	vsBz, err := amino.MarshalBinaryLengthPrefixed(fc.Validators)
 	if err != nil {
 		return err
 	}
@@ -68,7 +63,7 @@ func (dbp *DBProvider) SaveFullCommit(fc FullCommit) error {
 
 	// Save the fc.NextValidators.
 	nvsKey := validatorSetKey(fc.ChainID(), fc.Height()+1)
-	nvsBz, err := dbp.cdc.MarshalBinaryLengthPrefixed(fc.NextValidators)
+	nvsBz, err := amino.MarshalBinaryLengthPrefixed(fc.NextValidators)
 	if err != nil {
 		return err
 	}
@@ -76,7 +71,7 @@ func (dbp *DBProvider) SaveFullCommit(fc FullCommit) error {
 
 	// Save the fc.SignedHeader
 	shKey := signedHeaderKey(fc.ChainID(), fc.Height())
-	shBz, err := dbp.cdc.MarshalBinaryLengthPrefixed(fc.SignedHeader)
+	shBz, err := amino.MarshalBinaryLengthPrefixed(fc.SignedHeader)
 	if err != nil {
 		return err
 	}
@@ -125,7 +120,7 @@ func (dbp *DBProvider) LatestFullCommit(chainID string, minHeight, maxHeight int
 			// Found the latest full commit signed header.
 			shBz := itr.Value()
 			sh := types.SignedHeader{}
-			err := dbp.cdc.UnmarshalBinaryLengthPrefixed(shBz, &sh)
+			err := amino.UnmarshalBinaryLengthPrefixed(shBz, &sh)
 			if err != nil {
 				return FullCommit{}, err
 			} else {
@@ -154,7 +149,7 @@ func (dbp *DBProvider) getValidatorSet(chainID string, height int64) (valset *ty
 		err = lerr.ErrUnknownValidators(chainID, height)
 		return
 	}
-	err = dbp.cdc.UnmarshalBinaryLengthPrefixed(vsBz, &valset)
+	err = amino.UnmarshalBinaryLengthPrefixed(vsBz, &valset)
 	if err != nil {
 		return
 	}

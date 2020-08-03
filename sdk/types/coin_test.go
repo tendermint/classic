@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tendermint/go-amino-x"
 )
 
 var (
@@ -644,9 +644,6 @@ func TestFindDup(t *testing.T) {
 }
 
 func TestMarshalJSONCoins(t *testing.T) {
-	cdc := codec.New()
-	RegisterCodec(cdc)
-
 	testCases := []struct {
 		name      string
 		input     Coins
@@ -659,12 +656,12 @@ func TestMarshalJSONCoins(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			bz, err := cdc.MarshalJSON(tc.input)
+			bz, err := amino.MarshalJSON(tc.input)
 			require.NoError(t, err)
 			require.Equal(t, tc.strOutput, string(bz))
 
 			var newCoins Coins
-			require.NoError(t, cdc.UnmarshalJSON(bz, &newCoins))
+			require.NoError(t, amino.UnmarshalJSON(bz, &newCoins))
 
 			if tc.input.Empty() {
 				require.Nil(t, newCoins)

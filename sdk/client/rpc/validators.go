@@ -12,10 +12,10 @@ import (
 	"github.com/spf13/viper"
 
 	tmtypes "github.com/tendermint/classic/types"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client/context"
 	"github.com/tendermint/classic/sdk/client/flags"
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/types/rest"
 )
@@ -23,7 +23,7 @@ import (
 // TODO these next two functions feel kinda hacky based on their placement
 
 //ValidatorCommand returns the validator set for a given height
-func ValidatorCommand(cdc *codec.Codec) *cobra.Command {
+func ValidatorCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "tendermint-validator-set [height]",
 		Short: "Get the full tendermint validator set at given height",
@@ -43,7 +43,7 @@ func ValidatorCommand(cdc *codec.Codec) *cobra.Command {
 				}
 			}
 
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx := context.NewCLIContext()
 
 			result, err := GetValidators(cliCtx, height)
 			if err != nil {

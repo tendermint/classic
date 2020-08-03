@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 
 	abci "github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	authexported "github.com/tendermint/classic/sdk/x/auth/exported"
 )
@@ -25,7 +25,6 @@ type AccountKeeper interface {
 // GenesisAccountsIterator defines the expected iterating genesis accounts object (noalias)
 type GenesisAccountsIterator interface {
 	IterateGenesisAccounts(
-		cdc *codec.Codec,
 		appGenesis map[string]json.RawMessage,
 		iterateFn func(authexported.Account) (stop bool),
 	)

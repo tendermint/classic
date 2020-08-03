@@ -8,10 +8,10 @@ import (
 	"github.com/spf13/viper"
 
 	ctypes "github.com/tendermint/classic/rpc/core/types"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client/context"
 	"github.com/tendermint/classic/sdk/client/flags"
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/tendermint/classic/sdk/types/rest"
 	"github.com/tendermint/classic/sdk/version"
 
@@ -52,9 +52,9 @@ func printNodeStatus(_ *cobra.Command, _ []string) error {
 
 	var output []byte
 	if cliCtx.Indent {
-		output, err = codec.Cdc.MarshalJSONIndent(status, "", "  ")
+		output, err = amino.MarshalJSONIndent(status, "", "  ")
 	} else {
-		output, err = codec.Cdc.MarshalJSON(status)
+		output, err = amino.MarshalJSON(status)
 	}
 	if err != nil {
 		return err

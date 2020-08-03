@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/staking/types"
 )
@@ -19,7 +19,6 @@ var (
 )
 
 func TestNewQuerier(t *testing.T) {
-	cdc := codec.New()
 	ctx, _, keeper, _ := CreateTestInput(t, false, 1000)
 	// Create Validators
 	amts := []sdk.Int{sdk.NewInt(9), sdk.NewInt(8)}
@@ -49,7 +48,7 @@ func TestNewQuerier(t *testing.T) {
 	require.Nil(t, err)
 
 	queryValParams := types.NewQueryValidatorParams(addrVal1)
-	bz, errRes := cdc.MarshalJSON(queryValParams)
+	bz, errRes := amino.MarshalJSON(queryValParams)
 	require.Nil(t, errRes)
 
 	query.Path = "/custom/staking/validator"
@@ -65,7 +64,7 @@ func TestNewQuerier(t *testing.T) {
 	require.Nil(t, err)
 
 	queryDelParams := types.NewQueryDelegatorParams(addrAcc2)
-	bz, errRes = cdc.MarshalJSON(queryDelParams)
+	bz, errRes = amino.MarshalJSON(queryDelParams)
 	require.Nil(t, errRes)
 
 	query.Path = "/custom/staking/validator"
@@ -80,7 +79,7 @@ func TestNewQuerier(t *testing.T) {
 	_, err = querier(ctx, []string{"delegatorValidators"}, query)
 	require.Nil(t, err)
 
-	bz, errRes = cdc.MarshalJSON(types.NewQueryRedelegationParams(nil, nil, nil))
+	bz, errRes = amino.MarshalJSON(types.NewQueryRedelegationParams(nil, nil, nil))
 	require.Nil(t, errRes)
 	query.Data = bz
 
@@ -89,7 +88,6 @@ func TestNewQuerier(t *testing.T) {
 }
 
 func TestQueryParametersPool(t *testing.T) {
-	cdc := codec.New()
 	ctx, _, keeper, _ := CreateTestInput(t, false, 1000)
 	bondDenom := keeper.BondDenom(ctx)
 
@@ -97,7 +95,7 @@ func TestQueryParametersPool(t *testing.T) {
 	require.Nil(t, err)
 
 	var params types.Params
-	errRes := cdc.UnmarshalJSON(res, &params)
+	errRes := amino.UnmarshalJSON(res, &params)
 	require.Nil(t, errRes)
 	require.Equal(t, keeper.GetParams(ctx), params)
 
@@ -107,14 +105,13 @@ func TestQueryParametersPool(t *testing.T) {
 	var pool types.Pool
 	bondedPool := keeper.GetBondedPool(ctx)
 	notBondedPool := keeper.GetNotBondedPool(ctx)
-	errRes = cdc.UnmarshalJSON(res, &pool)
+	errRes = amino.UnmarshalJSON(res, &pool)
 	require.Nil(t, errRes)
 	require.Equal(t, bondedPool.GetCoins().AmountOf(bondDenom), pool.BondedTokens)
 	require.Equal(t, notBondedPool.GetCoins().AmountOf(bondDenom), pool.NotBondedTokens)
 }
 
 func TestQueryValidators(t *testing.T) {
-	cdc := codec.New()
 	ctx, _, keeper, _ := CreateTestInput(t, false, 10000)
 	params := keeper.GetParams(ctx)
 
@@ -137,7 +134,7 @@ func TestQueryValidators(t *testing.T) {
 
 	for i, s := range status {
 		queryValsParams := types.NewQueryValidatorsParams(1, int(params.MaxValidators), s.String())
-		bz, err := cdc.MarshalJSON(queryValsParams)
+		bz, err := amino.MarshalJSON(queryValsParams)
 		require.Nil(t, err)
 
 		req := abci.RequestQuery{
@@ -149,7 +146,7 @@ func TestQueryValidators(t *testing.T) {
 		require.Nil(t, err)
 
 		var validatorsResp []types.Validator
-		err = cdc.UnmarshalJSON(res, &validatorsResp)
+		err = amino.UnmarshalJSON(res, &validatorsResp)
 		require.Nil(t, err)
 
 		require.Equal(t, 1, len(validatorsResp))
@@ -159,7 +156,7 @@ func TestQueryValidators(t *testing.T) {
 
 	// Query each validator
 	queryParams := types.NewQueryValidatorParams(addrVal1)
-	bz, err := cdc.MarshalJSON(queryParams)
+	bz, err := amino.MarshalJSON(queryParams)
 	require.Nil(t, err)
 
 	query := abci.RequestQuery{
@@ -170,14 +167,13 @@ func TestQueryValidators(t *testing.T) {
 	require.Nil(t, err)
 
 	var validator types.Validator
-	err = cdc.UnmarshalJSON(res, &validator)
+	err = amino.UnmarshalJSON(res, &validator)
 	require.Nil(t, err)
 
 	require.Equal(t, queriedValidators[0], validator)
 }
 
 func TestQueryDelegation(t *testing.T) {
-	cdc := codec.New()
 	ctx, _, keeper, _ := CreateTestInput(t, false, 10000)
 	params := keeper.GetParams(ctx)
 
@@ -198,7 +194,7 @@ func TestQueryDelegation(t *testing.T) {
 
 	// Query Delegator bonded validators
 	queryParams := types.NewQueryDelegatorParams(addrAcc2)
-	bz, errRes := cdc.MarshalJSON(queryParams)
+	bz, errRes := amino.MarshalJSON(queryParams)
 	require.Nil(t, errRes)
 
 	query := abci.RequestQuery{
@@ -212,7 +208,7 @@ func TestQueryDelegation(t *testing.T) {
 	require.Nil(t, err)
 
 	var validatorsResp []types.Validator
-	errRes = cdc.UnmarshalJSON(res, &validatorsResp)
+	errRes = amino.UnmarshalJSON(res, &validatorsResp)
 	require.Nil(t, errRes)
 
 	require.Equal(t, len(delValidators), len(validatorsResp))
@@ -226,7 +222,7 @@ func TestQueryDelegation(t *testing.T) {
 
 	// Query bonded validator
 	queryBondParams := types.NewQueryBondsParams(addrAcc2, addrVal1)
-	bz, errRes = cdc.MarshalJSON(queryBondParams)
+	bz, errRes = amino.MarshalJSON(queryBondParams)
 	require.Nil(t, errRes)
 
 	query = abci.RequestQuery{
@@ -238,7 +234,7 @@ func TestQueryDelegation(t *testing.T) {
 	require.Nil(t, err)
 
 	var validator types.Validator
-	errRes = cdc.UnmarshalJSON(res, &validator)
+	errRes = amino.UnmarshalJSON(res, &validator)
 	require.Nil(t, errRes)
 
 	require.Equal(t, delValidators[0], validator)
@@ -263,7 +259,7 @@ func TestQueryDelegation(t *testing.T) {
 	require.Nil(t, err)
 
 	var delegationRes types.DelegationResponse
-	errRes = cdc.UnmarshalJSON(res, &delegationRes)
+	errRes = amino.UnmarshalJSON(res, &delegationRes)
 	require.Nil(t, errRes)
 
 	require.Equal(t, delegation.ValidatorAddress, delegationRes.ValidatorAddress)
@@ -280,7 +276,7 @@ func TestQueryDelegation(t *testing.T) {
 	require.Nil(t, err)
 
 	var delegatorDelegations types.DelegationResponses
-	errRes = cdc.UnmarshalJSON(res, &delegatorDelegations)
+	errRes = amino.UnmarshalJSON(res, &delegatorDelegations)
 	require.Nil(t, errRes)
 	require.Len(t, delegatorDelegations, 1)
 	require.Equal(t, delegation.ValidatorAddress, delegatorDelegations[0].ValidatorAddress)
@@ -295,7 +291,7 @@ func TestQueryDelegation(t *testing.T) {
 
 	// Query validator delegations
 
-	bz, errRes = cdc.MarshalJSON(types.NewQueryValidatorParams(addrVal1))
+	bz, errRes = amino.MarshalJSON(types.NewQueryValidatorParams(addrVal1))
 	require.Nil(t, errRes)
 
 	query = abci.RequestQuery{
@@ -307,7 +303,7 @@ func TestQueryDelegation(t *testing.T) {
 	require.Nil(t, err)
 
 	var delegationsRes types.DelegationResponses
-	errRes = cdc.UnmarshalJSON(res, &delegationsRes)
+	errRes = amino.UnmarshalJSON(res, &delegationsRes)
 	require.Nil(t, errRes)
 	require.Len(t, delegatorDelegations, 1)
 	require.Equal(t, delegation.ValidatorAddress, delegationsRes[0].ValidatorAddress)
@@ -320,7 +316,7 @@ func TestQueryDelegation(t *testing.T) {
 	require.Nil(t, err)
 
 	queryBondParams = types.NewQueryBondsParams(addrAcc2, addrVal1)
-	bz, errRes = cdc.MarshalJSON(queryBondParams)
+	bz, errRes = amino.MarshalJSON(queryBondParams)
 	require.Nil(t, errRes)
 
 	query = abci.RequestQuery{
@@ -335,7 +331,7 @@ func TestQueryDelegation(t *testing.T) {
 	require.Nil(t, err)
 
 	var unbondRes types.UnbondingDelegation
-	errRes = cdc.UnmarshalJSON(res, &unbondRes)
+	errRes = amino.UnmarshalJSON(res, &unbondRes)
 	require.Nil(t, errRes)
 
 	require.Equal(t, unbond, unbondRes)
@@ -357,7 +353,7 @@ func TestQueryDelegation(t *testing.T) {
 	require.Nil(t, err)
 
 	var delegatorUbds []types.UnbondingDelegation
-	errRes = cdc.UnmarshalJSON(res, &delegatorUbds)
+	errRes = amino.UnmarshalJSON(res, &delegatorUbds)
 	require.Nil(t, errRes)
 	require.Equal(t, unbond, delegatorUbds[0])
 
@@ -375,7 +371,7 @@ func TestQueryDelegation(t *testing.T) {
 	redel, found := keeper.GetRedelegation(ctx, addrAcc2, val1.OperatorAddress, val2.OperatorAddress)
 	require.True(t, found)
 
-	bz, errRes = cdc.MarshalJSON(types.NewQueryRedelegationParams(addrAcc2, val1.OperatorAddress, val2.OperatorAddress))
+	bz, errRes = amino.MarshalJSON(types.NewQueryRedelegationParams(addrAcc2, val1.OperatorAddress, val2.OperatorAddress))
 	require.Nil(t, errRes)
 
 	query = abci.RequestQuery{
@@ -387,7 +383,7 @@ func TestQueryDelegation(t *testing.T) {
 	require.Nil(t, err)
 
 	var redelRes types.RedelegationResponses
-	errRes = cdc.UnmarshalJSON(res, &redelRes)
+	errRes = amino.UnmarshalJSON(res, &redelRes)
 	require.Nil(t, errRes)
 	require.Len(t, redelRes, 1)
 	require.Equal(t, redel.DelegatorAddress, redelRes[0].DelegatorAddress)
@@ -397,7 +393,6 @@ func TestQueryDelegation(t *testing.T) {
 }
 
 func TestQueryRedelegations(t *testing.T) {
-	cdc := codec.New()
 	ctx, _, keeper, _ := CreateTestInput(t, false, 10000)
 
 	// Create Validators and Delegation
@@ -419,7 +414,7 @@ func TestQueryRedelegations(t *testing.T) {
 
 	// delegator redelegations
 	queryDelegatorParams := types.NewQueryDelegatorParams(addrAcc2)
-	bz, errRes := cdc.MarshalJSON(queryDelegatorParams)
+	bz, errRes := amino.MarshalJSON(queryDelegatorParams)
 	require.Nil(t, errRes)
 
 	query := abci.RequestQuery{
@@ -431,7 +426,7 @@ func TestQueryRedelegations(t *testing.T) {
 	require.Nil(t, err)
 
 	var redelRes types.RedelegationResponses
-	errRes = cdc.UnmarshalJSON(res, &redelRes)
+	errRes = amino.UnmarshalJSON(res, &redelRes)
 	require.Nil(t, errRes)
 	require.Len(t, redelRes, 1)
 	require.Equal(t, redel.DelegatorAddress, redelRes[0].DelegatorAddress)
@@ -441,7 +436,7 @@ func TestQueryRedelegations(t *testing.T) {
 
 	// validator redelegations
 	queryValidatorParams := types.NewQueryValidatorParams(val1.GetOperator())
-	bz, errRes = cdc.MarshalJSON(queryValidatorParams)
+	bz, errRes = amino.MarshalJSON(queryValidatorParams)
 	require.Nil(t, errRes)
 
 	query = abci.RequestQuery{
@@ -452,7 +447,7 @@ func TestQueryRedelegations(t *testing.T) {
 	res, err = queryRedelegations(ctx, query, keeper)
 	require.Nil(t, err)
 
-	errRes = cdc.UnmarshalJSON(res, &redelRes)
+	errRes = amino.UnmarshalJSON(res, &redelRes)
 	require.Nil(t, errRes)
 	require.Len(t, redelRes, 1)
 	require.Equal(t, redel.DelegatorAddress, redelRes[0].DelegatorAddress)
@@ -462,7 +457,6 @@ func TestQueryRedelegations(t *testing.T) {
 }
 
 func TestQueryUnbondingDelegation(t *testing.T) {
-	cdc := codec.New()
 	ctx, _, keeper, _ := CreateTestInput(t, false, 10000)
 
 	// Create Validators and Delegation
@@ -488,7 +482,7 @@ func TestQueryUnbondingDelegation(t *testing.T) {
 	// found: query unbonding delegation by delegator and validator
 	//
 	queryValidatorParams := types.NewQueryBondsParams(addrAcc1, val1.GetOperator())
-	bz, errRes := cdc.MarshalJSON(queryValidatorParams)
+	bz, errRes := amino.MarshalJSON(queryValidatorParams)
 	require.Nil(t, errRes)
 	query := abci.RequestQuery{
 		Path: "/custom/staking/unbondingDelegation",
@@ -498,7 +492,7 @@ func TestQueryUnbondingDelegation(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, res)
 	var ubDel types.UnbondingDelegation
-	require.NoError(t, cdc.UnmarshalJSON(res, &ubDel))
+	require.NoError(t, amino.UnmarshalJSON(res, &ubDel))
 	require.Equal(t, addrAcc1, ubDel.DelegatorAddress)
 	require.Equal(t, val1.OperatorAddress, ubDel.ValidatorAddress)
 	require.Equal(t, 1, len(ubDel.Entries))
@@ -507,7 +501,7 @@ func TestQueryUnbondingDelegation(t *testing.T) {
 	// not found: query unbonding delegation by delegator and validator
 	//
 	queryValidatorParams = types.NewQueryBondsParams(addrAcc2, val1.GetOperator())
-	bz, errRes = cdc.MarshalJSON(queryValidatorParams)
+	bz, errRes = amino.MarshalJSON(queryValidatorParams)
 	require.Nil(t, errRes)
 	query = abci.RequestQuery{
 		Path: "/custom/staking/unbondingDelegation",
@@ -520,7 +514,7 @@ func TestQueryUnbondingDelegation(t *testing.T) {
 	// found: query unbonding delegation by delegator and validator
 	//
 	queryDelegatorParams := types.NewQueryDelegatorParams(addrAcc1)
-	bz, errRes = cdc.MarshalJSON(queryDelegatorParams)
+	bz, errRes = amino.MarshalJSON(queryDelegatorParams)
 	require.Nil(t, errRes)
 	query = abci.RequestQuery{
 		Path: "/custom/staking/delegatorUnbondingDelegations",
@@ -530,7 +524,7 @@ func TestQueryUnbondingDelegation(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, res)
 	var ubDels []types.UnbondingDelegation
-	require.NoError(t, cdc.UnmarshalJSON(res, &ubDels))
+	require.NoError(t, amino.UnmarshalJSON(res, &ubDels))
 	require.Equal(t, 1, len(ubDels))
 	require.Equal(t, addrAcc1, ubDels[0].DelegatorAddress)
 	require.Equal(t, val1.OperatorAddress, ubDels[0].ValidatorAddress)
@@ -539,7 +533,7 @@ func TestQueryUnbondingDelegation(t *testing.T) {
 	// not found: query unbonding delegation by delegator and validator
 	//
 	queryDelegatorParams = types.NewQueryDelegatorParams(addrAcc2)
-	bz, errRes = cdc.MarshalJSON(queryDelegatorParams)
+	bz, errRes = amino.MarshalJSON(queryDelegatorParams)
 	require.Nil(t, errRes)
 	query = abci.RequestQuery{
 		Path: "/custom/staking/delegatorUnbondingDelegations",
@@ -548,6 +542,6 @@ func TestQueryUnbondingDelegation(t *testing.T) {
 	res, err = queryDelegatorUnbondingDelegations(ctx, query, keeper)
 	require.Nil(t, err)
 	require.NotNil(t, res)
-	require.NoError(t, cdc.UnmarshalJSON(res, &ubDels))
+	require.NoError(t, amino.UnmarshalJSON(res, &ubDels))
 	require.Equal(t, 0, len(ubDels))
 }

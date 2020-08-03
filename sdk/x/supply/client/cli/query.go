@@ -4,17 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/tendermint/go-amino-x"
+
+	"github.com/spf13/cobra"
 	"github.com/tendermint/classic/sdk/client"
 	"github.com/tendermint/classic/sdk/client/context"
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/version"
 	"github.com/tendermint/classic/sdk/x/supply/internal/types"
-	"github.com/spf13/cobra"
 )
 
 // GetQueryCmd returns the cli query commands for this module
-func GetQueryCmd(cdc *codec.Codec) *cobra.Command {
+func GetQueryCmd() *cobra.Command {
 	// Group supply queries under a subcommand
 	supplyQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
@@ -25,14 +26,14 @@ func GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 	}
 
 	supplyQueryCmd.AddCommand(client.GetCommands(
-		GetCmdQueryTotalSupply(cdc),
+		GetCmdQueryTotalSupply(),
 	)...)
 
 	return supplyQueryCmd
 }
 
 // GetCmdQueryTotalSupply implements the query total supply command.
-func GetCmdQueryTotalSupply(cdc *codec.Codec) *cobra.Command {
+func GetCmdQueryTotalSupply() *cobra.Command {
 	return &cobra.Command{
 		Use:   "total [denom]",
 		Args:  cobra.MaximumNArgs(1),
@@ -51,19 +52,19 @@ $ %s query %s total stake
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx := context.NewCLIContext()
 
 			if len(args) == 0 {
-				return queryTotalSupply(cliCtx, cdc)
+				return queryTotalSupply(cliCtx)
 			}
-			return querySupplyOf(cliCtx, cdc, args[0])
+			return querySupplyOf(cliCtx, args[0])
 		},
 	}
 }
 
-func queryTotalSupply(cliCtx context.CLIContext, cdc *codec.Codec) error {
+func queryTotalSupply(cliCtx context.CLIContext) error {
 	params := types.NewQueryTotalSupplyParams(1, 0) // no pagination
-	bz, err := cdc.MarshalJSON(params)
+	bz, err := amino.MarshalJSON(params)
 	if err != nil {
 		return err
 	}
@@ -74,7 +75,7 @@ func queryTotalSupply(cliCtx context.CLIContext, cdc *codec.Codec) error {
 	}
 
 	var totalSupply sdk.Coins
-	err = cdc.UnmarshalJSON(res, &totalSupply)
+	err = amino.UnmarshalJSON(res, &totalSupply)
 	if err != nil {
 		return err
 	}
@@ -82,9 +83,9 @@ func queryTotalSupply(cliCtx context.CLIContext, cdc *codec.Codec) error {
 	return cliCtx.PrintOutput(totalSupply)
 }
 
-func querySupplyOf(cliCtx context.CLIContext, cdc *codec.Codec, denom string) error {
+func querySupplyOf(cliCtx context.CLIContext, denom string) error {
 	params := types.NewQuerySupplyOfParams(denom)
-	bz, err := cdc.MarshalJSON(params)
+	bz, err := amino.MarshalJSON(params)
 	if err != nil {
 		return err
 	}
@@ -95,7 +96,7 @@ func querySupplyOf(cliCtx context.CLIContext, cdc *codec.Codec, denom string) er
 	}
 
 	var supply sdk.Int
-	err = cdc.UnmarshalJSON(res, &supply)
+	err = amino.UnmarshalJSON(res, &supply)
 	if err != nil {
 		return err
 	}

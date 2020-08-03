@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client"
 	"github.com/tendermint/classic/sdk/client/context"
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/version"
 	"github.com/tendermint/classic/sdk/x/auth"
@@ -53,7 +53,7 @@ var ProposalFlags = []string{
 // it contains a slice of "proposal" child commands. These commands are respective
 // to proposal type handlers that are implemented in other modules but are mounted
 // under the governance CLI (eg. parameter change proposals).
-func GetTxCmd(storeKey string, cdc *codec.Codec, pcmds []*cobra.Command) *cobra.Command {
+func GetTxCmd(storeKey string, pcmds []*cobra.Command) *cobra.Command {
 	govTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      "Governance transactions subcommands",
@@ -62,14 +62,14 @@ func GetTxCmd(storeKey string, cdc *codec.Codec, pcmds []*cobra.Command) *cobra.
 		RunE:                       client.ValidateCmd,
 	}
 
-	cmdSubmitProp := GetCmdSubmitProposal(cdc)
+	cmdSubmitProp := GetCmdSubmitProposal()
 	for _, pcmd := range pcmds {
 		cmdSubmitProp.AddCommand(client.PostCommands(pcmd)[0])
 	}
 
 	govTxCmd.AddCommand(client.PostCommands(
-		GetCmdDeposit(cdc),
-		GetCmdVote(cdc),
+		GetCmdDeposit(),
+		GetCmdVote(),
 		cmdSubmitProp,
 	)...)
 
@@ -77,7 +77,7 @@ func GetTxCmd(storeKey string, cdc *codec.Codec, pcmds []*cobra.Command) *cobra.
 }
 
 // GetCmdSubmitProposal implements submitting a proposal transaction command.
-func GetCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
+func GetCmdSubmitProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "submit-proposal",
 		Short: "Submit a proposal along with an initial deposit",
@@ -105,8 +105,8 @@ $ %s tx gov submit-proposal --title="Test Proposal" --description="My awesome pr
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder())
+			cliCtx := context.NewCLIContext()
 
 			proposal, err := parseSubmitProposalFlags()
 			if err != nil {
@@ -139,7 +139,7 @@ $ %s tx gov submit-proposal --title="Test Proposal" --description="My awesome pr
 }
 
 // GetCmdDeposit implements depositing tokens for an active proposal.
-func GetCmdDeposit(cdc *codec.Codec) *cobra.Command {
+func GetCmdDeposit() *cobra.Command {
 	return &cobra.Command{
 		Use:   "deposit [proposal-id] [deposit]",
 		Args:  cobra.ExactArgs(2),
@@ -155,8 +155,8 @@ $ %s tx gov deposit 1 10stake --from mykey
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder())
+			cliCtx := context.NewCLIContext()
 
 			// validate that the proposal id is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -185,7 +185,7 @@ $ %s tx gov deposit 1 10stake --from mykey
 }
 
 // GetCmdVote implements creating a new vote command.
-func GetCmdVote(cdc *codec.Codec) *cobra.Command {
+func GetCmdVote() *cobra.Command {
 	return &cobra.Command{
 		Use:   "vote [proposal-id] [option]",
 		Args:  cobra.ExactArgs(2),
@@ -202,8 +202,8 @@ $ %s tx gov vote 1 yes --from mykey
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder())
+			cliCtx := context.NewCLIContext()
 
 			// Get voting address
 			from := cliCtx.GetFromAddress()

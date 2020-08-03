@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	cryptoAmino "github.com/tendermint/classic/crypto/encoding/amino"
+	"github.com/tendermint/classic/crypto"
 	"github.com/tendermint/classic/crypto/secp256k1"
 
 	"github.com/tendermint/classic/sdk/crypto/keys"
@@ -31,7 +31,7 @@ func TestArmorUnarmorPubKey(t *testing.T) {
 	armor := mintkey.ArmorPubKeyBytes(info.GetPubKey().Bytes())
 	pubBytes, err := mintkey.UnarmorPubKeyBytes(armor)
 	require.NoError(t, err)
-	pub, err := cryptoAmino.PubKeyFromBytes(pubBytes)
+	pub, err := crypto.PubKeyFromBytes(pubBytes)
 	require.NoError(t, err)
 	require.True(t, pub.Equals(info.GetPubKey()))
 }

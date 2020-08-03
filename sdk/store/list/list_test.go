@@ -4,14 +4,14 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/tendermint/classic/libs/log"
 	dbm "github.com/tendermint/classic/db"
+	"github.com/tendermint/classic/libs/log"
+	"github.com/tendermint/go-amino-x"
 
 	abci "github.com/tendermint/classic/abci/types"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/tendermint/classic/sdk/store/rootmulti"
 	sdk "github.com/tendermint/classic/sdk/types"
 )
@@ -21,20 +21,19 @@ type TestStruct struct {
 	B bool
 }
 
-func defaultComponents(key sdk.StoreKey) (sdk.Context, *codec.Codec) {
+func defaultComponents(key sdk.StoreKey) sdk.Context {
 	db := dbm.NewMemDB()
 	cms := rootmulti.NewStore(db)
 	cms.MountStoreWithDB(key, sdk.StoreTypeIAVL, db)
 	cms.LoadLatestVersion()
 	ctx := sdk.NewContext(cms, abci.Header{}, false, log.NewNopLogger())
-	cdc := codec.New()
-	return ctx, cdc
+	return ctx
 }
 func TestList(t *testing.T) {
 	key := sdk.NewKVStoreKey("test")
-	ctx, cdc := defaultComponents(key)
+	ctx := defaultComponents(key)
 	store := ctx.KVStore(key)
-	lm := NewList(cdc, store)
+	lm := NewList(store)
 
 	val := TestStruct{1, true}
 	var res TestStruct
@@ -78,9 +77,9 @@ func TestList(t *testing.T) {
 
 func TestListRandom(t *testing.T) {
 	key := sdk.NewKVStoreKey("test")
-	ctx, cdc := defaultComponents(key)
+	ctx := defaultComponents(key)
 	store := ctx.KVStore(key)
-	list := NewList(cdc, store)
+	list := NewList(store)
 	mocklist := []uint32{}
 
 	for i := 0; i < 100; i++ {

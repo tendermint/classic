@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	abci "github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/auth/types"
 )
@@ -33,7 +33,7 @@ func queryAccount(ctx sdk.Context, req abci.RequestQuery, keeper AccountKeeper) 
 		return nil, sdk.ErrUnknownAddress(fmt.Sprintf("account %s does not exist", params.Address))
 	}
 
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, account)
+	bz, err := amino.MarshalJSONIndent(account)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}

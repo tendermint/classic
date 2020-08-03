@@ -3,7 +3,8 @@ package params
 import (
 	"fmt"
 
-	"github.com/tendermint/classic/sdk/codec"
+	"github.com/tendermint/go-amino-x"
+
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/params/subspace"
 	"github.com/tendermint/classic/sdk/x/params/types"
@@ -13,7 +14,6 @@ import (
 
 // Keeper of the global paramstore
 type Keeper struct {
-	cdc       *codec.Codec
 	key       sdk.StoreKey
 	tkey      sdk.StoreKey
 	codespace sdk.CodespaceType
@@ -21,9 +21,8 @@ type Keeper struct {
 }
 
 // NewKeeper constructs a params keeper
-func NewKeeper(cdc *codec.Codec, key *sdk.KVStoreKey, tkey *sdk.TransientStoreKey, codespace sdk.CodespaceType) (k Keeper) {
+func NewKeeper(key *sdk.KVStoreKey, tkey *sdk.TransientStoreKey, codespace sdk.CodespaceType) (k Keeper) {
 	k = Keeper{
-		cdc:       cdc,
 		key:       key,
 		tkey:      tkey,
 		codespace: codespace,
@@ -49,7 +48,7 @@ func (k Keeper) Subspace(s string) Subspace {
 		panic("cannot use empty string for subspace")
 	}
 
-	space := subspace.NewSubspace(k.cdc, k.key, k.tkey, s)
+	space := subspace.NewSubspace(k.key, k.tkey, s)
 	k.spaces[s] = &space
 
 	return space

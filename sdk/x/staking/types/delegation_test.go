@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 )
 
@@ -79,7 +79,6 @@ func TestRedelegationString(t *testing.T) {
 }
 
 func TestDelegationResponses(t *testing.T) {
-	cdc := codec.New()
 	dr1 := NewDelegationResp(sdk.AccAddress(valAddr1), valAddr2, sdk.NewDec(5), sdk.NewInt(5))
 	dr2 := NewDelegationResp(sdk.AccAddress(valAddr1), valAddr3, sdk.NewDec(5), sdk.NewInt(5))
 	drs := DelegationResponses{dr1, dr2}
@@ -87,7 +86,7 @@ func TestDelegationResponses(t *testing.T) {
 	bz1, err := json.Marshal(dr1)
 	require.NoError(t, err)
 
-	bz2, err := cdc.MarshalJSON(dr1)
+	bz2, err := amino.MarshalJSON(dr1)
 	require.NoError(t, err)
 
 	require.Equal(t, bz1, bz2)
@@ -95,18 +94,17 @@ func TestDelegationResponses(t *testing.T) {
 	bz1, err = json.Marshal(drs)
 	require.NoError(t, err)
 
-	bz2, err = cdc.MarshalJSON(drs)
+	bz2, err = amino.MarshalJSON(drs)
 	require.NoError(t, err)
 
 	require.Equal(t, bz1, bz2)
 
 	var drs2 DelegationResponses
-	require.NoError(t, cdc.UnmarshalJSON(bz2, &drs2))
+	require.NoError(t, amino.UnmarshalJSON(bz2, &drs2))
 	require.Equal(t, drs, drs2)
 }
 
 func TestRedelegationResponses(t *testing.T) {
-	cdc := codec.New()
 	entries := []RedelegationEntryResponse{
 		NewRedelegationEntryResponse(0, time.Unix(0, 0), sdk.NewDec(5), sdk.NewInt(5), sdk.NewInt(5)),
 		NewRedelegationEntryResponse(0, time.Unix(0, 0), sdk.NewDec(5), sdk.NewInt(5), sdk.NewInt(5)),
@@ -118,7 +116,7 @@ func TestRedelegationResponses(t *testing.T) {
 	bz1, err := json.Marshal(rdr1)
 	require.NoError(t, err)
 
-	bz2, err := cdc.MarshalJSON(rdr1)
+	bz2, err := amino.MarshalJSON(rdr1)
 	require.NoError(t, err)
 
 	require.Equal(t, bz1, bz2)
@@ -126,15 +124,15 @@ func TestRedelegationResponses(t *testing.T) {
 	bz1, err = json.Marshal(rdrs)
 	require.NoError(t, err)
 
-	bz2, err = cdc.MarshalJSON(rdrs)
+	bz2, err = amino.MarshalJSON(rdrs)
 	require.NoError(t, err)
 
 	require.Equal(t, bz1, bz2)
 
 	var rdrs2 RedelegationResponses
-	require.NoError(t, cdc.UnmarshalJSON(bz2, &rdrs2))
+	require.NoError(t, amino.UnmarshalJSON(bz2, &rdrs2))
 
-	bz3, err := cdc.MarshalJSON(rdrs2)
+	bz3, err := amino.MarshalJSON(rdrs2)
 	require.NoError(t, err)
 
 	require.Equal(t, bz2, bz3)

@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/classic/libs/log"
 	dbm "github.com/tendermint/classic/db"
+	"github.com/tendermint/classic/libs/log"
 
-	"github.com/tendermint/classic/sdk/codec"
+	"github.com/tendermint/go-amino-x"
 
 	abci "github.com/tendermint/classic/abci/types"
 )
@@ -18,7 +18,7 @@ func TestSimAppExport(t *testing.T) {
 	app := NewSimApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0)
 
 	genesisState := NewDefaultGenesisState()
-	stateBytes, err := codec.MarshalJSONIndent(app.cdc, genesisState)
+	stateBytes, err := amino.MarshalJSONIndent(app.cdc, genesisState)
 	require.NoError(t, err)
 
 	// Initialize the chain

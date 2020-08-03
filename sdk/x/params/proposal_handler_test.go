@@ -8,8 +8,8 @@ import (
 	"github.com/tendermint/classic/libs/log"
 
 	dbm "github.com/tendermint/classic/db"
+	"github.com/tendermint/classic/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/tendermint/classic/sdk/store"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/params"
@@ -19,7 +19,6 @@ import (
 
 type testInput struct {
 	ctx    sdk.Context
-	cdc    *codec.Codec
 	keeper params.Keeper
 }
 
@@ -57,9 +56,6 @@ func testProposal(changes ...params.ParamChange) params.ParameterChangeProposal 
 }
 
 func newTestInput(t *testing.T) testInput {
-	cdc := codec.New()
-	types.RegisterCodec(cdc)
-
 	db := dbm.NewMemDB()
 	cms := store.NewCommitMultiStore(db)
 
@@ -72,10 +68,10 @@ func newTestInput(t *testing.T) testInput {
 	err := cms.LoadLatestVersion()
 	require.Nil(t, err)
 
-	keeper := params.NewKeeper(cdc, keyParams, tKeyParams, params.DefaultCodespace)
+	keeper := params.NewKeeper(keyParams, tKeyParams, params.DefaultCodespace)
 	ctx := sdk.NewContext(cms, abci.Header{}, false, log.NewNopLogger())
 
-	return testInput{ctx, cdc, keeper}
+	return testInput{ctx, keeper}
 }
 
 func TestProposalHandlerPassed(t *testing.T) {

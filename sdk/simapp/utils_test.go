@@ -9,9 +9,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/tendermint/classic/crypto/ed25519"
 	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/x/auth"
 	"github.com/tendermint/classic/sdk/x/distribution"
@@ -32,51 +32,37 @@ var (
 	consAddr1 = sdk.ConsAddress(delPk1.Address().Bytes())
 )
 
-func makeTestCodec() (cdc *codec.Codec) {
-	cdc = codec.New()
-	sdk.RegisterCodec(cdc)
-	codec.RegisterCrypto(cdc)
-	auth.RegisterCodec(cdc)
-	distr.RegisterCodec(cdc)
-	gov.RegisterCodec(cdc)
-	staking.RegisterCodec(cdc)
-	supply.RegisterCodec(cdc)
-	return
-}
-
 func TestGetSimulationLog(t *testing.T) {
-	cdc := makeTestCodec()
 
 	tests := []struct {
 		store  string
 		kvPair cmn.KVPair
 	}{
-		{auth.StoreKey, cmn.KVPair{Key: auth.AddressStoreKey(delAddr1), Value: cdc.MustMarshalBinaryBare(auth.BaseAccount{})}},
-		{mint.StoreKey, cmn.KVPair{Key: mint.MinterKey, Value: cdc.MustMarshalBinaryLengthPrefixed(mint.Minter{})}},
+		{auth.StoreKey, cmn.KVPair{Key: auth.AddressStoreKey(delAddr1), Value: amino.MustMarshalBinaryBare(auth.BaseAccount{})}},
+		{mint.StoreKey, cmn.KVPair{Key: mint.MinterKey, Value: amino.MustMarshalBinaryLengthPrefixed(mint.Minter{})}},
 		{staking.StoreKey, cmn.KVPair{Key: staking.LastValidatorPowerKey, Value: valAddr1.Bytes()}},
-		{gov.StoreKey, cmn.KVPair{Key: gov.VoteKey(1, delAddr1), Value: cdc.MustMarshalBinaryLengthPrefixed(gov.Vote{})}},
+		{gov.StoreKey, cmn.KVPair{Key: gov.VoteKey(1, delAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(gov.Vote{})}},
 		{distribution.StoreKey, cmn.KVPair{Key: distr.ProposerKey, Value: consAddr1.Bytes()}},
-		{slashing.StoreKey, cmn.KVPair{Key: slashing.GetValidatorMissedBlockBitArrayKey(consAddr1, 6), Value: cdc.MustMarshalBinaryLengthPrefixed(true)}},
-		{supply.StoreKey, cmn.KVPair{Key: supply.SupplyKey, Value: cdc.MustMarshalBinaryLengthPrefixed(supply.NewSupply(sdk.Coins{}))}},
+		{slashing.StoreKey, cmn.KVPair{Key: slashing.GetValidatorMissedBlockBitArrayKey(consAddr1, 6), Value: amino.MustMarshalBinaryLengthPrefixed(true)}},
+		{supply.StoreKey, cmn.KVPair{Key: supply.SupplyKey, Value: amino.MustMarshalBinaryLengthPrefixed(supply.NewSupply(sdk.Coins{}))}},
 		{"Empty", cmn.KVPair{}},
 		{"OtherStore", cmn.KVPair{Key: []byte("key"), Value: []byte("value")}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.store, func(t *testing.T) {
-			require.NotPanics(t, func() { GetSimulationLog(tt.store, cdc, cdc, tt.kvPair, tt.kvPair) }, tt.store)
+			require.NotPanics(t, func() { GetSimulationLog(tt.store, tt.kvPair, tt.kvPair) }, tt.store)
 		})
 	}
 }
 
 func TestDecodeAccountStore(t *testing.T) {
-	cdc := makeTestCodec()
 	acc := auth.NewBaseAccountWithAddress(delAddr1)
 	globalAccNumber := uint64(10)
 
 	kvPairs := cmn.KVPairs{
-		cmn.KVPair{Key: auth.AddressStoreKey(delAddr1), Value: cdc.MustMarshalBinaryBare(acc)},
-		cmn.KVPair{Key: auth.GlobalAccountNumberKey, Value: cdc.MustMarshalBinaryLengthPrefixed(globalAccNumber)},
+		cmn.KVPair{Key: auth.AddressStoreKey(delAddr1), Value: amino.MustMarshalBinaryBare(acc)},
+		cmn.KVPair{Key: auth.GlobalAccountNumberKey, Value: amino.MustMarshalBinaryLengthPrefixed(globalAccNumber)},
 		cmn.KVPair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 	tests := []struct {
@@ -92,20 +78,19 @@ func TestDecodeAccountStore(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			switch i {
 			case len(tests) - 1:
-				require.Panics(t, func() { DecodeAccountStore(cdc, cdc, kvPairs[i], kvPairs[i]) }, tt.name)
+				require.Panics(t, func() { DecodeAccountStore(kvPairs[i], kvPairs[i]) }, tt.name)
 			default:
-				require.Equal(t, tt.expectedLog, DecodeAccountStore(cdc, cdc, kvPairs[i], kvPairs[i]), tt.name)
+				require.Equal(t, tt.expectedLog, DecodeAccountStore(kvPairs[i], kvPairs[i]), tt.name)
 			}
 		})
 	}
 }
 
 func TestDecodeMintStore(t *testing.T) {
-	cdc := makeTestCodec()
 	minter := mint.NewMinter(sdk.OneDec(), sdk.NewDec(15))
 
 	kvPairs := cmn.KVPairs{
-		cmn.KVPair{Key: mint.MinterKey, Value: cdc.MustMarshalBinaryLengthPrefixed(minter)},
+		cmn.KVPair{Key: mint.MinterKey, Value: amino.MustMarshalBinaryLengthPrefixed(minter)},
 		cmn.KVPair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 	tests := []struct {
@@ -120,16 +105,15 @@ func TestDecodeMintStore(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			switch i {
 			case len(tests) - 1:
-				require.Panics(t, func() { DecodeMintStore(cdc, cdc, kvPairs[i], kvPairs[i]) }, tt.name)
+				require.Panics(t, func() { DecodeMintStore(kvPairs[i], kvPairs[i]) }, tt.name)
 			default:
-				require.Equal(t, tt.expectedLog, DecodeMintStore(cdc, cdc, kvPairs[i], kvPairs[i]), tt.name)
+				require.Equal(t, tt.expectedLog, DecodeMintStore(kvPairs[i], kvPairs[i]), tt.name)
 			}
 		})
 	}
 }
 
 func TestDecodeDistributionStore(t *testing.T) {
-	cdc := makeTestCodec()
 
 	decCoins := sdk.DecCoins{sdk.NewDecCoinFromDec(sdk.DefaultBondDenom, sdk.OneDec())}
 	feePool := distr.InitialFeePool()
@@ -142,15 +126,15 @@ func TestDecodeDistributionStore(t *testing.T) {
 	slashEvent := distr.NewValidatorSlashEvent(10, sdk.OneDec())
 
 	kvPairs := cmn.KVPairs{
-		cmn.KVPair{Key: distr.FeePoolKey, Value: cdc.MustMarshalBinaryLengthPrefixed(feePool)},
+		cmn.KVPair{Key: distr.FeePoolKey, Value: amino.MustMarshalBinaryLengthPrefixed(feePool)},
 		cmn.KVPair{Key: distr.ProposerKey, Value: consAddr1.Bytes()},
-		cmn.KVPair{Key: distr.GetValidatorOutstandingRewardsKey(valAddr1), Value: cdc.MustMarshalBinaryLengthPrefixed(outstanding)},
+		cmn.KVPair{Key: distr.GetValidatorOutstandingRewardsKey(valAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(outstanding)},
 		cmn.KVPair{Key: distr.GetDelegatorWithdrawAddrKey(delAddr1), Value: delAddr1.Bytes()},
-		cmn.KVPair{Key: distr.GetDelegatorStartingInfoKey(valAddr1, delAddr1), Value: cdc.MustMarshalBinaryLengthPrefixed(info)},
-		cmn.KVPair{Key: distr.GetValidatorHistoricalRewardsKey(valAddr1, 100), Value: cdc.MustMarshalBinaryLengthPrefixed(historicalRewards)},
-		cmn.KVPair{Key: distr.GetValidatorCurrentRewardsKey(valAddr1), Value: cdc.MustMarshalBinaryLengthPrefixed(currentRewards)},
-		cmn.KVPair{Key: distr.GetValidatorAccumulatedCommissionKey(valAddr1), Value: cdc.MustMarshalBinaryLengthPrefixed(commission)},
-		cmn.KVPair{Key: distr.GetValidatorSlashEventKeyPrefix(valAddr1, 13), Value: cdc.MustMarshalBinaryLengthPrefixed(slashEvent)},
+		cmn.KVPair{Key: distr.GetDelegatorStartingInfoKey(valAddr1, delAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(info)},
+		cmn.KVPair{Key: distr.GetValidatorHistoricalRewardsKey(valAddr1, 100), Value: amino.MustMarshalBinaryLengthPrefixed(historicalRewards)},
+		cmn.KVPair{Key: distr.GetValidatorCurrentRewardsKey(valAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(currentRewards)},
+		cmn.KVPair{Key: distr.GetValidatorAccumulatedCommissionKey(valAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(commission)},
+		cmn.KVPair{Key: distr.GetValidatorSlashEventKeyPrefix(valAddr1, 13), Value: amino.MustMarshalBinaryLengthPrefixed(slashEvent)},
 		cmn.KVPair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 
@@ -173,16 +157,15 @@ func TestDecodeDistributionStore(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			switch i {
 			case len(tests) - 1:
-				require.Panics(t, func() { DecodeDistributionStore(cdc, cdc, kvPairs[i], kvPairs[i]) }, tt.name)
+				require.Panics(t, func() { DecodeDistributionStore(kvPairs[i], kvPairs[i]) }, tt.name)
 			default:
-				require.Equal(t, tt.expectedLog, DecodeDistributionStore(cdc, cdc, kvPairs[i], kvPairs[i]), tt.name)
+				require.Equal(t, tt.expectedLog, DecodeDistributionStore(kvPairs[i], kvPairs[i]), tt.name)
 			}
 		})
 	}
 }
 
 func TestDecodeStakingStore(t *testing.T) {
-	cdc := makeTestCodec()
 
 	bondTime := time.Now().UTC()
 
@@ -192,12 +175,12 @@ func TestDecodeStakingStore(t *testing.T) {
 	red := staking.NewRedelegation(delAddr1, valAddr1, valAddr1, 12, bondTime, sdk.OneInt(), sdk.OneDec())
 
 	kvPairs := cmn.KVPairs{
-		cmn.KVPair{Key: staking.LastTotalPowerKey, Value: cdc.MustMarshalBinaryLengthPrefixed(sdk.OneInt())},
-		cmn.KVPair{Key: staking.GetValidatorKey(valAddr1), Value: cdc.MustMarshalBinaryLengthPrefixed(val)},
+		cmn.KVPair{Key: staking.LastTotalPowerKey, Value: amino.MustMarshalBinaryLengthPrefixed(sdk.OneInt())},
+		cmn.KVPair{Key: staking.GetValidatorKey(valAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(val)},
 		cmn.KVPair{Key: staking.LastValidatorPowerKey, Value: valAddr1.Bytes()},
-		cmn.KVPair{Key: staking.GetDelegationKey(delAddr1, valAddr1), Value: cdc.MustMarshalBinaryLengthPrefixed(del)},
-		cmn.KVPair{Key: staking.GetUBDKey(delAddr1, valAddr1), Value: cdc.MustMarshalBinaryLengthPrefixed(ubd)},
-		cmn.KVPair{Key: staking.GetREDKey(delAddr1, valAddr1, valAddr1), Value: cdc.MustMarshalBinaryLengthPrefixed(red)},
+		cmn.KVPair{Key: staking.GetDelegationKey(delAddr1, valAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(del)},
+		cmn.KVPair{Key: staking.GetUBDKey(delAddr1, valAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(ubd)},
+		cmn.KVPair{Key: staking.GetREDKey(delAddr1, valAddr1, valAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(red)},
 		cmn.KVPair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 
@@ -217,25 +200,24 @@ func TestDecodeStakingStore(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			switch i {
 			case len(tests) - 1:
-				require.Panics(t, func() { DecodeStakingStore(cdc, cdc, kvPairs[i], kvPairs[i]) }, tt.name)
+				require.Panics(t, func() { DecodeStakingStore(kvPairs[i], kvPairs[i]) }, tt.name)
 			default:
-				require.Equal(t, tt.expectedLog, DecodeStakingStore(cdc, cdc, kvPairs[i], kvPairs[i]), tt.name)
+				require.Equal(t, tt.expectedLog, DecodeStakingStore(kvPairs[i], kvPairs[i]), tt.name)
 			}
 		})
 	}
 }
 
 func TestDecodeSlashingStore(t *testing.T) {
-	cdc := makeTestCodec()
 
 	info := slashing.NewValidatorSigningInfo(consAddr1, 0, 1, time.Now().UTC(), false, 0)
 	bechPK := sdk.MustBech32ifyAccPub(delPk1)
 	missed := true
 
 	kvPairs := cmn.KVPairs{
-		cmn.KVPair{Key: slashing.GetValidatorSigningInfoKey(consAddr1), Value: cdc.MustMarshalBinaryLengthPrefixed(info)},
-		cmn.KVPair{Key: slashing.GetValidatorMissedBlockBitArrayKey(consAddr1, 6), Value: cdc.MustMarshalBinaryLengthPrefixed(missed)},
-		cmn.KVPair{Key: slashing.GetAddrPubkeyRelationKey(delAddr1), Value: cdc.MustMarshalBinaryLengthPrefixed(delPk1)},
+		cmn.KVPair{Key: slashing.GetValidatorSigningInfoKey(consAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(info)},
+		cmn.KVPair{Key: slashing.GetValidatorMissedBlockBitArrayKey(consAddr1, 6), Value: amino.MustMarshalBinaryLengthPrefixed(missed)},
+		cmn.KVPair{Key: slashing.GetAddrPubkeyRelationKey(delAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(delPk1)},
 		cmn.KVPair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 
@@ -252,16 +234,15 @@ func TestDecodeSlashingStore(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			switch i {
 			case len(tests) - 1:
-				require.Panics(t, func() { DecodeSlashingStore(cdc, cdc, kvPairs[i], kvPairs[i]) }, tt.name)
+				require.Panics(t, func() { DecodeSlashingStore(kvPairs[i], kvPairs[i]) }, tt.name)
 			default:
-				require.Equal(t, tt.expectedLog, DecodeSlashingStore(cdc, cdc, kvPairs[i], kvPairs[i]), tt.name)
+				require.Equal(t, tt.expectedLog, DecodeSlashingStore(kvPairs[i], kvPairs[i]), tt.name)
 			}
 		})
 	}
 }
 
 func TestDecodeGovStore(t *testing.T) {
-	cdc := makeTestCodec()
 
 	endTime := time.Now().UTC()
 
@@ -273,10 +254,10 @@ func TestDecodeGovStore(t *testing.T) {
 	vote := gov.NewVote(1, delAddr1, gov.OptionYes)
 
 	kvPairs := cmn.KVPairs{
-		cmn.KVPair{Key: gov.ProposalKey(1), Value: cdc.MustMarshalBinaryLengthPrefixed(proposal)},
+		cmn.KVPair{Key: gov.ProposalKey(1), Value: amino.MustMarshalBinaryLengthPrefixed(proposal)},
 		cmn.KVPair{Key: gov.InactiveProposalQueueKey(1, endTime), Value: proposalIDBz},
-		cmn.KVPair{Key: gov.DepositKey(1, delAddr1), Value: cdc.MustMarshalBinaryLengthPrefixed(deposit)},
-		cmn.KVPair{Key: gov.VoteKey(1, delAddr1), Value: cdc.MustMarshalBinaryLengthPrefixed(vote)},
+		cmn.KVPair{Key: gov.DepositKey(1, delAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(deposit)},
+		cmn.KVPair{Key: gov.VoteKey(1, delAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(vote)},
 		cmn.KVPair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 
@@ -295,21 +276,20 @@ func TestDecodeGovStore(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			switch i {
 			case len(tests) - 1:
-				require.Panics(t, func() { DecodeGovStore(cdc, cdc, kvPairs[i], kvPairs[i]) }, tt.name)
+				require.Panics(t, func() { DecodeGovStore(kvPairs[i], kvPairs[i]) }, tt.name)
 			default:
-				require.Equal(t, tt.expectedLog, DecodeGovStore(cdc, cdc, kvPairs[i], kvPairs[i]), tt.name)
+				require.Equal(t, tt.expectedLog, DecodeGovStore(kvPairs[i], kvPairs[i]), tt.name)
 			}
 		})
 	}
 }
 
 func TestDecodeSupplyStore(t *testing.T) {
-	cdc := makeTestCodec()
 
 	totalSupply := supply.NewSupply(sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 1000)))
 
 	kvPairs := cmn.KVPairs{
-		cmn.KVPair{Key: supply.SupplyKey, Value: cdc.MustMarshalBinaryLengthPrefixed(totalSupply)},
+		cmn.KVPair{Key: supply.SupplyKey, Value: amino.MustMarshalBinaryLengthPrefixed(totalSupply)},
 		cmn.KVPair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 
@@ -325,9 +305,9 @@ func TestDecodeSupplyStore(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			switch i {
 			case len(tests) - 1:
-				require.Panics(t, func() { DecodeSupplyStore(cdc, cdc, kvPairs[i], kvPairs[i]) }, tt.name)
+				require.Panics(t, func() { DecodeSupplyStore(kvPairs[i], kvPairs[i]) }, tt.name)
 			default:
-				require.Equal(t, tt.expectedLog, DecodeSupplyStore(cdc, cdc, kvPairs[i], kvPairs[i]), tt.name)
+				require.Equal(t, tt.expectedLog, DecodeSupplyStore(kvPairs[i], kvPairs[i]), tt.name)
 			}
 		})
 	}

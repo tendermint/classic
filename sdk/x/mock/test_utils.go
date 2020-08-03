@@ -5,11 +5,10 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/tendermint/classic/sdk/codec"
-
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/classic/abci/types"
 	"github.com/tendermint/classic/crypto"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/baseapp"
 	sdk "github.com/tendermint/classic/sdk/types"
@@ -73,13 +72,13 @@ func CheckGenTx(
 // the parameter 'expPass' against the result. A corresponding result is
 // returned.
 func SignCheckDeliver(
-	t *testing.T, cdc *codec.Codec, app *baseapp.BaseApp, header abci.Header, msgs []sdk.Msg,
+	t *testing.T, app *baseapp.BaseApp, header abci.Header, msgs []sdk.Msg,
 	accNums, seq []uint64, expSimPass, expPass bool, priv ...crypto.PrivKey,
 ) sdk.Result {
 
 	tx := GenTx(msgs, accNums, seq, priv...)
 
-	txBytes, err := cdc.MarshalBinaryLengthPrefixed(tx)
+	txBytes, err := amino.MarshalBinaryLengthPrefixed(tx)
 	require.Nil(t, err)
 
 	// Must simulate now as CheckTx doesn't run Msgs anymore

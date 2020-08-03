@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/tendermint/classic/sdk/codec"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/store/types"
 )
@@ -20,16 +20,14 @@ func ElemKey(index uint64) []byte {
 }
 
 // List defines an integer indexable mapper
-// It panics when the element type cannot be (un/)marshalled by the codec
+// It panics when the element type cannot be (un/)marshalled by amino.
 type List struct {
-	cdc   *codec.Codec
 	store types.KVStore
 }
 
 // NewList constructs new List
-func NewList(cdc *codec.Codec, store types.KVStore) List {
+func NewList(store types.KVStore) List {
 	return List{
-		cdc:   cdc,
 		store: store,
 	}
 }
@@ -44,21 +42,21 @@ func (m List) Len() (res uint64) {
 		return 0
 	}
 
-	m.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &res)
+	amino.MustUnmarshalBinaryLengthPrefixed(bz, &res)
 	return
 }
 
 // Get() returns the element by its index
 func (m List) Get(index uint64, ptr interface{}) error {
 	bz := m.store.Get(ElemKey(index))
-	return m.cdc.UnmarshalBinaryLengthPrefixed(bz, ptr)
+	return amino.UnmarshalBinaryLengthPrefixed(bz, ptr)
 }
 
 // Set() stores the element to the given position
 // Setting element out of range will break length counting
 // Use Push() instead of Set() to append a new element
 func (m List) Set(index uint64, value interface{}) {
-	bz := m.cdc.MustMarshalBinaryLengthPrefixed(value)
+	bz := amino.MustMarshalBinaryLengthPrefixed(value)
 	m.store.Set(ElemKey(index), bz)
 }
 
@@ -74,7 +72,7 @@ func (m List) Delete(index uint64) {
 func (m List) Push(value interface{}) {
 	length := m.Len()
 	m.Set(length, value)
-	m.store.Set(LengthKey(), m.cdc.MustMarshalBinaryLengthPrefixed(length+1))
+	m.store.Set(LengthKey(), amino.MustMarshalBinaryLengthPrefixed(length+1))
 }
 
 // Iterate() is used to iterate over all existing elements in the list
@@ -88,7 +86,7 @@ func (m List) Iterate(ptr interface{}, fn func(uint64) bool) {
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		v := iter.Value()
-		m.cdc.MustUnmarshalBinaryLengthPrefixed(v, ptr)
+		amino.MustUnmarshalBinaryLengthPrefixed(v, ptr)
 
 		k := iter.Key()
 		s := string(k[len(k)-20:])

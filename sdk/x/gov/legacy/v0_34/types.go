@@ -7,7 +7,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tendermint/classic/sdk/codec"
+	"github.com/tendermint/go-amino-x"
+
 	sdk "github.com/tendermint/classic/sdk/types"
 )
 
@@ -338,8 +339,10 @@ func (pt ProposalKind) String() string {
 	}
 }
 
+/*
 func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterInterface((*ProposalContent)(nil), nil)
 	cdc.RegisterConcrete(TextProposal{}, "gov/TextProposal", nil)
 	cdc.RegisterConcrete(SoftwareUpgradeProposal{}, "gov/SoftwareUpgradeProposal", nil)
 }
+*/

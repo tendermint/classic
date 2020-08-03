@@ -3,7 +3,8 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/tendermint/classic/sdk/codec"
+	"github.com/tendermint/go-amino-x"
+
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/distribution/types"
 	"github.com/tendermint/classic/sdk/x/params"
@@ -14,7 +15,6 @@ import (
 // Keeper of the distribution store
 type Keeper struct {
 	storeKey      sdk.StoreKey
-	cdc           *codec.Codec
 	paramSpace    params.Subspace
 	stakingKeeper types.StakingKeeper
 	supplyKeeper  types.SupplyKeeper
@@ -27,7 +27,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new distribution Keeper instance
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace,
+func NewKeeper(key sdk.StoreKey, paramSpace params.Subspace,
 	sk types.StakingKeeper, supplyKeeper types.SupplyKeeper, codespace sdk.CodespaceType,
 	feeCollectorName string, blacklistedAddrs map[string]bool) Keeper {
 
@@ -38,7 +38,6 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace,
 
 	return Keeper{
 		storeKey:         key,
-		cdc:              cdc,
 		paramSpace:       paramSpace.WithKeyTable(ParamKeyTable()),
 		stakingKeeper:    sk,
 		supplyKeeper:     supplyKeeper,

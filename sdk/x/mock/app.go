@@ -11,11 +11,11 @@ import (
 	"github.com/tendermint/classic/crypto"
 	"github.com/tendermint/classic/crypto/ed25519"
 	"github.com/tendermint/classic/crypto/secp256k1"
-	"github.com/tendermint/classic/libs/log"
 	dbm "github.com/tendermint/classic/db"
+	"github.com/tendermint/classic/libs/log"
+	"github.com/tendermint/go-amino-x"
 
 	bam "github.com/tendermint/classic/sdk/baseapp"
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/auth"
 	"github.com/tendermint/classic/sdk/x/params"
@@ -28,7 +28,6 @@ const chainID = ""
 // capabilities aren't needed for testing.
 type App struct {
 	*bam.BaseApp
-	Cdc        *codec.Codec // Cdc is public since the codec is passed into the module anyways
 	KeyMain    *sdk.KVStoreKey
 	KeyAccount *sdk.KVStoreKey
 	KeyParams  *sdk.KVStoreKey
@@ -48,13 +47,9 @@ func NewApp() *App {
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout)).With("module", "sdk/app")
 	db := dbm.NewMemDB()
 
-	// Create the cdc with some standard codecs
-	cdc := createCodec()
-
 	// Create your application object
 	app := &App{
-		BaseApp:          bam.NewBaseApp("mock", logger, db, auth.DefaultTxDecoder(cdc)),
-		Cdc:              cdc,
+		BaseApp:          bam.NewBaseApp("mock", logger, db, auth.DefaultTxDecoder()),
 		KeyMain:          sdk.NewKVStoreKey(bam.MainStoreKey),
 		KeyAccount:       sdk.NewKVStoreKey(auth.StoreKey),
 		KeyParams:        sdk.NewKVStoreKey("params"),
@@ -63,10 +58,9 @@ func NewApp() *App {
 	}
 
 	// define keepers
-	app.ParamsKeeper = params.NewKeeper(app.Cdc, app.KeyParams, app.TKeyParams, params.DefaultCodespace)
+	app.ParamsKeeper = params.NewKeeper(app.KeyParams, app.TKeyParams, params.DefaultCodespace)
 
 	app.AccountKeeper = auth.NewAccountKeeper(
-		app.Cdc,
 		app.KeyAccount,
 		app.ParamsKeeper.Subspace(auth.DefaultParamspace),
 		auth.ProtoBaseAccount,
@@ -326,12 +320,4 @@ func incrementAllSequenceNumbers(initSeqNums []uint64) {
 	for i := 0; i < len(initSeqNums); i++ {
 		initSeqNums[i]++
 	}
-}
-
-func createCodec() *codec.Codec {
-	cdc := codec.New()
-	sdk.RegisterCodec(cdc)
-	codec.RegisterCrypto(cdc)
-	auth.RegisterCodec(cdc)
-	return cdc
 }

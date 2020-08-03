@@ -8,9 +8,9 @@ import (
 	"github.com/spf13/viper"
 	"github.com/tendermint/classic/libs/cli"
 	tmtypes "github.com/tendermint/classic/types"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client"
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/tendermint/classic/sdk/server"
 	"github.com/tendermint/classic/sdk/x/genutil"
 	"github.com/tendermint/classic/sdk/x/genutil/types"
@@ -19,7 +19,7 @@ import (
 const flagGenTxDir = "gentx-dir"
 
 // CollectGenTxsCmd - return the cobra command to collect genesis transactions
-func CollectGenTxsCmd(ctx *server.Context, cdc *codec.Codec,
+func CollectGenTxsCmd(ctx *server.Context,
 	genAccIterator types.GenesisAccountsIterator, defaultNodeHome string) *cobra.Command {
 
 	cmd := &cobra.Command{
@@ -47,7 +47,7 @@ func CollectGenTxsCmd(ctx *server.Context, cdc *codec.Codec,
 			toPrint := newPrintInfo(config.Moniker, genDoc.ChainID, nodeID, genTxsDir, json.RawMessage(""))
 			initCfg := genutil.NewInitConfig(genDoc.ChainID, genTxsDir, name, nodeID, valPubKey)
 
-			appMessage, err := genutil.GenAppStateFromConfig(cdc, config, initCfg, *genDoc, genAccIterator)
+			appMessage, err := genutil.GenAppStateFromConfig(config, initCfg, *genDoc, genAccIterator)
 			if err != nil {
 				return err
 			}
@@ -55,7 +55,7 @@ func CollectGenTxsCmd(ctx *server.Context, cdc *codec.Codec,
 			toPrint.AppMessage = appMessage
 
 			// print out some key information
-			return displayInfo(cdc, toPrint)
+			return displayInfo(toPrint)
 		},
 	}
 

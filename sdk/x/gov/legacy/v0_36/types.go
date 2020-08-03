@@ -7,7 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tendermint/classic/sdk/codec"
+	"github.com/tendermint/go-amino-x"
+
 	sdk "github.com/tendermint/classic/sdk/types"
 	v034gov "github.com/tendermint/classic/sdk/x/gov/legacy/v0_34"
 )
@@ -157,8 +158,10 @@ func ValidateAbstract(codespace sdk.CodespaceType, c Content) sdk.Error {
 	return nil
 }
 
-func RegisterCodec(cdc *codec.Codec) {
+/*
+func RegisterCodec() {
 	cdc.RegisterInterface((*Content)(nil), nil)
 	cdc.RegisterConcrete(TextProposal{}, "cosmos-sdk/TextProposal", nil)
 	cdc.RegisterConcrete(SoftwareUpgradeProposal{}, "cosmos-sdk/SoftwareUpgradeProposal", nil)
 }
+*/

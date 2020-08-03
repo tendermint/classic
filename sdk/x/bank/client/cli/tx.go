@@ -2,10 +2,10 @@ package cli
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client"
 	"github.com/tendermint/classic/sdk/client/context"
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/auth"
 	"github.com/tendermint/classic/sdk/x/auth/client/utils"
@@ -13,7 +13,7 @@ import (
 )
 
 // GetTxCmd returns the transaction commands for this module
-func GetTxCmd(cdc *codec.Codec) *cobra.Command {
+func GetTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      "Bank transaction subcommands",
@@ -22,20 +22,20 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 	txCmd.AddCommand(
-		SendTxCmd(cdc),
+		SendTxCmd(),
 	)
 	return txCmd
 }
 
 // SendTxCmd will create a send tx and sign it with the given key.
-func SendTxCmd(cdc *codec.Codec) *cobra.Command {
+func SendTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "send [from_key_or_address] [to_address] [amount]",
 		Short: "Create and sign a send tx",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithFrom(args[0]).WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder())
+			cliCtx := context.NewCLIContextWithFrom(args[0])
 
 			to, err := sdk.AccAddressFromBech32(args[1])
 			if err != nil {

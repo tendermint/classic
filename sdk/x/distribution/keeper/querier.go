@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	abci "github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/distribution/types"
 	"github.com/tendermint/classic/sdk/x/staking/exported"
@@ -51,25 +51,25 @@ func NewQuerier(k Keeper) sdk.Querier {
 func queryParams(ctx sdk.Context, path []string, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
 	switch path[0] {
 	case types.ParamCommunityTax:
-		bz, err := codec.MarshalJSONIndent(k.cdc, k.GetCommunityTax(ctx))
+		bz, err := amino.MarshalJSONIndent(k.GetCommunityTax(ctx))
 		if err != nil {
 			return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 		}
 		return bz, nil
 	case types.ParamBaseProposerReward:
-		bz, err := codec.MarshalJSONIndent(k.cdc, k.GetBaseProposerReward(ctx))
+		bz, err := amino.MarshalJSONIndent(k.GetBaseProposerReward(ctx))
 		if err != nil {
 			return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 		}
 		return bz, nil
 	case types.ParamBonusProposerReward:
-		bz, err := codec.MarshalJSONIndent(k.cdc, k.GetBonusProposerReward(ctx))
+		bz, err := amino.MarshalJSONIndent(k.GetBonusProposerReward(ctx))
 		if err != nil {
 			return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 		}
 		return bz, nil
 	case types.ParamWithdrawAddrEnabled:
-		bz, err := codec.MarshalJSONIndent(k.cdc, k.GetWithdrawAddrEnabled(ctx))
+		bz, err := amino.MarshalJSONIndent(k.GetWithdrawAddrEnabled(ctx))
 		if err != nil {
 			return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 		}
@@ -81,11 +81,11 @@ func queryParams(ctx sdk.Context, path []string, req abci.RequestQuery, k Keeper
 
 func queryValidatorOutstandingRewards(ctx sdk.Context, path []string, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
 	var params types.QueryValidatorOutstandingRewardsParams
-	err := k.cdc.UnmarshalJSON(req.Data, &params)
+	err := amino.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
 	}
-	bz, err := codec.MarshalJSONIndent(k.cdc, k.GetValidatorOutstandingRewards(ctx, params.ValidatorAddress))
+	bz, err := amino.MarshalJSONIndent(k.GetValidatorOutstandingRewards(ctx, params.ValidatorAddress))
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}
@@ -94,12 +94,12 @@ func queryValidatorOutstandingRewards(ctx sdk.Context, path []string, req abci.R
 
 func queryValidatorCommission(ctx sdk.Context, path []string, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
 	var params types.QueryValidatorCommissionParams
-	err := k.cdc.UnmarshalJSON(req.Data, &params)
+	err := amino.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
 	}
 	commission := k.GetValidatorAccumulatedCommission(ctx, params.ValidatorAddress)
-	bz, err := codec.MarshalJSONIndent(k.cdc, commission)
+	bz, err := amino.MarshalJSONIndent(commission)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}
@@ -108,7 +108,7 @@ func queryValidatorCommission(ctx sdk.Context, path []string, req abci.RequestQu
 
 func queryValidatorSlashes(ctx sdk.Context, path []string, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
 	var params types.QueryValidatorSlashesParams
-	err := k.cdc.UnmarshalJSON(req.Data, &params)
+	err := amino.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
 	}
@@ -119,7 +119,7 @@ func queryValidatorSlashes(ctx sdk.Context, path []string, req abci.RequestQuery
 			return false
 		},
 	)
-	bz, err := codec.MarshalJSONIndent(k.cdc, events)
+	bz, err := amino.MarshalJSONIndent(amino, events)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}
@@ -128,7 +128,7 @@ func queryValidatorSlashes(ctx sdk.Context, path []string, req abci.RequestQuery
 
 func queryDelegationRewards(ctx sdk.Context, _ []string, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
 	var params types.QueryDelegationRewardsParams
-	err := k.cdc.UnmarshalJSON(req.Data, &params)
+	err := amino.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
 	}
@@ -151,7 +151,7 @@ func queryDelegationRewards(ctx sdk.Context, _ []string, req abci.RequestQuery, 
 	endingPeriod := k.incrementValidatorPeriod(ctx, val)
 	rewards := k.calculateDelegationRewards(ctx, val, del, endingPeriod)
 
-	bz, err := codec.MarshalJSONIndent(k.cdc, rewards)
+	bz, err := amino.MarshalJSONIndent(rewards)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}
@@ -161,7 +161,7 @@ func queryDelegationRewards(ctx sdk.Context, _ []string, req abci.RequestQuery, 
 
 func queryDelegatorTotalRewards(ctx sdk.Context, _ []string, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
 	var params types.QueryDelegatorParams
-	err := k.cdc.UnmarshalJSON(req.Data, &params)
+	err := amino.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
 	}
@@ -197,7 +197,7 @@ func queryDelegatorTotalRewards(ctx sdk.Context, _ []string, req abci.RequestQue
 
 func queryDelegatorValidators(ctx sdk.Context, _ []string, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
 	var params types.QueryDelegatorParams
-	err := k.cdc.UnmarshalJSON(req.Data, &params)
+	err := amino.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
 	}
@@ -215,7 +215,7 @@ func queryDelegatorValidators(ctx sdk.Context, _ []string, req abci.RequestQuery
 		},
 	)
 
-	bz, err := codec.MarshalJSONIndent(k.cdc, validators)
+	bz, err := amino.MarshalJSONIndent(validators)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}
@@ -224,7 +224,7 @@ func queryDelegatorValidators(ctx sdk.Context, _ []string, req abci.RequestQuery
 
 func queryDelegatorWithdrawAddress(ctx sdk.Context, _ []string, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
 	var params types.QueryDelegatorWithdrawAddrParams
-	err := k.cdc.UnmarshalJSON(req.Data, &params)
+	err := amino.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
 	}
@@ -233,7 +233,7 @@ func queryDelegatorWithdrawAddress(ctx sdk.Context, _ []string, req abci.Request
 	ctx, _ = ctx.CacheContext()
 	withdrawAddr := k.GetDelegatorWithdrawAddr(ctx, params.DelegatorAddress)
 
-	bz, err := codec.MarshalJSONIndent(k.cdc, withdrawAddr)
+	bz, err := amino.MarshalJSONIndent(withdrawAddr)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}
@@ -242,7 +242,7 @@ func queryDelegatorWithdrawAddress(ctx sdk.Context, _ []string, req abci.Request
 }
 
 func queryCommunityPool(ctx sdk.Context, _ []string, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
-	bz, err := k.cdc.MarshalJSON(k.GetFeePoolCommunityCoins(ctx))
+	bz, err := amino.MarshalJSON(k.GetFeePoolCommunityCoins(ctx))
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}

@@ -6,9 +6,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/tendermint/classic/libs/cli"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client/keys"
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/tendermint/classic/sdk/server"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/genaccounts"
@@ -23,7 +23,7 @@ const (
 )
 
 // AddGenesisAccountCmd returns add-genesis-account cobra Command.
-func AddGenesisAccountCmd(ctx *server.Context, cdc *codec.Codec,
+func AddGenesisAccountCmd(ctx *server.Context,
 	defaultNodeHome, defaultClientHome string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add-genesis-account [address_or_key_name] [coin][,[coin]]",
@@ -67,7 +67,7 @@ func AddGenesisAccountCmd(ctx *server.Context, cdc *codec.Codec,
 
 			// retrieve the app state
 			genFile := config.GenesisFile()
-			appState, genDoc, err := genutil.GenesisStateFromGenFile(cdc, genFile)
+			appState, genDoc, err := genutil.GenesisStateFromGenFile(genFile)
 			if err != nil {
 				return err
 			}
@@ -75,7 +75,7 @@ func AddGenesisAccountCmd(ctx *server.Context, cdc *codec.Codec,
 			// add genesis account to the app state
 			var genesisAccounts genaccounts.GenesisAccounts
 
-			cdc.MustUnmarshalJSON(appState[genaccounts.ModuleName], &genesisAccounts)
+			amino.MustUnmarshalJSON(appState[genaccounts.ModuleName], &genesisAccounts)
 
 			if genesisAccounts.Contains(addr) {
 				return fmt.Errorf("cannot add account at existing address %v", addr)
@@ -83,10 +83,10 @@ func AddGenesisAccountCmd(ctx *server.Context, cdc *codec.Codec,
 
 			genesisAccounts = append(genesisAccounts, genAcc)
 
-			genesisStateBz := cdc.MustMarshalJSON(genaccounts.GenesisState(genesisAccounts))
+			genesisStateBz := amino.MustMarshalJSON(genaccounts.GenesisState(genesisAccounts))
 			appState[genaccounts.ModuleName] = genesisStateBz
 
-			appStateJSON, err := cdc.MarshalJSON(appState)
+			appStateJSON, err := amino.MarshalJSON(appState)
 			if err != nil {
 				return err
 			}

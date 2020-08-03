@@ -9,9 +9,9 @@ import (
 	"github.com/tendermint/classic/crypto"
 	"github.com/tendermint/classic/crypto/ed25519"
 	"github.com/tendermint/classic/libs/log"
+	"github.com/tendermint/go-amino-x"
 	yaml "gopkg.in/yaml.v2"
 
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 )
 
@@ -114,11 +114,7 @@ func TestTxValidateBasic(t *testing.T) {
 }
 
 func TestDefaultTxEncoder(t *testing.T) {
-	cdc := codec.New()
-	sdk.RegisterCodec(cdc)
-	RegisterCodec(cdc)
-	cdc.RegisterConcrete(sdk.TestMsg{}, "cosmos-sdk/Test", nil)
-	encoder := DefaultTxEncoder(cdc)
+	encoder := DefaultTxEncoder()
 
 	msgs := []sdk.Msg{sdk.NewTestMsg(addr)}
 	fee := NewTestStdFee()
@@ -126,13 +122,13 @@ func TestDefaultTxEncoder(t *testing.T) {
 
 	tx := NewStdTx(msgs, fee, sigs, "")
 
-	cdcBytes, err := cdc.MarshalBinaryLengthPrefixed(tx)
+	bz, err := amino.MarshalBinaryLengthPrefixed(tx)
 
 	require.NoError(t, err)
 	encoderBytes, err := encoder(tx)
 
 	require.NoError(t, err)
-	require.Equal(t, cdcBytes, encoderBytes)
+	require.Equal(t, bz, encoderBytes)
 }
 
 func TestStdSignatureMarshalYAML(t *testing.T) {

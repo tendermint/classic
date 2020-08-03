@@ -16,10 +16,10 @@ import (
 	tmlite "github.com/tendermint/classic/lite"
 	tmliteProxy "github.com/tendermint/classic/lite/proxy"
 	rpcclient "github.com/tendermint/classic/rpc/client"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client/flags"
 	"github.com/tendermint/classic/sdk/client/keys"
-	"github.com/tendermint/classic/sdk/codec"
 	cryptokeys "github.com/tendermint/classic/sdk/crypto/keys"
 	sdk "github.com/tendermint/classic/sdk/types"
 )
@@ -32,7 +32,6 @@ var (
 // CLIContext implements a typical CLI context created in SDK modules for
 // transaction handling and queries.
 type CLIContext struct {
-	Codec         *codec.Codec
 	Client        rpcclient.Client
 	Keybase       cryptokeys.Keybase
 	Output        io.Writer
@@ -150,12 +149,6 @@ func createVerifier() tmlite.Verifier {
 	return verifier
 }
 
-// WithCodec returns a copy of the context with an updated codec.
-func (ctx CLIContext) WithCodec(cdc *codec.Codec) CLIContext {
-	ctx.Codec = cdc
-	return ctx
-}
-
 // WithOutput returns a copy of the context with an updated output writer (e.g. stdout).
 func (ctx CLIContext) WithOutput(w io.Writer) CLIContext {
 	ctx.Output = w
@@ -250,9 +243,9 @@ func (ctx CLIContext) PrintOutput(toPrint fmt.Stringer) (err error) {
 
 	case "json":
 		if ctx.Indent {
-			out, err = ctx.Codec.MarshalJSONIndent(toPrint, "", "  ")
+			out, err = amino.MarshalJSONIndent(toPrint, "", "  ")
 		} else {
-			out, err = ctx.Codec.MarshalJSON(toPrint)
+			out, err = amino.MarshalJSON(toPrint)
 		}
 	}
 

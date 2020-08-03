@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/classic/libs/log"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/crisis/internal/types"
 	"github.com/tendermint/classic/sdk/x/params"
@@ -21,9 +21,8 @@ func testFailingInvariant(_ sdk.Context) (string, bool) {
 }
 
 func testKeeper(checkPeriod uint) Keeper {
-	cdc := codec.New()
 	paramsKeeper := params.NewKeeper(
-		cdc, sdk.NewKVStoreKey(params.StoreKey), sdk.NewTransientStoreKey(params.TStoreKey), params.DefaultCodespace,
+		sdk.NewKVStoreKey(params.StoreKey), sdk.NewTransientStoreKey(params.TStoreKey), params.DefaultCodespace,
 	)
 
 	return NewKeeper(paramsKeeper.Subspace(types.DefaultParamspace), checkPeriod, nil, "test")

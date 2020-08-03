@@ -1,5 +1,6 @@
 package types
 
+/*
 import (
 	"github.com/tendermint/classic/sdk/codec"
 	"github.com/tendermint/classic/sdk/x/supply/exported"
@@ -12,13 +13,4 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(&ModuleAccount{}, "cosmos-sdk/ModuleAccount", nil)
 	cdc.RegisterConcrete(&Supply{}, "cosmos-sdk/Supply", nil)
 }
-
-// ModuleCdc generic sealed codec to be used throughout module
-var ModuleCdc *codec.Codec
-
-func init() {
-	cdc := codec.New()
-	RegisterCodec(cdc)
-	codec.RegisterCrypto(cdc)
-	ModuleCdc = cdc.Seal()
-}
+*/

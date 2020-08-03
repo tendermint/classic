@@ -7,9 +7,9 @@ import (
 	"github.com/spf13/cobra"
 
 	abci "github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client/context"
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/types/module"
 	"github.com/tendermint/classic/sdk/x/auth/exported"
@@ -28,9 +28,6 @@ type AppModuleBasic struct{}
 func (AppModuleBasic) Name() string {
 	return ModuleName
 }
-
-// register module codec
-func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {}
 
 // default genesis state
 func (AppModuleBasic) DefaultGenesis() json.RawMessage {
@@ -51,15 +48,15 @@ func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 func (AppModuleBasic) RegisterRESTRoutes(_ context.CLIContext, _ *mux.Router) {}
 
 // get the root tx command of this module
-func (AppModuleBasic) GetTxCmd(_ *codec.Codec) *cobra.Command { return nil }
+func (AppModuleBasic) GetTxCmd() *cobra.Command { return nil }
 
 // get the root query command of this module
-func (AppModuleBasic) GetQueryCmd(_ *codec.Codec) *cobra.Command { return nil }
+func (AppModuleBasic) GetQueryCmd() *cobra.Command { return nil }
 
 // extra function from sdk.AppModuleBasic
 // iterate the genesis accounts and perform an operation at each of them
 // - to used by other modules
-func (AppModuleBasic) IterateGenesisAccounts(cdc *codec.Codec, appGenesis map[string]json.RawMessage,
+func (AppModuleBasic) IterateGenesisAccounts(appGenesis map[string]json.RawMessage,
 	iterateFn func(exported.Account) (stop bool)) {
 
 	genesisState := GetGenesisStateFromAppState(cdc, appGenesis)

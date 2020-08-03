@@ -15,8 +15,8 @@ import (
 	"github.com/tendermint/classic/types"
 
 	"github.com/tendermint/classic/sdk/client/context"
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
+	"github.com/tendermint/go-amino-x"
 )
 
 const (
@@ -119,14 +119,14 @@ func (br BaseReq) ValidateBasic(w http.ResponseWriter) bool {
 
 // ReadRESTReq reads and unmarshals a Request's body to the the BaseReq stuct.
 // Writes an error response to ResponseWriter and returns true if errors occurred.
-func ReadRESTReq(w http.ResponseWriter, r *http.Request, cdc *codec.Codec, req interface{}) bool {
+func ReadRESTReq(w http.ResponseWriter, r *http.Request, req interface{}) bool {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		return false
 	}
 
-	err = cdc.UnmarshalJSON(body, req)
+	err = amino.UnmarshalJSON(body, req)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to decode JSON payload: %s", err))
 		return false
@@ -151,14 +151,14 @@ func NewErrorResponse(code int, err string) ErrorResponse {
 func WriteErrorResponse(w http.ResponseWriter, status int, err string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	_, _ = w.Write(codec.Cdc.MustMarshalJSON(NewErrorResponse(0, err)))
+	_, _ = w.Write(amino.MustMarshalJSON(NewErrorResponse(0, err)))
 }
 
 // WriteSimulationResponse prepares and writes an HTTP
 // response for transactions simulations.
-func WriteSimulationResponse(w http.ResponseWriter, cdc *codec.Codec, gas uint64) {
+func WriteSimulationResponse(w http.ResponseWriter, gas uint64) {
 	gasEst := GasEstimateResponse{GasEstimate: gas}
-	resp, err := cdc.MarshalJSON(gasEst)
+	resp, err := amino.MarshalJSON(gasEst)
 	if err != nil {
 		WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return

@@ -33,7 +33,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
+## Move to tendermint/classic
+
+See updates to tendermint/classic/CHANGELOG for details.
 
 ## [v0.37.4] - 2019-11-04
 

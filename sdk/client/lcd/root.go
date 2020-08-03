@@ -13,10 +13,10 @@ import (
 	"github.com/spf13/viper"
 	"github.com/tendermint/classic/libs/log"
 	rpcserver "github.com/tendermint/classic/rpc/lib/server"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client/context"
 	"github.com/tendermint/classic/sdk/client/flags"
-	"github.com/tendermint/classic/sdk/codec"
 	keybase "github.com/tendermint/classic/sdk/crypto/keys"
 	"github.com/tendermint/classic/sdk/server"
 
@@ -35,9 +35,9 @@ type RestServer struct {
 }
 
 // NewRestServer creates a new rest server instance
-func NewRestServer(cdc *codec.Codec) *RestServer {
+func NewRestServer() *RestServer {
 	r := mux.NewRouter()
-	cliCtx := context.NewCLIContext().WithCodec(cdc)
+	cliCtx := context.NewCLIContext()
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout)).With("module", "rest-server")
 
 	return &RestServer{
@@ -74,14 +74,13 @@ func (rs *RestServer) Start(listenAddr string, maxOpen int, readTimeout, writeTi
 }
 
 // ServeCommand will start the application REST service as a blocking process. It
-// takes a codec to create a RestServer object and a function to register all
-// necessary routes.
-func ServeCommand(cdc *codec.Codec, registerRoutesFn func(*RestServer)) *cobra.Command {
+// takes a function to register all necessary routes.
+func ServeCommand(registerRoutesFn func(*RestServer)) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "rest-server",
 		Short: "Start LCD (light-client daemon), a local REST server",
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			rs := NewRestServer(cdc)
+			rs := NewRestServer()
 
 			registerRoutesFn(rs)
 			rs.registerSwaggerUI()

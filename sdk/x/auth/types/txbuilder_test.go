@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 )
 
@@ -34,7 +34,7 @@ func TestTxBuilderBuild(t *testing.T) {
 		{
 			"builder with fees",
 			fields{
-				TxEncoder:     DefaultTxEncoder(codec.New()),
+				TxEncoder:     DefaultTxEncoder(),
 				AccountNumber: 1,
 				Sequence:      1,
 				Gas:           200000,
@@ -58,7 +58,7 @@ func TestTxBuilderBuild(t *testing.T) {
 		{
 			"builder with gas prices",
 			fields{
-				TxEncoder:     DefaultTxEncoder(codec.New()),
+				TxEncoder:     DefaultTxEncoder(),
 				AccountNumber: 1,
 				Sequence:      1,
 				Gas:           200000,
@@ -82,7 +82,7 @@ func TestTxBuilderBuild(t *testing.T) {
 		{
 			"no chain-id supplied",
 			fields{
-				TxEncoder:     DefaultTxEncoder(codec.New()),
+				TxEncoder:     DefaultTxEncoder(),
 				AccountNumber: 1,
 				Sequence:      1,
 				Gas:           200000,
@@ -106,7 +106,7 @@ func TestTxBuilderBuild(t *testing.T) {
 		{
 			"builder w/ fees and gas prices",
 			fields{
-				TxEncoder:     DefaultTxEncoder(codec.New()),
+				TxEncoder:     DefaultTxEncoder(),
 				AccountNumber: 1,
 				Sequence:      1,
 				Gas:           200000,

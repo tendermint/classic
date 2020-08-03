@@ -7,11 +7,11 @@ import (
 	abci "github.com/tendermint/classic/abci/types"
 	tmtypes "github.com/tendermint/classic/types"
 
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/slashing"
 	"github.com/tendermint/classic/sdk/x/staking"
 	"github.com/tendermint/classic/sdk/x/staking/exported"
+	"github.com/tendermint/go-amino-x"
 )
 
 // ExportAppStateAndValidators exports the state of the application for a genesis
@@ -28,7 +28,7 @@ func (app *SimApp) ExportAppStateAndValidators(
 	}
 
 	genState := app.mm.ExportGenesis(ctx)
-	appState, err = codec.MarshalJSONIndent(app.cdc, genState)
+	appState, err = amino.MarshalJSONIndent(genState)
 	if err != nil {
 		return nil, nil, err
 	}

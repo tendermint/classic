@@ -6,27 +6,27 @@ import (
 	"sort"
 	"time"
 
-	"github.com/tendermint/classic/sdk/codec"
+	"github.com/tendermint/go-amino-x"
 )
 
 // State to Unmarshal
 type GenesisState GenesisAccounts
 
 // get the genesis state from the expected app state
-func GetGenesisStateFromAppState(cdc *codec.Codec, appState map[string]json.RawMessage) GenesisState {
+func GetGenesisStateFromAppState(appState map[string]json.RawMessage) GenesisState {
 	var genesisState GenesisState
 	if appState[ModuleName] != nil {
-		cdc.MustUnmarshalJSON(appState[ModuleName], &genesisState)
+		amino.MustUnmarshalJSON(appState[ModuleName], &genesisState)
 	}
 
 	return genesisState
 }
 
 // set the genesis state within the expected app state
-func SetGenesisStateInAppState(cdc *codec.Codec,
+func SetGenesisStateInAppState(
 	appState map[string]json.RawMessage, genesisState GenesisState) map[string]json.RawMessage {
 
-	genesisStateBz := cdc.MustMarshalJSON(genesisState)
+	genesisStateBz := amino.MustMarshalJSON(genesisState)
 	appState[ModuleName] = genesisStateBz
 	return appState
 }

@@ -3,8 +3,8 @@ package types
 import (
 	"testing"
 
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/stretchr/testify/require"
+	"github.com/tendermint/go-amino-x"
 )
 
 func TestResult(t *testing.T) {
@@ -34,7 +34,7 @@ func TestABCIMessageLog(t *testing.T) {
 	msgLog := NewABCIMessageLog(0, true, "", events)
 
 	msgLogs := ABCIMessageLogs{msgLog}
-	bz, err := codec.Cdc.MarshalJSON(msgLogs)
+	bz, err := amino.MarshalJSON(msgLogs)
 	require.NoError(t, err)
 	require.Equal(t, string(bz), msgLogs.String())
 }

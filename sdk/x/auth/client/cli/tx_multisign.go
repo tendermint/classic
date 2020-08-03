@@ -11,11 +11,11 @@ import (
 
 	"github.com/tendermint/classic/crypto/multisig"
 	"github.com/tendermint/classic/libs/cli"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client/context"
 	"github.com/tendermint/classic/sdk/client/flags"
 	"github.com/tendermint/classic/sdk/client/keys"
-	"github.com/tendermint/classic/sdk/codec"
 	crkeys "github.com/tendermint/classic/sdk/crypto/keys"
 	"github.com/tendermint/classic/sdk/version"
 	"github.com/tendermint/classic/sdk/x/auth/client/utils"
@@ -23,7 +23,7 @@ import (
 )
 
 // GetSignCommand returns the sign command
-func GetMultiSignCommand(cdc *codec.Codec) *cobra.Command {
+func GetMultiSignCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "multisign [file] [name] [[signature]...]",
 		Short: "Generate multisig signatures for transactions generated offline",
@@ -46,7 +46,7 @@ recommended to set such parameters manually.
 				version.ClientName,
 			),
 		),
-		RunE: makeMultiSignCmd(cdc),
+		RunE: makeMultiSignCmd(),
 		Args: cobra.MinimumNArgs(3),
 	}
 
@@ -58,9 +58,9 @@ recommended to set such parameters manually.
 	return flags.PostCommands(cmd)[0]
 }
 
-func makeMultiSignCmd(cdc *codec.Codec) func(cmd *cobra.Command, args []string) error {
+func makeMultiSignCmd() func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) (err error) {
-		stdTx, err := utils.ReadStdTxFromFile(cdc, args[0])
+		stdTx, err := utils.ReadStdTxFromFile(args[0])
 		if err != nil {
 			return
 		}
@@ -80,7 +80,7 @@ func makeMultiSignCmd(cdc *codec.Codec) func(cmd *cobra.Command, args []string) 
 
 		multisigPub := multisigInfo.GetPubKey().(multisig.PubKeyMultisigThreshold)
 		multisigSig := multisig.NewMultisig(len(multisigPub.PubKeys))
-		cliCtx := context.NewCLIContext().WithCodec(cdc)
+		cliCtx := context.NewCLIContext()
 		txBldr := types.NewTxBuilderFromCLI()
 
 		if !viper.GetBool(flagOffline) {
@@ -94,7 +94,7 @@ func makeMultiSignCmd(cdc *codec.Codec) func(cmd *cobra.Command, args []string) 
 
 		// read each signature and add it to the multisig if valid
 		for i := 2; i < len(args); i++ {
-			stdSig, err := readAndUnmarshalStdSignature(cdc, args[i])
+			stdSig, err := readAndUnmarshalStdSignature(args[i])
 			if err != nil {
 				return err
 			}
@@ -112,20 +112,20 @@ func makeMultiSignCmd(cdc *codec.Codec) func(cmd *cobra.Command, args []string) 
 			}
 		}
 
-		newStdSig := types.StdSignature{Signature: cdc.MustMarshalBinaryBare(multisigSig), PubKey: multisigPub}
+		newStdSig := types.StdSignature{Signature: amino.MustMarshalBinaryBare(multisigSig), PubKey: multisigPub}
 		newTx := types.NewStdTx(stdTx.GetMsgs(), stdTx.Fee, []types.StdSignature{newStdSig}, stdTx.GetMemo())
 
 		sigOnly := viper.GetBool(flagSigOnly)
 		var json []byte
 		switch {
 		case sigOnly && cliCtx.Indent:
-			json, err = cdc.MarshalJSONIndent(newTx.Signatures[0], "", "  ")
+			json, err = amino.MarshalJSONIndent(newTx.Signatures[0], "", "  ")
 		case sigOnly && !cliCtx.Indent:
-			json, err = cdc.MarshalJSON(newTx.Signatures[0])
+			json, err = amino.MarshalJSON(newTx.Signatures[0])
 		case !sigOnly && cliCtx.Indent:
-			json, err = cdc.MarshalJSONIndent(newTx, "", "  ")
+			json, err = amino.MarshalJSONIndent(newTx, "", "  ")
 		default:
-			json, err = cdc.MarshalJSON(newTx)
+			json, err = amino.MarshalJSON(newTx)
 		}
 		if err != nil {
 			return err
@@ -150,12 +150,12 @@ func makeMultiSignCmd(cdc *codec.Codec) func(cmd *cobra.Command, args []string) 
 	}
 }
 
-func readAndUnmarshalStdSignature(cdc *codec.Codec, filename string) (stdSig types.StdSignature, err error) {
+func readAndUnmarshalStdSignature(filename string) (stdSig types.StdSignature, err error) {
 	var bytes []byte
 	if bytes, err = ioutil.ReadFile(filename); err != nil {
 		return
 	}
-	if err = cdc.UnmarshalJSON(bytes, &stdSig); err != nil {
+	if err = amino.UnmarshalJSON(bytes, &stdSig); err != nil {
 		return
 	}
 	return

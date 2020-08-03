@@ -2,10 +2,10 @@ package cli
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client"
 	"github.com/tendermint/classic/sdk/client/context"
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/auth"
 	"github.com/tendermint/classic/sdk/x/auth/client/utils"
@@ -13,7 +13,7 @@ import (
 )
 
 // GetTxCmd returns the transaction commands for this module
-func GetTxCmd(cdc *codec.Codec) *cobra.Command {
+func GetTxCmd() *cobra.Command {
 	slashingTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      "Slashing transactions subcommands",
@@ -23,14 +23,14 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	}
 
 	slashingTxCmd.AddCommand(client.PostCommands(
-		GetCmdUnjail(cdc),
+		GetCmdUnjail(),
 	)...)
 
 	return slashingTxCmd
 }
 
 // GetCmdUnjail implements the create unjail validator command.
-func GetCmdUnjail(cdc *codec.Codec) *cobra.Command {
+func GetCmdUnjail() *cobra.Command {
 	return &cobra.Command{
 		Use:   "unjail",
 		Args:  cobra.NoArgs,
@@ -40,8 +40,8 @@ func GetCmdUnjail(cdc *codec.Codec) *cobra.Command {
 $ <appcli> tx slashing unjail --from mykey
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder())
+			cliCtx := context.NewCLIContext()
 
 			valAddr := cliCtx.GetFromAddress()
 

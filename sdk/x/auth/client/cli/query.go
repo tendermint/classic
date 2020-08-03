@@ -7,16 +7,16 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	tmtypes "github.com/tendermint/classic/types"
+	"github.com/tendermint/go-amino-x"
+
 	"github.com/tendermint/classic/sdk/client"
 	"github.com/tendermint/classic/sdk/client/context"
 	"github.com/tendermint/classic/sdk/client/flags"
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/types/rest"
 	"github.com/tendermint/classic/sdk/x/auth/client/utils"
 	"github.com/tendermint/classic/sdk/x/auth/types"
-
-	tmtypes "github.com/tendermint/classic/types"
 )
 
 const (
@@ -26,7 +26,7 @@ const (
 )
 
 // GetTxCmd returns the transaction commands for this module
-func GetQueryCmd(cdc *codec.Codec) *cobra.Command {
+func GetQueryCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      "Querying commands for the auth module",
@@ -35,20 +35,20 @@ func GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	cmd.AddCommand(GetAccountCmd(cdc))
+	cmd.AddCommand(GetAccountCmd())
 
 	return cmd
 }
 
 // GetAccountCmd returns a query account that will display the state of the
 // account at a given address.
-func GetAccountCmd(cdc *codec.Codec) *cobra.Command {
+func GetAccountCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "account [address]",
 		Short: "Query account balance",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx := context.NewCLIContext()
 			accGetter := types.NewAccountRetriever(cliCtx)
 
 			key, err := sdk.AccAddressFromBech32(args[0])
@@ -73,7 +73,7 @@ func GetAccountCmd(cdc *codec.Codec) *cobra.Command {
 }
 
 // QueryTxsByEventsCmd returns a command to search through transactions by events.
-func QueryTxsByEventsCmd(cdc *codec.Codec) *cobra.Command {
+func QueryTxsByEventsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "txs",
 		Short: "Query for paginated transactions that match a set of tags",
@@ -115,7 +115,7 @@ $ <appcli> query txs --tags '<tag1>:<value1>&<tag2>:<value2>' --page 1 --limit 3
 			page := viper.GetInt(flagPage)
 			limit := viper.GetInt(flagLimit)
 
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx := context.NewCLIContext()
 			txs, err := utils.QueryTxsByEvents(cliCtx, tmTags, page, limit)
 			if err != nil {
 				return err
@@ -123,9 +123,9 @@ $ <appcli> query txs --tags '<tag1>:<value1>&<tag2>:<value2>' --page 1 --limit 3
 
 			var output []byte
 			if cliCtx.Indent {
-				output, err = cdc.MarshalJSONIndent(txs, "", "  ")
+				output, err = amino.MarshalJSONIndent(txs, "", "  ")
 			} else {
-				output, err = cdc.MarshalJSON(txs)
+				output, err = amino.MarshalJSON(txs)
 			}
 
 			if err != nil {
@@ -151,13 +151,13 @@ $ <appcli> query txs --tags '<tag1>:<value1>&<tag2>:<value2>' --page 1 --limit 3
 }
 
 // QueryTxCmd implements the default command for a tx query.
-func QueryTxCmd(cdc *codec.Codec) *cobra.Command {
+func QueryTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "tx [hash]",
 		Short: "Query for a transaction by hash in a committed block",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx := context.NewCLIContext()
 
 			output, err := utils.QueryTx(cliCtx, args[0])
 			if err != nil {

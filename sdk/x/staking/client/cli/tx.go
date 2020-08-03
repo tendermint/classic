@@ -11,10 +11,10 @@ import (
 
 	cfg "github.com/tendermint/classic/config"
 	"github.com/tendermint/classic/crypto"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client"
 	"github.com/tendermint/classic/sdk/client/context"
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/version"
 	"github.com/tendermint/classic/sdk/x/auth"
@@ -23,7 +23,7 @@ import (
 )
 
 // GetTxCmd returns the transaction commands for this module
-func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
+func GetTxCmd(storeKey string) *cobra.Command {
 	stakingTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      "Staking transaction subcommands",
@@ -33,24 +33,24 @@ func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 	}
 
 	stakingTxCmd.AddCommand(client.PostCommands(
-		GetCmdCreateValidator(cdc),
-		GetCmdEditValidator(cdc),
-		GetCmdDelegate(cdc),
-		GetCmdRedelegate(storeKey, cdc),
-		GetCmdUnbond(storeKey, cdc),
+		GetCmdCreateValidator(),
+		GetCmdEditValidator(),
+		GetCmdDelegate(),
+		GetCmdRedelegate(storeKey),
+		GetCmdUnbond(storeKey),
 	)...)
 
 	return stakingTxCmd
 }
 
 // GetCmdCreateValidator implements the create validator command handler.
-func GetCmdCreateValidator(cdc *codec.Codec) *cobra.Command {
+func GetCmdCreateValidator() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-validator",
 		Short: "create new validator initialized with a self-delegation to it",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder())
+			cliCtx := context.NewCLIContext()
 
 			txBldr, msg, err := BuildCreateValidatorMsg(cliCtx, txBldr)
 			if err != nil {
@@ -80,13 +80,13 @@ func GetCmdCreateValidator(cdc *codec.Codec) *cobra.Command {
 
 // GetCmdEditValidator implements the create edit validator command.
 // TODO: add full description
-func GetCmdEditValidator(cdc *codec.Codec) *cobra.Command {
+func GetCmdEditValidator() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "edit-validator",
 		Short: "edit an existing validator account",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(auth.DefaultTxEncoder(cdc))
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(auth.DefaultTxEncoder())
+			cliCtx := context.NewCLIContext()
 
 			valAddr := cliCtx.GetFromAddress()
 			description := types.Description{
@@ -133,7 +133,7 @@ func GetCmdEditValidator(cdc *codec.Codec) *cobra.Command {
 }
 
 // GetCmdDelegate implements the delegate command.
-func GetCmdDelegate(cdc *codec.Codec) *cobra.Command {
+func GetCmdDelegate() *cobra.Command {
 	return &cobra.Command{
 		Use:   "delegate [validator-addr] [amount]",
 		Args:  cobra.ExactArgs(2),
@@ -148,8 +148,8 @@ $ %s tx staking delegate cosmosvaloper1l2rsakp388kuv9k8qzq6lrm9taddae7fpx59wm 10
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(auth.DefaultTxEncoder(cdc))
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(auth.DefaultTxEncoder())
+			cliCtx := context.NewCLIContext()
 
 			amount, err := sdk.ParseCoin(args[1])
 			if err != nil {
@@ -169,7 +169,7 @@ $ %s tx staking delegate cosmosvaloper1l2rsakp388kuv9k8qzq6lrm9taddae7fpx59wm 10
 }
 
 // GetCmdRedelegate the begin redelegation command.
-func GetCmdRedelegate(storeName string, cdc *codec.Codec) *cobra.Command {
+func GetCmdRedelegate(storeName string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "redelegate [src-validator-addr] [dst-validator-addr] [amount]",
 		Short: "Redelegate illiquid tokens from one validator to another",
@@ -184,8 +184,8 @@ $ %s tx staking redelegate cosmosvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj 
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(auth.DefaultTxEncoder(cdc))
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(auth.DefaultTxEncoder())
+			cliCtx := context.NewCLIContext()
 
 			delAddr := cliCtx.GetFromAddress()
 			valSrcAddr, err := sdk.ValAddressFromBech32(args[0])
@@ -210,7 +210,7 @@ $ %s tx staking redelegate cosmosvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj 
 }
 
 // GetCmdUnbond implements the unbond validator command.
-func GetCmdUnbond(storeName string, cdc *codec.Codec) *cobra.Command {
+func GetCmdUnbond(storeName string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "unbond [validator-addr] [amount]",
 		Short: "Unbond shares from a validator",
@@ -225,8 +225,8 @@ $ %s tx staking unbond cosmosvaloper1gghjut3ccd8ay0zduzj64hwre2fxs9ldmqhffj 100s
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(auth.DefaultTxEncoder(cdc))
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(auth.DefaultTxEncoder())
+			cliCtx := context.NewCLIContext()
 
 			delAddr := cliCtx.GetFromAddress()
 			valAddr, err := sdk.ValAddressFromBech32(args[0])

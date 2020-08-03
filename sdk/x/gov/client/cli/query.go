@@ -7,10 +7,10 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client"
 	"github.com/tendermint/classic/sdk/client/context"
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/version"
 	gcutils "github.com/tendermint/classic/sdk/x/gov/client/utils"
@@ -18,7 +18,7 @@ import (
 )
 
 // GetQueryCmd returns the cli query commands for this module
-func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetQueryCmd(queryRoute string) *cobra.Command {
 	// Group gov queries under a subcommand
 	govQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
@@ -29,22 +29,22 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 
 	govQueryCmd.AddCommand(client.GetCommands(
-		GetCmdQueryProposal(queryRoute, cdc),
-		GetCmdQueryProposals(queryRoute, cdc),
-		GetCmdQueryVote(queryRoute, cdc),
-		GetCmdQueryVotes(queryRoute, cdc),
-		GetCmdQueryParam(queryRoute, cdc),
-		GetCmdQueryParams(queryRoute, cdc),
-		GetCmdQueryProposer(queryRoute, cdc),
-		GetCmdQueryDeposit(queryRoute, cdc),
-		GetCmdQueryDeposits(queryRoute, cdc),
-		GetCmdQueryTally(queryRoute, cdc))...)
+		GetCmdQueryProposal(queryRoute),
+		GetCmdQueryProposals(queryRoute),
+		GetCmdQueryVote(queryRoute),
+		GetCmdQueryVotes(queryRoute),
+		GetCmdQueryParam(queryRoute),
+		GetCmdQueryParams(queryRoute),
+		GetCmdQueryProposer(queryRoute),
+		GetCmdQueryDeposit(queryRoute),
+		GetCmdQueryDeposits(queryRoute),
+		GetCmdQueryTally(queryRoute))...)
 
 	return govQueryCmd
 }
 
 // GetCmdQueryProposal implements the query proposal command.
-func GetCmdQueryProposal(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdQueryProposal(queryRoute string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "proposal [proposal-id]",
 		Args:  cobra.ExactArgs(1),
@@ -60,7 +60,7 @@ $ %s query gov proposal 1
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx := context.NewCLIContext()
 
 			// validate that the proposal id is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -75,14 +75,14 @@ $ %s query gov proposal 1
 			}
 
 			var proposal types.Proposal
-			cdc.MustUnmarshalJSON(res, &proposal)
+			amino.MustUnmarshalJSON(res, &proposal)
 			return cliCtx.PrintOutput(proposal) // nolint:errcheck
 		},
 	}
 }
 
 // GetCmdQueryProposals implements a query proposals command.
-func GetCmdQueryProposals(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdQueryProposals(queryRoute string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "proposals",
 		Short: "Query proposals with optional filters",
@@ -133,12 +133,12 @@ $ %s query gov proposals --status (DepositPeriod|VotingPeriod|Passed|Rejected)
 				params.ProposalStatus = proposalStatus
 			}
 
-			bz, err := cdc.MarshalJSON(params)
+			bz, err := amino.MarshalJSON(params)
 			if err != nil {
 				return err
 			}
 
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx := context.NewCLIContext()
 
 			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/proposals", queryRoute), bz)
 			if err != nil {
@@ -146,7 +146,7 @@ $ %s query gov proposals --status (DepositPeriod|VotingPeriod|Passed|Rejected)
 			}
 
 			var matchingProposals types.Proposals
-			err = cdc.UnmarshalJSON(res, &matchingProposals)
+			err = amino.UnmarshalJSON(res, &matchingProposals)
 			if err != nil {
 				return err
 			}
@@ -169,7 +169,7 @@ $ %s query gov proposals --status (DepositPeriod|VotingPeriod|Passed|Rejected)
 
 // Command to Get a Proposal Information
 // GetCmdQueryVote implements the query proposal vote command.
-func GetCmdQueryVote(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdQueryVote(queryRoute string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "vote [proposal-id] [voter-addr]",
 		Args:  cobra.ExactArgs(2),
@@ -184,7 +184,7 @@ $ %s query gov vote 1 cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx := context.NewCLIContext()
 
 			// validate that the proposal id is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -204,7 +204,7 @@ $ %s query gov vote 1 cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 			}
 
 			params := types.NewQueryVoteParams(proposalID, voterAddr)
-			bz, err := cdc.MarshalJSON(params)
+			bz, err := amino.MarshalJSON(params)
 			if err != nil {
 				return err
 			}
@@ -219,7 +219,7 @@ $ %s query gov vote 1 cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 			// XXX: Allow the decoding to potentially fail as the vote may have been
 			// pruned from state. If so, decoding will fail and so we need to check the
 			// Empty() case. Consider updating Vote JSON decoding to not fail when empty.
-			_ = cdc.UnmarshalJSON(res, &vote)
+			_ = amino.UnmarshalJSON(res, &vote)
 
 			if vote.Empty() {
 				res, err = gcutils.QueryVoteByTxQuery(cliCtx, params)
@@ -227,7 +227,7 @@ $ %s query gov vote 1 cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 					return err
 				}
 
-				if err := cdc.UnmarshalJSON(res, &vote); err != nil {
+				if err := amino.UnmarshalJSON(res, &vote); err != nil {
 					return err
 				}
 			}
@@ -238,7 +238,7 @@ $ %s query gov vote 1 cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 }
 
 // GetCmdQueryVotes implements the command to query for proposal votes.
-func GetCmdQueryVotes(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdQueryVotes(queryRoute string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "votes [proposal-id]",
 		Args:  cobra.ExactArgs(1),
@@ -253,7 +253,7 @@ $ %s query gov votes 1
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx := context.NewCLIContext()
 
 			// validate that the proposal id is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -262,7 +262,7 @@ $ %s query gov votes 1
 			}
 
 			params := types.NewQueryProposalParams(proposalID)
-			bz, err := cdc.MarshalJSON(params)
+			bz, err := amino.MarshalJSON(params)
 			if err != nil {
 				return err
 			}
@@ -274,7 +274,7 @@ $ %s query gov votes 1
 			}
 
 			var proposal types.Proposal
-			cdc.MustUnmarshalJSON(res, &proposal)
+			amino.MustUnmarshalJSON(res, &proposal)
 
 			propStatus := proposal.Status
 			if !(propStatus == types.StatusVotingPeriod || propStatus == types.StatusDepositPeriod) {
@@ -288,7 +288,7 @@ $ %s query gov votes 1
 			}
 
 			var votes types.Votes
-			cdc.MustUnmarshalJSON(res, &votes)
+			amino.MustUnmarshalJSON(res, &votes)
 			return cliCtx.PrintOutput(votes)
 		},
 	}
@@ -296,7 +296,7 @@ $ %s query gov votes 1
 
 // Command to Get a specific Deposit Information
 // GetCmdQueryDeposit implements the query proposal deposit command.
-func GetCmdQueryDeposit(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdQueryDeposit(queryRoute string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "deposit [proposal-id] [depositer-addr]",
 		Args:  cobra.ExactArgs(2),
@@ -311,7 +311,7 @@ $ %s query gov deposit 1 cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx := context.NewCLIContext()
 
 			// validate that the proposal id is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -331,7 +331,7 @@ $ %s query gov deposit 1 cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 			}
 
 			params := types.NewQueryDepositParams(proposalID, depositorAddr)
-			bz, err := cdc.MarshalJSON(params)
+			bz, err := amino.MarshalJSON(params)
 			if err != nil {
 				return err
 			}
@@ -342,14 +342,14 @@ $ %s query gov deposit 1 cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 			}
 
 			var deposit types.Deposit
-			cdc.MustUnmarshalJSON(res, &deposit)
+			amino.MustUnmarshalJSON(res, &deposit)
 
 			if deposit.Empty() {
 				res, err = gcutils.QueryDepositByTxQuery(cliCtx, params)
 				if err != nil {
 					return err
 				}
-				cdc.MustUnmarshalJSON(res, &deposit)
+				amino.MustUnmarshalJSON(res, &deposit)
 			}
 
 			return cliCtx.PrintOutput(deposit)
@@ -358,7 +358,7 @@ $ %s query gov deposit 1 cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 }
 
 // GetCmdQueryDeposits implements the command to query for proposal deposits.
-func GetCmdQueryDeposits(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdQueryDeposits(queryRoute string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "deposits [proposal-id]",
 		Args:  cobra.ExactArgs(1),
@@ -374,7 +374,7 @@ $ %s query gov deposits 1
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx := context.NewCLIContext()
 
 			// validate that the proposal id is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -383,7 +383,7 @@ $ %s query gov deposits 1
 			}
 
 			params := types.NewQueryProposalParams(proposalID)
-			bz, err := cdc.MarshalJSON(params)
+			bz, err := amino.MarshalJSON(params)
 			if err != nil {
 				return err
 			}
@@ -395,7 +395,7 @@ $ %s query gov deposits 1
 			}
 
 			var proposal types.Proposal
-			cdc.MustUnmarshalJSON(res, &proposal)
+			amino.MustUnmarshalJSON(res, &proposal)
 
 			propStatus := proposal.Status
 			if !(propStatus == types.StatusVotingPeriod || propStatus == types.StatusDepositPeriod) {
@@ -409,14 +409,14 @@ $ %s query gov deposits 1
 			}
 
 			var dep types.Deposits
-			cdc.MustUnmarshalJSON(res, &dep)
+			amino.MustUnmarshalJSON(res, &dep)
 			return cliCtx.PrintOutput(dep)
 		},
 	}
 }
 
 // GetCmdQueryTally implements the command to query for proposal tally result.
-func GetCmdQueryTally(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdQueryTally(queryRoute string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "tally [proposal-id]",
 		Args:  cobra.ExactArgs(1),
@@ -432,7 +432,7 @@ $ %s query gov tally 1
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx := context.NewCLIContext()
 
 			// validate that the proposal id is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)
@@ -448,7 +448,7 @@ $ %s query gov tally 1
 
 			// Construct query
 			params := types.NewQueryProposalParams(proposalID)
-			bz, err := cdc.MarshalJSON(params)
+			bz, err := amino.MarshalJSON(params)
 			if err != nil {
 				return err
 			}
@@ -460,14 +460,14 @@ $ %s query gov tally 1
 			}
 
 			var tally types.TallyResult
-			cdc.MustUnmarshalJSON(res, &tally)
+			amino.MustUnmarshalJSON(res, &tally)
 			return cliCtx.PrintOutput(tally)
 		},
 	}
 }
 
 // GetCmdQueryProposal implements the query proposal command.
-func GetCmdQueryParams(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdQueryParams(queryRoute string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "params",
 		Short: "Query the parameters of the governance process",
@@ -482,7 +482,7 @@ $ %s query gov params
 		),
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx := context.NewCLIContext()
 			tp, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/params/tallying", queryRoute), nil)
 			if err != nil {
 				return err
@@ -497,11 +497,11 @@ $ %s query gov params
 			}
 
 			var tallyParams types.TallyParams
-			cdc.MustUnmarshalJSON(tp, &tallyParams)
+			amino.MustUnmarshalJSON(tp, &tallyParams)
 			var depositParams types.DepositParams
-			cdc.MustUnmarshalJSON(dp, &depositParams)
+			amino.MustUnmarshalJSON(dp, &depositParams)
 			var votingParams types.VotingParams
-			cdc.MustUnmarshalJSON(vp, &votingParams)
+			amino.MustUnmarshalJSON(vp, &votingParams)
 
 			return cliCtx.PrintOutput(types.NewParams(votingParams, tallyParams, depositParams))
 		},
@@ -509,7 +509,7 @@ $ %s query gov params
 }
 
 // GetCmdQueryProposal implements the query proposal command.
-func GetCmdQueryParam(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdQueryParam(queryRoute string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "param [param-type]",
 		Args:  cobra.ExactArgs(1),
@@ -526,7 +526,7 @@ $ %s query gov param deposit
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx := context.NewCLIContext()
 
 			// Query store
 			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/params/%s", queryRoute, args[0]), nil)
@@ -537,15 +537,15 @@ $ %s query gov param deposit
 			switch args[0] {
 			case "voting":
 				var param types.VotingParams
-				cdc.MustUnmarshalJSON(res, &param)
+				amino.MustUnmarshalJSON(res, &param)
 				out = param
 			case "tallying":
 				var param types.TallyParams
-				cdc.MustUnmarshalJSON(res, &param)
+				amino.MustUnmarshalJSON(res, &param)
 				out = param
 			case "deposit":
 				var param types.DepositParams
-				cdc.MustUnmarshalJSON(res, &param)
+				amino.MustUnmarshalJSON(res, &param)
 				out = param
 			default:
 				return fmt.Errorf("Argument must be one of (voting|tallying|deposit), was %s", args[0])
@@ -557,7 +557,7 @@ $ %s query gov param deposit
 }
 
 // GetCmdQueryProposer implements the query proposer command.
-func GetCmdQueryProposer(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdQueryProposer(queryRoute string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "proposer [proposal-id]",
 		Args:  cobra.ExactArgs(1),
@@ -572,7 +572,7 @@ $ %s query gov proposer 1
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx := context.NewCLIContext()
 
 			// validate that the proposalID is a uint
 			proposalID, err := strconv.ParseUint(args[0], 10, 64)

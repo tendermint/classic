@@ -14,8 +14,8 @@ import (
 	"github.com/tendermint/classic/p2p"
 	pvm "github.com/tendermint/classic/privval"
 	tversion "github.com/tendermint/classic/version"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 )
 
@@ -126,9 +126,7 @@ against which this app has been compiled.
 }
 
 func printlnJSON(v interface{}) error {
-	cdc := codec.New()
-	codec.RegisterCrypto(cdc)
-	marshalled, err := cdc.MarshalJSON(v)
+	marshalled, err := amino.MarshalJSON(v)
 	if err != nil {
 		return err
 	}

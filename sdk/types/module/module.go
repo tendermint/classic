@@ -34,17 +34,15 @@ import (
 	"github.com/spf13/cobra"
 
 	abci "github.com/tendermint/classic/abci/types"
-
 	"github.com/tendermint/classic/sdk/client/context"
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
+	"github.com/tendermint/go-amino-x"
 )
 
 //__________________________________________________________________________________________
 // AppModuleBasic is the standard form for basic non-dependant elements of an application module.
 type AppModuleBasic interface {
 	Name() string
-	RegisterCodec(*codec.Codec)
 
 	// genesis
 	DefaultGenesis() json.RawMessage
@@ -52,8 +50,8 @@ type AppModuleBasic interface {
 
 	// client functionality
 	RegisterRESTRoutes(context.CLIContext, *mux.Router)
-	GetTxCmd(*codec.Codec) *cobra.Command
-	GetQueryCmd(*codec.Codec) *cobra.Command
+	GetTxCmd() *cobra.Command
+	GetQueryCmd() *cobra.Command
 }
 
 // collections of AppModuleBasic
@@ -65,13 +63,6 @@ func NewBasicManager(modules ...AppModuleBasic) BasicManager {
 		moduleMap[module.Name()] = module
 	}
 	return moduleMap
-}
-
-// RegisterCodecs registers all module codecs
-func (bm BasicManager) RegisterCodec(cdc *codec.Codec) {
-	for _, b := range bm {
-		b.RegisterCodec(cdc)
-	}
 }
 
 // Provided default genesis information for all modules
@@ -101,7 +92,7 @@ func (bm BasicManager) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Route
 }
 
 // add all tx commands to the rootTxCmd
-func (bm BasicManager) AddTxCommands(rootTxCmd *cobra.Command, cdc *codec.Codec) {
+func (bm BasicManager) AddTxCommands(rootTxCmd *cobra.Command) {
 	for _, b := range bm {
 		if cmd := b.GetTxCmd(cdc); cmd != nil {
 			rootTxCmd.AddCommand(cmd)
@@ -110,7 +101,7 @@ func (bm BasicManager) AddTxCommands(rootTxCmd *cobra.Command, cdc *codec.Codec)
 }
 
 // add all query commands to the rootQueryCmd
-func (bm BasicManager) AddQueryCommands(rootQueryCmd *cobra.Command, cdc *codec.Codec) {
+func (bm BasicManager) AddQueryCommands(rootQueryCmd *cobra.Command) {
 	for _, b := range bm {
 		if cmd := b.GetQueryCmd(cdc); cmd != nil {
 			rootQueryCmd.AddCommand(cmd)

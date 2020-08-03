@@ -12,9 +12,9 @@ import (
 	"github.com/tendermint/classic/libs/cli"
 	"github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/classic/types"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client"
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/tendermint/classic/sdk/server"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/types/module"
@@ -46,8 +46,8 @@ func newPrintInfo(moniker, chainID, nodeID, genTxsDir string,
 	}
 }
 
-func displayInfo(cdc *codec.Codec, info printInfo) error {
-	out, err := codec.MarshalJSONIndent(cdc, info)
+func displayInfo(info printInfo) error {
+	out, err := amino.MarshalJSONIndent(info)
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func displayInfo(cdc *codec.Codec, info printInfo) error {
 
 // InitCmd returns a command that initializes all files needed for Tendermint
 // and the respective application.
-func InitCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager,
+func InitCmd(ctx *server.Context, mbm module.BasicManager,
 	defaultNodeHome string) *cobra.Command { // nolint: golint
 	cmd := &cobra.Command{
 		Use:   "init [moniker]",
@@ -85,7 +85,7 @@ func InitCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager,
 			if !viper.GetBool(flagOverwrite) && common.FileExists(genFile) {
 				return fmt.Errorf("genesis.json file already exists: %v", genFile)
 			}
-			appState, err := codec.MarshalJSONIndent(cdc, mbm.DefaultGenesis())
+			appState, err := amino.MarshalJSONIndent(mbm.DefaultGenesis())
 			if err != nil {
 				return err
 			}
@@ -112,7 +112,7 @@ func InitCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager,
 			toPrint := newPrintInfo(config.Moniker, chainID, nodeID, "", appState)
 
 			cfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
-			return displayInfo(cdc, toPrint)
+			return displayInfo(toPrint)
 		},
 	}
 

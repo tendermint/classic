@@ -4,9 +4,10 @@ package cli
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/tendermint/go-amino-x"
+
 	"github.com/tendermint/classic/sdk/client"
 	"github.com/tendermint/classic/sdk/client/context"
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/auth"
 	"github.com/tendermint/classic/sdk/x/auth/client/utils"
@@ -14,15 +15,15 @@ import (
 )
 
 // command to replace a delegator's withdrawal address
-func GetCmdInvariantBroken(cdc *codec.Codec) *cobra.Command {
+func GetCmdInvariantBroken() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "invariant-broken [module-name] [invariant-route]",
 		Short: "submit proof that an invariant broken to halt the chain",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder())
+			cliCtx := context.NewCLIContext()
 
 			senderAddr := cliCtx.GetFromAddress()
 			moduleName, route := args[0], args[1]
@@ -34,7 +35,7 @@ func GetCmdInvariantBroken(cdc *codec.Codec) *cobra.Command {
 }
 
 // GetTxCmd returns the transaction commands for this module
-func GetTxCmd(cdc *codec.Codec) *cobra.Command {
+func GetTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      "Crisis transactions subcommands",
@@ -44,7 +45,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	}
 
 	txCmd.AddCommand(client.PostCommands(
-		GetCmdInvariantBroken(cdc),
+		GetCmdInvariantBroken(),
 	)...)
 	return txCmd
 }

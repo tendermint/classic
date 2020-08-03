@@ -18,7 +18,6 @@ import (
 	bip39 "github.com/cosmos/go-bip39"
 
 	tmcrypto "github.com/tendermint/classic/crypto"
-	cryptoAmino "github.com/tendermint/classic/crypto/encoding/amino"
 	"github.com/tendermint/classic/crypto/secp256k1"
 	dbm "github.com/tendermint/classic/db"
 )
@@ -393,7 +392,7 @@ func (kb dbKeybase) ImportPubKey(name string, armor string) (err error) {
 	if err != nil {
 		return
 	}
-	pubKey, err := cryptoAmino.PubKeyFromBytes(pubBytes)
+	pubKey, err := tmcrypto.PubKeyFromBytes(pubBytes)
 	if err != nil {
 		return
 	}

@@ -9,11 +9,11 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	tmtypes "github.com/tendermint/classic/types"
 	dbm "github.com/tendermint/classic/db"
+	tmtypes "github.com/tendermint/classic/types"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client/flags"
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 )
 
@@ -24,7 +24,7 @@ const (
 )
 
 // ExportCmd dumps app state to JSON.
-func ExportCmd(ctx *Context, cdc *codec.Codec, appExporter AppExporter) *cobra.Command {
+func ExportCmd(ctx *Context, appExporter AppExporter) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "export",
 		Short: "Export state to JSON",
@@ -75,7 +75,7 @@ func ExportCmd(ctx *Context, cdc *codec.Codec, appExporter AppExporter) *cobra.C
 			doc.AppState = appState
 			doc.Validators = validators
 
-			encoded, err := codec.MarshalJSONIndent(cdc, doc)
+			encoded, err := amino.MarshalJSONIndent(doc)
 			if err != nil {
 				return err
 			}

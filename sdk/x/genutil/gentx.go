@@ -7,8 +7,8 @@ import (
 	"fmt"
 
 	abci "github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	authexported "github.com/tendermint/classic/sdk/x/auth/exported"
 	authtypes "github.com/tendermint/classic/sdk/x/auth/types"
@@ -17,7 +17,7 @@ import (
 )
 
 // SetGenTxsInAppGenesisState - sets the genesis transactions in the app genesis state
-func SetGenTxsInAppGenesisState(cdc *codec.Codec, appGenesisState map[string]json.RawMessage,
+func SetGenTxsInAppGenesisState(appGenesisState map[string]json.RawMessage,
 	genTxs []authtypes.StdTx) (map[string]json.RawMessage, error) {
 
 	genesisState := GetGenesisStateFromAppState(cdc, appGenesisState)
@@ -39,7 +39,7 @@ func SetGenTxsInAppGenesisState(cdc *codec.Codec, appGenesisState map[string]jso
 // coins in the genesis accounts
 func ValidateAccountInGenesis(appGenesisState map[string]json.RawMessage,
 	genAccIterator types.GenesisAccountsIterator,
-	key sdk.AccAddress, coins sdk.Coins, cdc *codec.Codec) error {
+	key sdk.AccAddress, coins sdk.Coins) error {
 
 	accountIsInGenesis := false
 
@@ -90,7 +90,7 @@ func ValidateAccountInGenesis(appGenesisState map[string]json.RawMessage,
 type deliverTxfn func(abci.RequestDeliverTx) abci.ResponseDeliverTx
 
 // DeliverGenTxs - deliver a genesis transaction
-func DeliverGenTxs(ctx sdk.Context, cdc *codec.Codec, genTxs []json.RawMessage,
+func DeliverGenTxs(ctx sdk.Context, genTxs []json.RawMessage,
 	stakingKeeper types.StakingKeeper, deliverTx deliverTxfn) []abci.ValidatorUpdate {
 
 	for _, genTx := range genTxs {

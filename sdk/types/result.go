@@ -7,9 +7,8 @@ import (
 	"math"
 	"strings"
 
-	"github.com/tendermint/classic/sdk/codec"
-
 	ctypes "github.com/tendermint/classic/rpc/core/types"
+	"github.com/tendermint/go-amino-x"
 )
 
 // Result is the union of ResponseFormat and ResponseCheckTx.
@@ -70,7 +69,7 @@ func NewABCIMessageLog(i uint16, success bool, log string, events Events) ABCIMe
 // String implements the fmt.Stringer interface for the ABCIMessageLogs type.
 func (logs ABCIMessageLogs) String() (str string) {
 	if logs != nil {
-		raw, err := codec.Cdc.MarshalJSON(logs)
+		raw, err := amino.MarshalJSON(logs)
 		if err == nil {
 			str = string(raw)
 		}

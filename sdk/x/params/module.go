@@ -5,9 +5,9 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client/context"
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/tendermint/classic/sdk/types/module"
 	"github.com/tendermint/classic/sdk/x/params/types"
 )
@@ -26,11 +26,6 @@ func (AppModuleBasic) Name() string {
 	return moduleName
 }
 
-// register module codec
-func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
-	types.RegisterCodec(cdc)
-}
-
 // default genesis state
 func (AppModuleBasic) DefaultGenesis() json.RawMessage { return nil }
 
@@ -41,7 +36,7 @@ func (AppModuleBasic) ValidateGenesis(_ json.RawMessage) error { return nil }
 func (AppModuleBasic) RegisterRESTRoutes(_ context.CLIContext, _ *mux.Router) {}
 
 // get the root tx command of this module
-func (AppModuleBasic) GetTxCmd(_ *codec.Codec) *cobra.Command { return nil }
+func (AppModuleBasic) GetTxCmd() *cobra.Command { return nil }
 
 // get the root query command of this module
-func (AppModuleBasic) GetQueryCmd(_ *codec.Codec) *cobra.Command { return nil }
+func (AppModuleBasic) GetQueryCmd() *cobra.Command { return nil }

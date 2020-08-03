@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"testing"
 
+	"gopkg.in/yaml.v2"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	tmtypes "github.com/tendermint/classic/types"
-	"gopkg.in/yaml.v2"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 )
 
@@ -228,12 +229,12 @@ func TestPossibleOverflow(t *testing.T) {
 
 func TestValidatorMarshalUnmarshalJSON(t *testing.T) {
 	validator := NewValidator(valAddr1, pk1, Description{})
-	js, err := codec.Cdc.MarshalJSON(validator)
+	js, err := amino.MarshalJSON(validator)
 	require.NoError(t, err)
 	require.NotEmpty(t, js)
 	require.Contains(t, string(js), "\"consensus_pubkey\":\"cosmosvalconspu")
 	got := &Validator{}
-	err = codec.Cdc.UnmarshalJSON(js, got)
+	err = amino.UnmarshalJSON(js, got)
 	assert.NoError(t, err)
 	assert.Equal(t, validator, *got)
 }

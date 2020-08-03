@@ -4,7 +4,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/tendermint/classic/sdk/client/context"
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/tendermint/classic/sdk/x/gov/client/rest"
 )
 
@@ -12,7 +11,7 @@ import (
 type RESTHandlerFn func(context.CLIContext) rest.ProposalRESTHandler
 
 // function to create the cli handler
-type CLIHandlerFn func(*codec.Codec) *cobra.Command
+type CLIHandlerFn func() *cobra.Command
 
 // The combined type for a proposal handler for both cli and rest
 type ProposalHandler struct {

@@ -4,14 +4,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/classic/crypto/secp256k1"
-	"github.com/tendermint/classic/libs/log"
-	dbm "github.com/tendermint/classic/db"
-
 	abci "github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/classic/crypto/secp256k1"
+	dbm "github.com/tendermint/classic/db"
+	"github.com/tendermint/classic/libs/log"
 	tmtypes "github.com/tendermint/classic/types"
 
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/tendermint/classic/sdk/store"
 	"github.com/tendermint/classic/sdk/x/auth"
 	"github.com/tendermint/classic/sdk/x/bank"
@@ -27,20 +25,6 @@ var (
 	randomPerm = "random permission"
 	holder     = "holder"
 )
-
-// nolint: deadcode unused
-// create a codec used only for testing
-func makeTestCodec() *codec.Codec {
-	var cdc = codec.New()
-
-	bank.RegisterCodec(cdc)
-	auth.RegisterCodec(cdc)
-	types.RegisterCodec(cdc)
-	sdk.RegisterCodec(cdc)
-	codec.RegisterCrypto(cdc)
-
-	return cdc
-}
 
 // nolint: deadcode unused
 func createTestInput(t *testing.T, isCheckTx bool, initPower int64, nAccs int64) (sdk.Context, auth.AccountKeeper, Keeper) {
@@ -67,12 +51,11 @@ func createTestInput(t *testing.T, isCheckTx bool, initPower int64, nAccs int64)
 			},
 		},
 	)
-	cdc := makeTestCodec()
 
 	blacklistedAddrs := make(map[string]bool)
 
-	pk := params.NewKeeper(cdc, keyParams, tkeyParams, params.DefaultCodespace)
-	ak := auth.NewAccountKeeper(cdc, keyAcc, pk.Subspace(auth.DefaultParamspace), auth.ProtoBaseAccount)
+	pk := params.NewKeeper(keyParams, tkeyParams, params.DefaultCodespace)
+	ak := auth.NewAccountKeeper(keyAcc, pk.Subspace(auth.DefaultParamspace), auth.ProtoBaseAccount)
 	bk := bank.NewBaseKeeper(ak, pk.Subspace(bank.DefaultParamspace), bank.DefaultCodespace, blacklistedAddrs)
 
 	valTokens := sdk.TokensFromConsensusPower(initPower)
@@ -87,7 +70,7 @@ func createTestInput(t *testing.T, isCheckTx bool, initPower int64, nAccs int64)
 		multiPerm:    []string{types.Minter, types.Burner, types.Staking},
 		randomPerm:   []string{"random"},
 	}
-	keeper := NewKeeper(cdc, keySupply, ak, bk, maccPerms)
+	keeper := NewKeeper(keySupply, ak, bk, maccPerms)
 	totalSupply := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, valTokens.MulRaw(nAccs)))
 	keeper.SetSupply(ctx, types.NewSupply(totalSupply))
 

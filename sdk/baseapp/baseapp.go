@@ -16,10 +16,10 @@ import (
 
 	abci "github.com/tendermint/classic/abci/types"
 	"github.com/tendermint/classic/crypto/tmhash"
-	"github.com/tendermint/classic/libs/log"
 	dbm "github.com/tendermint/classic/db"
+	"github.com/tendermint/classic/libs/log"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/tendermint/classic/sdk/store"
 	sdk "github.com/tendermint/classic/sdk/types"
 )
@@ -501,7 +501,7 @@ func handleQueryApp(app *BaseApp, path []string, req abci.RequestQuery) (res abc
 			result = sdk.ErrUnknownRequest(fmt.Sprintf("Unknown query: %s", path)).Result()
 		}
 
-		value := codec.Cdc.MustMarshalBinaryLengthPrefixed(result)
+		value := amino.MustMarshalBinaryLengthPrefixed(result)
 		return abci.ResponseQuery{
 			Code:      uint32(sdk.CodeOK),
 			Codespace: string(sdk.CodespaceRoot),

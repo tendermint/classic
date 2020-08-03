@@ -1,7 +1,7 @@
 package types
 
+/*
 import (
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	authtypes "github.com/tendermint/classic/sdk/x/auth/types"
 	stakingtypes "github.com/tendermint/classic/sdk/x/staking/types"
@@ -20,3 +20,4 @@ func init() {
 	codec.RegisterCrypto(ModuleCdc)
 	ModuleCdc.Seal()
 }
+*/

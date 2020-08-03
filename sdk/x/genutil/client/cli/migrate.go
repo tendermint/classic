@@ -6,8 +6,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/tendermint/classic/types"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/tendermint/classic/sdk/server"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/version"
@@ -24,7 +24,7 @@ const (
 	flagChainId     = "chain-id"
 )
 
-func MigrateGenesisCmd(_ *server.Context, cdc *codec.Codec) *cobra.Command {
+func MigrateGenesisCmd(_ *server.Context) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "migrate [target-version] [genesis-file]",
 		Short: "Migrate genesis to a specified target version",
@@ -44,14 +44,14 @@ $ %s migrate v0.36 /path/to/genesis.json --chain-id=cosmoshub-3 --genesis-time=2
 			}
 
 			var initialState extypes.AppMap
-			cdc.MustUnmarshalJSON(genDoc.AppState, &initialState)
+			amino.MustUnmarshalJSON(genDoc.AppState, &initialState)
 
 			if migrationMap[target] == nil {
 				return fmt.Errorf("unknown migration function version: %s", target)
 			}
 
 			newGenState := migrationMap[target](initialState)
-			genDoc.AppState = cdc.MustMarshalJSON(newGenState)
+			genDoc.AppState = amino.MustMarshalJSON(newGenState)
 
 			genesisTime := cmd.Flag(flagGenesisTime).Value.String()
 			if genesisTime != "" {
@@ -70,7 +70,7 @@ $ %s migrate v0.36 /path/to/genesis.json --chain-id=cosmoshub-3 --genesis-time=2
 				genDoc.ChainID = chainId
 			}
 
-			out, err := cdc.MarshalJSONIndent(genDoc, "", "  ")
+			out, err := amino.MarshalJSONIndent(genDoc, "", "  ")
 			if err != nil {
 				return err
 			}

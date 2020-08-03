@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/tendermint/classic/types"
+	"github.com/tendermint/go-amino-x"
 
 	abci "github.com/tendermint/classic/abci/types"
 	"github.com/tendermint/classic/libs/log"
-
 	bam "github.com/tendermint/classic/sdk/baseapp"
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
+	"github.com/tendermint/classic/types"
 )
 
 // NewApp creates a simple mock kvstore app for testing. It should work
@@ -103,7 +102,7 @@ func InitChainer(key sdk.StoreKey) func(sdk.Context, abci.RequestInitChain) abci
 
 // AppGenState can be passed into InitCmd, returns a static string of a few
 // key-values that can be parsed by InitChainer
-func AppGenState(_ *codec.Codec, _ types.GenesisDoc, _ []json.RawMessage) (appState json.
+func AppGenState(_ types.GenesisDoc, _ []json.RawMessage) (appState json.
 	RawMessage, err error) {
 	appState = json.RawMessage(`{
   "values": [
@@ -121,7 +120,7 @@ func AppGenState(_ *codec.Codec, _ types.GenesisDoc, _ []json.RawMessage) (appSt
 }
 
 // AppGenStateEmpty returns an empty transaction state for mocking.
-func AppGenStateEmpty(_ *codec.Codec, _ types.GenesisDoc, _ []json.RawMessage) (
+func AppGenStateEmpty(_ types.GenesisDoc, _ []json.RawMessage) (
 	appState json.RawMessage, err error) {
 	appState = json.RawMessage(``)
 	return

@@ -9,12 +9,12 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client/context"
 	"github.com/tendermint/classic/sdk/client/flags"
 	"github.com/tendermint/classic/sdk/client/input"
 	"github.com/tendermint/classic/sdk/client/keys"
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	authtypes "github.com/tendermint/classic/sdk/x/auth/types"
 )
@@ -75,12 +75,12 @@ func CompleteAndBroadcastTxCLI(txBldr authtypes.TxBuilder, cliCtx context.CLICon
 
 		var json []byte
 		if viper.GetBool(flags.FlagIndentResponse) {
-			json, err = cliCtx.Codec.MarshalJSONIndent(stdSignMsg, "", "  ")
+			json, err = amino.MarshalJSONIndent(stdSignMsg, "", "  ")
 			if err != nil {
 				panic(err)
 			}
 		} else {
-			json = cliCtx.Codec.MustMarshalJSON(stdSignMsg)
+			json = amino.MustMarshalJSON(stdSignMsg)
 		}
 
 		_, _ = fmt.Fprintf(os.Stderr, "%s\n\n", json)
@@ -127,7 +127,7 @@ func EnrichWithGas(txBldr authtypes.TxBuilder, cliCtx context.CLIContext, msgs [
 // CalculateGas simulates the execution of a transaction and returns
 // both the estimate obtained by the query and the adjusted amount.
 func CalculateGas(
-	queryFunc func(string, []byte) ([]byte, int64, error), cdc *codec.Codec,
+	queryFunc func(string, []byte) ([]byte, int64, error),
 	txBytes []byte, adjustment float64,
 ) (estimate, adjusted uint64, err error) {
 
@@ -138,7 +138,7 @@ func CalculateGas(
 		return estimate, adjusted, err
 	}
 
-	estimate, err = parseQueryResponse(cdc, rawRes)
+	estimate, err = parseQueryResponse(rawRes)
 	if err != nil {
 		return
 	}
@@ -154,7 +154,7 @@ func PrintUnsignedStdTx(txBldr authtypes.TxBuilder, cliCtx context.CLIContext, m
 		return err
 	}
 
-	json, err := cliCtx.Codec.MarshalJSON(stdTx)
+	json, err := amino.MarshalJSON(stdTx)
 	if err != nil {
 		return err
 	}
@@ -228,7 +228,7 @@ func SignStdTxWithSignerAddress(txBldr authtypes.TxBuilder, cliCtx context.CLICo
 }
 
 // Read and decode a StdTx from the given filename.  Can pass "-" to read from stdin.
-func ReadStdTxFromFile(cdc *codec.Codec, filename string) (stdTx authtypes.StdTx, err error) {
+func ReadStdTxFromFile(filename string) (stdTx authtypes.StdTx, err error) {
 	var bytes []byte
 
 	if filename == "-" {
@@ -241,7 +241,7 @@ func ReadStdTxFromFile(cdc *codec.Codec, filename string) (stdTx authtypes.StdTx
 		return
 	}
 
-	if err = cdc.UnmarshalJSON(bytes, &stdTx); err != nil {
+	if err = amino.UnmarshalJSON(bytes, &stdTx); err != nil {
 		return
 	}
 
@@ -262,10 +262,10 @@ func populateAccountFromState(
 
 // GetTxEncoder return tx encoder from global sdk configuration if ones is defined.
 // Otherwise returns encoder with default logic.
-func GetTxEncoder(cdc *codec.Codec) (encoder sdk.TxEncoder) {
+func GetTxEncoder() (encoder sdk.TxEncoder) {
 	encoder = sdk.GetConfig().GetTxEncoder()
 	if encoder == nil {
-		encoder = authtypes.DefaultTxEncoder(cdc)
+		encoder = authtypes.DefaultTxEncoder()
 	}
 
 	return encoder
@@ -279,7 +279,7 @@ func simulateMsgs(txBldr authtypes.TxBuilder, cliCtx context.CLIContext, msgs []
 		return
 	}
 
-	estimated, adjusted, err = CalculateGas(cliCtx.QueryWithData, cliCtx.Codec, txBytes, txBldr.GasAdjustment())
+	estimated, adjusted, err = CalculateGas(cliCtx.QueryWithData, txBytes, txBldr.GasAdjustment())
 	return
 }
 
@@ -287,9 +287,9 @@ func adjustGasEstimate(estimate uint64, adjustment float64) uint64 {
 	return uint64(adjustment * float64(estimate))
 }
 
-func parseQueryResponse(cdc *codec.Codec, rawRes []byte) (uint64, error) {
+func parseQueryResponse(rawRes []byte) (uint64, error) {
 	var simulationResult sdk.Result
-	if err := cdc.UnmarshalBinaryLengthPrefixed(rawRes, &simulationResult); err != nil {
+	if err := amino.UnmarshalBinaryLengthPrefixed(rawRes, &simulationResult); err != nil {
 		return 0, err
 	}
 

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/tendermint/classic/sdk/codec"
-	sdk "github.com/tendermint/classic/sdk/types"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/store/prefix"
+	sdk "github.com/tendermint/classic/sdk/types"
 )
 
 const (
@@ -23,7 +23,6 @@ const (
 // Transient store persists for a block, so we use it for
 // recording whether the parameter has been changed or not
 type Subspace struct {
-	cdc  *codec.Codec
 	key  sdk.StoreKey // []byte -> []byte, stores parameter
 	tkey sdk.StoreKey // []byte -> bool, stores parameter change
 
@@ -33,9 +32,8 @@ type Subspace struct {
 }
 
 // NewSubspace constructs a store with namestore
-func NewSubspace(cdc *codec.Codec, key sdk.StoreKey, tkey sdk.StoreKey, name string) (res Subspace) {
+func NewSubspace(key sdk.StoreKey, tkey sdk.StoreKey, name string) (res Subspace) {
 	res = Subspace{
-		cdc:  cdc,
 		key:  key,
 		tkey: tkey,
 		name: []byte(name),
@@ -95,7 +93,7 @@ func concatKeys(key, subkey []byte) (res []byte) {
 func (s Subspace) Get(ctx sdk.Context, key []byte, ptr interface{}) {
 	store := s.kvStore(ctx)
 	bz := store.Get(key)
-	err := s.cdc.UnmarshalJSON(bz, ptr)
+	err := amino.UnmarshalJSON(bz, ptr)
 	if err != nil {
 		panic(err)
 	}
@@ -108,7 +106,7 @@ func (s Subspace) GetIfExists(ctx sdk.Context, key []byte, ptr interface{}) {
 	if bz == nil {
 		return
 	}
-	err := s.cdc.UnmarshalJSON(bz, ptr)
+	err := amino.UnmarshalJSON(bz, ptr)
 	if err != nil {
 		panic(err)
 	}
@@ -167,7 +165,7 @@ func (s Subspace) Set(ctx sdk.Context, key []byte, param interface{}) {
 
 	s.checkType(store, key, param)
 
-	bz, err := s.cdc.MarshalJSON(param)
+	bz, err := amino.MarshalJSON(param)
 	if err != nil {
 		panic(err)
 	}
@@ -191,7 +189,7 @@ func (s Subspace) Update(ctx sdk.Context, key []byte, param []byte) error {
 	dest := reflect.New(ty).Interface()
 	s.GetIfExists(ctx, key, dest)
 	fmt.Println("!!!!! GOT", dest)
-	err := s.cdc.UnmarshalJSON(param, dest)
+	err := amino.UnmarshalJSON(param, dest)
 	if err != nil {
 		return err
 	}
@@ -212,7 +210,7 @@ func (s Subspace) SetWithSubkey(ctx sdk.Context, key []byte, subkey []byte, para
 
 	newkey := concatKeys(key, subkey)
 
-	bz, err := s.cdc.MarshalJSON(param)
+	bz, err := amino.MarshalJSON(param)
 	if err != nil {
 		panic(err)
 	}
@@ -235,7 +233,7 @@ func (s Subspace) UpdateWithSubkey(ctx sdk.Context, key []byte, subkey []byte, p
 	ty := attr.ty
 	dest := reflect.New(ty).Interface()
 	s.GetWithSubkeyIfExists(ctx, key, subkey, dest)
-	err := s.cdc.UnmarshalJSON(param, dest)
+	err := amino.UnmarshalJSON(param, dest)
 	if err != nil {
 		return err
 	}

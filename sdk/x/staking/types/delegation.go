@@ -7,7 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tendermint/classic/sdk/codec"
+	"github.com/tendermint/go-amino-x"
+
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/staking/exported"
 )
@@ -53,13 +54,13 @@ func NewDelegation(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
 }
 
 // return the delegation
-func MustMarshalDelegation(cdc *codec.Codec, delegation Delegation) []byte {
-	return cdc.MustMarshalBinaryLengthPrefixed(delegation)
+func MustMarshalDelegation(delegation Delegation) []byte {
+	return amino.MustMarshalBinaryLengthPrefixed(delegation)
 }
 
 // return the delegation
-func MustUnmarshalDelegation(cdc *codec.Codec, value []byte) Delegation {
-	delegation, err := UnmarshalDelegation(cdc, value)
+func MustUnmarshalDelegation(value []byte) Delegation {
+	delegation, err := UnmarshalDelegation(value)
 	if err != nil {
 		panic(err)
 	}
@@ -67,8 +68,8 @@ func MustUnmarshalDelegation(cdc *codec.Codec, value []byte) Delegation {
 }
 
 // return the delegation
-func UnmarshalDelegation(cdc *codec.Codec, value []byte) (delegation Delegation, err error) {
-	err = cdc.UnmarshalBinaryLengthPrefixed(value, &delegation)
+func UnmarshalDelegation(value []byte) (delegation Delegation, err error) {
+	err = amino.UnmarshalBinaryLengthPrefixed(value, &delegation)
 	return delegation, err
 }
 
@@ -163,13 +164,13 @@ func (d *UnbondingDelegation) RemoveEntry(i int64) {
 }
 
 // return the unbonding delegation
-func MustMarshalUBD(cdc *codec.Codec, ubd UnbondingDelegation) []byte {
-	return cdc.MustMarshalBinaryLengthPrefixed(ubd)
+func MustMarshalUBD(ubd UnbondingDelegation) []byte {
+	return amino.MustMarshalBinaryLengthPrefixed(ubd)
 }
 
 // unmarshal a unbonding delegation from a store value
-func MustUnmarshalUBD(cdc *codec.Codec, value []byte) UnbondingDelegation {
-	ubd, err := UnmarshalUBD(cdc, value)
+func MustUnmarshalUBD(value []byte) UnbondingDelegation {
+	ubd, err := UnmarshalUBD(value)
 	if err != nil {
 		panic(err)
 	}
@@ -177,16 +178,16 @@ func MustUnmarshalUBD(cdc *codec.Codec, value []byte) UnbondingDelegation {
 }
 
 // unmarshal a unbonding delegation from a store value
-func UnmarshalUBD(cdc *codec.Codec, value []byte) (ubd UnbondingDelegation, err error) {
-	err = cdc.UnmarshalBinaryLengthPrefixed(value, &ubd)
+func UnmarshalUBD(value []byte) (ubd UnbondingDelegation, err error) {
+	err = amino.UnmarshalBinaryLengthPrefixed(value, &ubd)
 	return ubd, err
 }
 
 // nolint
 // inefficient but only used in testing
 func (d UnbondingDelegation) Equal(d2 UnbondingDelegation) bool {
-	bz1 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&d)
-	bz2 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&d2)
+	bz1 := amino.MustMarshalBinaryLengthPrefixed(&d)
+	bz2 := amino.MustMarshalBinaryLengthPrefixed(&d2)
 	return bytes.Equal(bz1, bz2)
 }
 
@@ -284,13 +285,13 @@ func (d *Redelegation) RemoveEntry(i int64) {
 }
 
 // return the redelegation
-func MustMarshalRED(cdc *codec.Codec, red Redelegation) []byte {
-	return cdc.MustMarshalBinaryLengthPrefixed(red)
+func MustMarshalRED(red Redelegation) []byte {
+	return amino.MustMarshalBinaryLengthPrefixed(red)
 }
 
 // unmarshal a redelegation from a store value
-func MustUnmarshalRED(cdc *codec.Codec, value []byte) Redelegation {
-	red, err := UnmarshalRED(cdc, value)
+func MustUnmarshalRED(value []byte) Redelegation {
+	red, err := UnmarshalRED(value)
 	if err != nil {
 		panic(err)
 	}
@@ -298,16 +299,16 @@ func MustUnmarshalRED(cdc *codec.Codec, value []byte) Redelegation {
 }
 
 // unmarshal a redelegation from a store value
-func UnmarshalRED(cdc *codec.Codec, value []byte) (red Redelegation, err error) {
-	err = cdc.UnmarshalBinaryLengthPrefixed(value, &red)
+func UnmarshalRED(value []byte) (red Redelegation, err error) {
+	err = amino.UnmarshalBinaryLengthPrefixed(value, &red)
 	return red, err
 }
 
 // nolint
 // inefficient but only used in tests
 func (d Redelegation) Equal(d2 Redelegation) bool {
-	bz1 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&d)
-	bz2 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&d2)
+	bz1 := amino.MustMarshalBinaryLengthPrefixed(&d)
+	bz2 := amino.MustMarshalBinaryLengthPrefixed(&d2)
 	return bytes.Equal(bz1, bz2)
 }
 

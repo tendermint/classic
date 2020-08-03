@@ -1,14 +1,13 @@
 package genaccounts
 
 import (
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	authexported "github.com/tendermint/classic/sdk/x/auth/exported"
 	"github.com/tendermint/classic/sdk/x/genaccounts/internal/types"
 )
 
 // InitGenesis initializes accounts and deliver genesis transactions
-func InitGenesis(ctx sdk.Context, _ *codec.Codec, accountKeeper types.AccountKeeper, genesisState GenesisState) {
+func InitGenesis(ctx sdk.Context, accountKeeper types.AccountKeeper, genesisState GenesisState) {
 	genesisState.Sanitize()
 
 	// load the accounts

@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	tmtime "github.com/tendermint/classic/types/time"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 )
 
@@ -86,21 +86,17 @@ func TestBaseAccountMarshal(t *testing.T) {
 	err = acc.SetCoins(someCoins)
 	require.Nil(t, err)
 
-	// need a codec for marshaling
-	cdc := codec.New()
-	codec.RegisterCrypto(cdc)
-
-	b, err := cdc.MarshalBinaryLengthPrefixed(acc)
+	b, err := amino.MarshalBinaryLengthPrefixed(acc)
 	require.Nil(t, err)
 
 	acc2 := BaseAccount{}
-	err = cdc.UnmarshalBinaryLengthPrefixed(b, &acc2)
+	err = amino.UnmarshalBinaryLengthPrefixed(b, &acc2)
 	require.Nil(t, err)
 	require.Equal(t, acc, acc2)
 
 	// error on bad bytes
 	acc2 = BaseAccount{}
-	err = cdc.UnmarshalBinaryLengthPrefixed(b[:len(b)/2], &acc2)
+	err = amino.UnmarshalBinaryLengthPrefixed(b[:len(b)/2], &acc2)
 	require.NotNil(t, err)
 }
 

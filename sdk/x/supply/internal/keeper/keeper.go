@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/tendermint/classic/libs/log"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/supply/exported"
 	"github.com/tendermint/classic/sdk/x/supply/internal/types"
@@ -13,7 +13,6 @@ import (
 
 // Keeper of the supply store
 type Keeper struct {
-	cdc       *codec.Codec
 	storeKey  sdk.StoreKey
 	ak        types.AccountKeeper
 	bk        types.BankKeeper
@@ -21,7 +20,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new Keeper instance
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, ak types.AccountKeeper, bk types.BankKeeper, maccPerms map[string][]string) Keeper {
+func NewKeeper(key sdk.StoreKey, ak types.AccountKeeper, bk types.BankKeeper, maccPerms map[string][]string) Keeper {
 	// set the addresses
 	permAddrs := make(map[string]types.PermissionsForAddress)
 	for name, perms := range maccPerms {
@@ -29,7 +28,6 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, ak types.AccountKeeper, bk ty
 	}
 
 	return Keeper{
-		cdc:       cdc,
 		storeKey:  key,
 		ak:        ak,
 		bk:        bk,
@@ -49,14 +47,14 @@ func (k Keeper) GetSupply(ctx sdk.Context) (supply exported.SupplyI) {
 	if b == nil {
 		panic("stored supply should not have been nil")
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &supply)
+	amino.MustUnmarshalBinaryLengthPrefixed(b, &supply)
 	return
 }
 
 // SetSupply sets the Supply to store
 func (k Keeper) SetSupply(ctx sdk.Context, supply exported.SupplyI) {
 	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalBinaryLengthPrefixed(supply)
+	b := amino.MustMarshalBinaryLengthPrefixed(supply)
 	store.Set(SupplyKey, b)
 }
 

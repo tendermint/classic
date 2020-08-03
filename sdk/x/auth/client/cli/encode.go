@@ -4,10 +4,10 @@ import (
 	"encoding/base64"
 
 	"github.com/spf13/cobra"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client/context"
 	"github.com/tendermint/classic/sdk/client/flags"
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/tendermint/classic/sdk/x/auth/client/utils"
 )
 
@@ -20,7 +20,7 @@ func (txr txEncodeRespStr) String() string {
 
 // GetEncodeCommand returns the encode command to take a JSONified transaction and turn it into
 // Amino-serialized bytes
-func GetEncodeCommand(cdc *codec.Codec) *cobra.Command {
+func GetEncodeCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "encode [file]",
 		Short: "Encode transactions generated offline",
@@ -29,7 +29,7 @@ Read a transaction from <file>, serialize it to the Amino wire protocol, and out
 If you supply a dash (-) argument in place of an input filename, the command reads from standard input.`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			cliCtx := context.NewCLIContext()
 
 			stdTx, err := utils.ReadStdTxFromFile(cliCtx.Codec, args[0])
 			if err != nil {

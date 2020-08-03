@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tendermint/classic/sdk/codec"
+	"github.com/tendermint/go-amino-x"
+
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/gov/types"
 	"github.com/tendermint/classic/sdk/x/params"
@@ -30,9 +31,6 @@ type Keeper struct {
 	// The (unexposed) keys used to access the stores from the Context.
 	storeKey sdk.StoreKey
 
-	// The codec codec for binary encoding/decoding.
-	cdc *codec.Codec
-
 	// Reserved codespace
 	codespace sdk.CodespaceType
 
@@ -46,7 +44,7 @@ type Keeper struct {
 // - users voting on proposals, with weight proportional to stake in the system
 // - and tallying the result of the vote.
 func NewKeeper(
-	cdc *codec.Codec, key sdk.StoreKey, paramsKeeper params.Keeper, paramSpace params.Subspace,
+	key sdk.StoreKey, paramsKeeper params.Keeper, paramSpace params.Subspace,
 	supplyKeeper SupplyKeeper, sk StakingKeeper, codespace sdk.CodespaceType, rtr Router,
 ) Keeper {
 
@@ -66,7 +64,6 @@ func NewKeeper(
 		paramSpace:   paramSpace.WithKeyTable(ParamKeyTable()),
 		supplyKeeper: supplyKeeper,
 		sk:           sk,
-		cdc:          cdc,
 		codespace:    codespace,
 		router:       rtr,
 	}
@@ -122,7 +119,7 @@ func (keeper Keeper) setTallyParams(ctx sdk.Context, tallyParams TallyParams) {
 // InsertActiveProposalQueue inserts a ProposalID into the active proposal queue at endTime
 func (keeper Keeper) InsertActiveProposalQueue(ctx sdk.Context, proposalID uint64, endTime time.Time) {
 	store := ctx.KVStore(keeper.storeKey)
-	bz := keeper.cdc.MustMarshalBinaryLengthPrefixed(proposalID)
+	bz := amino.MustMarshalBinaryLengthPrefixed(proposalID)
 	store.Set(types.ActiveProposalQueueKey(proposalID, endTime), bz)
 }
 
@@ -135,7 +132,7 @@ func (keeper Keeper) RemoveFromActiveProposalQueue(ctx sdk.Context, proposalID u
 // InsertInactiveProposalQueue Inserts a ProposalID into the inactive proposal queue at endTime
 func (keeper Keeper) InsertInactiveProposalQueue(ctx sdk.Context, proposalID uint64, endTime time.Time) {
 	store := ctx.KVStore(keeper.storeKey)
-	bz := keeper.cdc.MustMarshalBinaryLengthPrefixed(proposalID)
+	bz := amino.MustMarshalBinaryLengthPrefixed(proposalID)
 	store.Set(types.InactiveProposalQueueKey(proposalID, endTime), bz)
 }
 
@@ -155,7 +152,7 @@ func (keeper Keeper) IterateProposals(ctx sdk.Context, cb func(proposal types.Pr
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var proposal types.Proposal
-		keeper.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &proposal)
+		amino.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &proposal)
 
 		if cb(proposal) {
 			break
@@ -209,7 +206,7 @@ func (keeper Keeper) IterateAllDeposits(ctx sdk.Context, cb func(deposit types.D
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var deposit types.Deposit
-		keeper.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &deposit)
+		amino.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &deposit)
 
 		if cb(deposit) {
 			break
@@ -224,7 +221,7 @@ func (keeper Keeper) IterateDeposits(ctx sdk.Context, proposalID uint64, cb func
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var deposit types.Deposit
-		keeper.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &deposit)
+		amino.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &deposit)
 
 		if cb(deposit) {
 			break
@@ -240,7 +237,7 @@ func (keeper Keeper) IterateAllVotes(ctx sdk.Context, cb func(vote types.Vote) (
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var vote types.Vote
-		keeper.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &vote)
+		amino.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &vote)
 
 		if cb(vote) {
 			break
@@ -255,7 +252,7 @@ func (keeper Keeper) IterateVotes(ctx sdk.Context, proposalID uint64, cb func(vo
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var vote types.Vote
-		keeper.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &vote)
+		amino.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &vote)
 
 		if cb(vote) {
 			break

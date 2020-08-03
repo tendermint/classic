@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tendermint/classic/sdk/codec"
+	"github.com/tendermint/go-amino-x"
+
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/params"
 )
@@ -68,8 +69,8 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 // Equal returns a boolean determining if two Param types are identical.
 // TODO: This is slower than comparing struct fields directly
 func (p Params) Equal(p2 Params) bool {
-	bz1 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&p)
-	bz2 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&p2)
+	bz1 := amino.MustMarshalBinaryLengthPrefixed(&p)
+	bz2 := amino.MustMarshalBinaryLengthPrefixed(&p2)
 	return bytes.Equal(bz1, bz2)
 }
 
@@ -89,8 +90,8 @@ func (p Params) String() string {
 }
 
 // unmarshal the current staking params value from store key or panic
-func MustUnmarshalParams(cdc *codec.Codec, value []byte) Params {
-	params, err := UnmarshalParams(cdc, value)
+func MustUnmarshalParams(value []byte) Params {
+	params, err := UnmarshalParams(value)
 	if err != nil {
 		panic(err)
 	}
@@ -98,8 +99,8 @@ func MustUnmarshalParams(cdc *codec.Codec, value []byte) Params {
 }
 
 // unmarshal the current staking params value from store key
-func UnmarshalParams(cdc *codec.Codec, value []byte) (params Params, err error) {
-	err = cdc.UnmarshalBinaryLengthPrefixed(value, &params)
+func UnmarshalParams(value []byte) (params Params, err error) {
+	err = amino.UnmarshalBinaryLengthPrefixed(value, &params)
 	if err != nil {
 		return
 	}

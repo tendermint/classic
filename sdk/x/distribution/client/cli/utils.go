@@ -3,7 +3,8 @@ package cli
 import (
 	"io/ioutil"
 
-	"github.com/tendermint/classic/sdk/codec"
+	"github.com/tendermint/go-amino-x"
+
 	sdk "github.com/tendermint/classic/sdk/types"
 )
 
@@ -19,7 +20,7 @@ type (
 )
 
 // ParseCommunityPoolSpendProposalJSON reads and parses a CommunityPoolSpendProposalJSON from a file.
-func ParseCommunityPoolSpendProposalJSON(cdc *codec.Codec, proposalFile string) (CommunityPoolSpendProposalJSON, error) {
+func ParseCommunityPoolSpendProposalJSON(proposalFile string) (CommunityPoolSpendProposalJSON, error) {
 	proposal := CommunityPoolSpendProposalJSON{}
 
 	contents, err := ioutil.ReadFile(proposalFile)
@@ -27,7 +28,7 @@ func ParseCommunityPoolSpendProposalJSON(cdc *codec.Codec, proposalFile string) 
 		return proposal, err
 	}
 
-	if err := cdc.UnmarshalJSON(contents, &proposal); err != nil {
+	if err := amino.UnmarshalJSON(contents, &proposal); err != nil {
 		return proposal, err
 	}
 

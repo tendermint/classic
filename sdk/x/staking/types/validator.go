@@ -6,12 +6,13 @@ import (
 	"strings"
 	"time"
 
+	yaml "gopkg.in/yaml.v2"
+
 	abci "github.com/tendermint/classic/abci/types"
 	"github.com/tendermint/classic/crypto"
 	tmtypes "github.com/tendermint/classic/types"
-	yaml "gopkg.in/yaml.v2"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/staking/exported"
 )
@@ -119,13 +120,13 @@ func NewValidator(operator sdk.ValAddress, pubKey crypto.PubKey, description Des
 }
 
 // return the redelegation
-func MustMarshalValidator(cdc *codec.Codec, validator Validator) []byte {
-	return cdc.MustMarshalBinaryLengthPrefixed(validator)
+func MustMarshalValidator(validator Validator) []byte {
+	return amino.MustMarshalBinaryLengthPrefixed(validator)
 }
 
 // unmarshal a redelegation from a store value
-func MustUnmarshalValidator(cdc *codec.Codec, value []byte) Validator {
-	validator, err := UnmarshalValidator(cdc, value)
+func MustUnmarshalValidator(value []byte) Validator {
+	validator, err := UnmarshalValidator(value)
 	if err != nil {
 		panic(err)
 	}
@@ -133,8 +134,8 @@ func MustUnmarshalValidator(cdc *codec.Codec, value []byte) Validator {
 }
 
 // unmarshal a redelegation from a store value
-func UnmarshalValidator(cdc *codec.Codec, value []byte) (validator Validator, err error) {
-	err = cdc.UnmarshalBinaryLengthPrefixed(value, &validator)
+func UnmarshalValidator(value []byte) (validator Validator, err error) {
+	err = amino.UnmarshalBinaryLengthPrefixed(value, &validator)
 	return validator, err
 }
 
@@ -183,7 +184,7 @@ func (v Validator) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
-	return codec.Cdc.MarshalJSON(bechValidator{
+	return amino.MarshalJSON(bechValidator{
 		OperatorAddress:         v.OperatorAddress,
 		ConsPubKey:              bechConsPubKey,
 		Jailed:                  v.Jailed,
@@ -201,7 +202,7 @@ func (v Validator) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals the validator from JSON using Bech32
 func (v *Validator) UnmarshalJSON(data []byte) error {
 	bv := &bechValidator{}
-	if err := codec.Cdc.UnmarshalJSON(data, bv); err != nil {
+	if err := amino.UnmarshalJSON(data, bv); err != nil {
 		return err
 	}
 	consPubKey, err := sdk.GetConsPubKeyBech32(bv.ConsPubKey)

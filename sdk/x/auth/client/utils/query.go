@@ -7,9 +7,9 @@ import (
 	"time"
 
 	ctypes "github.com/tendermint/classic/rpc/core/types"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client/context"
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/auth/types"
 )
@@ -61,7 +61,7 @@ func QueryTxsByEvents(cliCtx context.CLIContext, events []string, page, limit in
 		return nil, err
 	}
 
-	txs, err := formatTxResults(cliCtx.Codec, resTxs.Txs, resBlocks)
+	txs, err := formatTxResults(resTxs.Txs, resBlocks)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func QueryTx(cliCtx context.CLIContext, hashHexStr string) (sdk.TxResponse, erro
 		return sdk.TxResponse{}, err
 	}
 
-	out, err := formatTxResult(cliCtx.Codec, resTx, resBlocks[resTx.Height])
+	out, err := formatTxResult(resTx, resBlocks[resTx.Height])
 	if err != nil {
 		return out, err
 	}
@@ -109,11 +109,11 @@ func QueryTx(cliCtx context.CLIContext, hashHexStr string) (sdk.TxResponse, erro
 }
 
 // formatTxResults parses the indexed txs into a slice of TxResponse objects.
-func formatTxResults(cdc *codec.Codec, resTxs []*ctypes.ResultTx, resBlocks map[int64]*ctypes.ResultBlock) ([]sdk.TxResponse, error) {
+func formatTxResults(resTxs []*ctypes.ResultTx, resBlocks map[int64]*ctypes.ResultBlock) ([]sdk.TxResponse, error) {
 	var err error
 	out := make([]sdk.TxResponse, len(resTxs))
 	for i := range resTxs {
-		out[i], err = formatTxResult(cdc, resTxs[i], resBlocks[resTxs[i].Height])
+		out[i], err = formatTxResult(resTxs[i], resBlocks[resTxs[i].Height])
 		if err != nil {
 			return nil, err
 		}
@@ -159,8 +159,8 @@ func getBlocksForTxResults(cliCtx context.CLIContext, resTxs []*ctypes.ResultTx)
 	return resBlocks, nil
 }
 
-func formatTxResult(cdc *codec.Codec, resTx *ctypes.ResultTx, resBlock *ctypes.ResultBlock) (sdk.TxResponse, error) {
-	tx, err := parseTx(cdc, resTx.Tx)
+func formatTxResult(resTx *ctypes.ResultTx, resBlock *ctypes.ResultBlock) (sdk.TxResponse, error) {
+	tx, err := parseTx(resTx.Tx)
 	if err != nil {
 		return sdk.TxResponse{}, err
 	}
@@ -168,10 +168,10 @@ func formatTxResult(cdc *codec.Codec, resTx *ctypes.ResultTx, resBlock *ctypes.R
 	return sdk.NewResponseResultTx(resTx, tx, resBlock.Block.Time.Format(time.RFC3339)), nil
 }
 
-func parseTx(cdc *codec.Codec, txBytes []byte) (sdk.Tx, error) {
+func parseTx(txBytes []byte) (sdk.Tx, error) {
 	var tx types.StdTx
 
-	err := cdc.UnmarshalBinaryLengthPrefixed(txBytes, &tx)
+	err := amino.UnmarshalBinaryLengthPrefixed(txBytes, &tx)
 	if err != nil {
 		return nil, err
 	}

@@ -14,8 +14,8 @@ import (
 
 	cfg "github.com/tendermint/classic/config"
 	tmtypes "github.com/tendermint/classic/types"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	authexported "github.com/tendermint/classic/sdk/x/auth/exported"
 	authtypes "github.com/tendermint/classic/sdk/x/auth/types"
@@ -24,14 +24,14 @@ import (
 )
 
 // GenAppStateFromConfig gets the genesis app state from the config
-func GenAppStateFromConfig(cdc *codec.Codec, config *cfg.Config,
+func GenAppStateFromConfig(config *cfg.Config,
 	initCfg InitConfig, genDoc tmtypes.GenesisDoc,
 	genAccIterator types.GenesisAccountsIterator,
 ) (appState json.RawMessage, err error) {
 
 	// process genesis transactions, else create default genesis.json
 	appGenTxs, persistentPeers, err := CollectStdTxs(
-		cdc, config.Moniker, initCfg.GenTxsDir, genDoc, genAccIterator)
+		config.Moniker, initCfg.GenTxsDir, genDoc, genAccIterator)
 	if err != nil {
 		return appState, err
 	}
@@ -45,16 +45,16 @@ func GenAppStateFromConfig(cdc *codec.Codec, config *cfg.Config,
 	}
 
 	// create the app state
-	appGenesisState, err := GenesisStateFromGenDoc(cdc, genDoc)
+	appGenesisState, err := GenesisStateFromGenDoc(genDoc)
 	if err != nil {
 		return appState, err
 	}
 
-	appGenesisState, err = SetGenTxsInAppGenesisState(cdc, appGenesisState, appGenTxs)
+	appGenesisState, err = SetGenTxsInAppGenesisState(appGenesisState, appGenTxs)
 	if err != nil {
 		return appState, err
 	}
-	appState, err = codec.MarshalJSONIndent(cdc, appGenesisState)
+	appState, err = amino.MarshalJSONIndent(appGenesisState)
 	if err != nil {
 		return appState, err
 	}
@@ -66,7 +66,7 @@ func GenAppStateFromConfig(cdc *codec.Codec, config *cfg.Config,
 
 // CollectStdTxs processes and validates application's genesis StdTxs and returns
 // the list of appGenTxs, and persistent peers required to generate genesis.json.
-func CollectStdTxs(cdc *codec.Codec, moniker, genTxsDir string,
+func CollectStdTxs(moniker, genTxsDir string,
 	genDoc tmtypes.GenesisDoc, genAccIterator types.GenesisAccountsIterator,
 ) (appGenTxs []authtypes.StdTx, persistentPeers string, err error) {
 
@@ -79,12 +79,12 @@ func CollectStdTxs(cdc *codec.Codec, moniker, genTxsDir string,
 	// prepare a map of all accounts in genesis state to then validate
 	// against the validators addresses
 	var appState map[string]json.RawMessage
-	if err := cdc.UnmarshalJSON(genDoc.AppState, &appState); err != nil {
+	if err := amino.UnmarshalJSON(genDoc.AppState, &appState); err != nil {
 		return appGenTxs, persistentPeers, err
 	}
 
 	addrMap := make(map[string]authexported.Account)
-	genAccIterator.IterateGenesisAccounts(cdc, appState,
+	genAccIterator.IterateGenesisAccounts(appState,
 		func(acc authexported.Account) (stop bool) {
 			addrMap[acc.GetAddress().String()] = acc
 			return false
@@ -106,7 +106,7 @@ func CollectStdTxs(cdc *codec.Codec, moniker, genTxsDir string,
 			return appGenTxs, persistentPeers, err
 		}
 		var genStdTx authtypes.StdTx
-		if err = cdc.UnmarshalJSON(jsonRawTx, &genStdTx); err != nil {
+		if err = amino.UnmarshalJSON(jsonRawTx, &genStdTx); err != nil {
 			return appGenTxs, persistentPeers, err
 		}
 		appGenTxs = append(appGenTxs, genStdTx)

@@ -5,8 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/classic/abci/types"
-
-	"github.com/tendermint/classic/sdk/codec"
+	"github.com/tendermint/go-amino-x"
 )
 
 func TestNewQuerier(t *testing.T) {
@@ -23,7 +22,6 @@ func TestNewQuerier(t *testing.T) {
 }
 
 func TestQueryParams(t *testing.T) {
-	cdc := codec.New()
 	ctx, _, _, _, keeper := createTestInput(t, keeperTestParams())
 
 	var params Params
@@ -31,7 +29,7 @@ func TestQueryParams(t *testing.T) {
 	res, errRes := queryParams(ctx, keeper)
 	require.NoError(t, errRes)
 
-	err := cdc.UnmarshalJSON(res, &params)
+	err := amino.UnmarshalJSON(res, &params)
 	require.NoError(t, err)
 	require.Equal(t, keeper.GetParams(ctx), params)
 }

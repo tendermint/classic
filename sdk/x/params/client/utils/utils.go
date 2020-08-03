@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
-	"github.com/tendermint/classic/sdk/codec"
+	"github.com/tendermint/go-amino-x"
+
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/types/rest"
 	"github.com/tendermint/classic/sdk/x/params"
@@ -66,7 +67,7 @@ func (pcj ParamChangesJSON) ToParamChanges() []params.ParamChange {
 
 // ParseParamChangeProposalJSON reads and parses a ParamChangeProposalJSON from
 // file.
-func ParseParamChangeProposalJSON(cdc *codec.Codec, proposalFile string) (ParamChangeProposalJSON, error) {
+func ParseParamChangeProposalJSON(proposalFile string) (ParamChangeProposalJSON, error) {
 	proposal := ParamChangeProposalJSON{}
 
 	contents, err := ioutil.ReadFile(proposalFile)
@@ -74,7 +75,7 @@ func ParseParamChangeProposalJSON(cdc *codec.Codec, proposalFile string) (ParamC
 		return proposal, err
 	}
 
-	if err := cdc.UnmarshalJSON(contents, &proposal); err != nil {
+	if err := amino.UnmarshalJSON(contents, &proposal); err != nil {
 		return proposal, err
 	}
 

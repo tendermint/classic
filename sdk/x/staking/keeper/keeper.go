@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/tendermint/classic/libs/log"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/params"
 	"github.com/tendermint/classic/sdk/x/staking/types"
@@ -24,7 +24,6 @@ var _ types.DelegationSet = Keeper{}
 type Keeper struct {
 	storeKey           sdk.StoreKey
 	storeTKey          sdk.StoreKey
-	cdc                *codec.Codec
 	supplyKeeper       types.SupplyKeeper
 	hooks              types.StakingHooks
 	paramstore         params.Subspace
@@ -36,7 +35,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new staking Keeper instance
-func NewKeeper(cdc *codec.Codec, key, tkey sdk.StoreKey, supplyKeeper types.SupplyKeeper,
+func NewKeeper(key, tkey sdk.StoreKey, supplyKeeper types.SupplyKeeper,
 	paramstore params.Subspace, codespace sdk.CodespaceType) Keeper {
 
 	// ensure bonded and not bonded module accounts are set
@@ -51,7 +50,6 @@ func NewKeeper(cdc *codec.Codec, key, tkey sdk.StoreKey, supplyKeeper types.Supp
 	return Keeper{
 		storeKey:           key,
 		storeTKey:          tkey,
-		cdc:                cdc,
 		supplyKeeper:       supplyKeeper,
 		paramstore:         paramstore.WithKeyTable(ParamKeyTable()),
 		hooks:              nil,
@@ -87,13 +85,13 @@ func (k Keeper) GetLastTotalPower(ctx sdk.Context) (power sdk.Int) {
 	if b == nil {
 		return sdk.ZeroInt()
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &power)
+	amino.MustUnmarshalBinaryLengthPrefixed(b, &power)
 	return
 }
 
 // Set the last total validator power.
 func (k Keeper) SetLastTotalPower(ctx sdk.Context, power sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalBinaryLengthPrefixed(power)
+	b := amino.MustMarshalBinaryLengthPrefixed(power)
 	store.Set(types.LastTotalPowerKey, b)
 }

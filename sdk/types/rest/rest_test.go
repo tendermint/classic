@@ -14,8 +14,8 @@ import (
 	"github.com/tendermint/classic/crypto/secp256k1"
 
 	"github.com/tendermint/classic/sdk/client/context"
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/tendermint/classic/sdk/types"
+	"github.com/tendermint/go-amino-x"
 )
 
 type mockResponseWriter struct{}
@@ -167,10 +167,6 @@ func TestProcessPostResponse(t *testing.T) {
 	sequence := uint64(32)
 
 	acc := mockAccount{addr, coins, pubKey, accNumber, sequence}
-	cdc := codec.New()
-	codec.RegisterCrypto(cdc)
-	cdc.RegisterConcrete(&mockAccount{}, "cosmos-sdk/mockAccount", nil)
-	ctx = ctx.WithCodec(cdc)
 
 	// setup expected results
 	jsonNoIndent, err := ctx.Codec.MarshalJSON(acc)

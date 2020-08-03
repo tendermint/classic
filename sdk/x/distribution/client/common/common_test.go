@@ -4,14 +4,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client/context"
-	"github.com/tendermint/classic/sdk/codec"
 )
 
 func TestQueryDelegationRewardsAddrValidation(t *testing.T) {
-	cdc := codec.New()
-	ctx := context.NewCLIContext().WithCodec(cdc)
+	ctx := context.NewCLIContext()
 	type args struct {
 		delAddr string
 		valAddr string

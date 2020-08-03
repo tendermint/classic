@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 )
 
@@ -76,7 +76,7 @@ func TestActivateVotingPeriod(t *testing.T) {
 	activeIterator := input.keeper.ActiveProposalQueueIterator(ctx, proposal.VotingEndTime)
 	require.True(t, activeIterator.Valid())
 	var proposalID uint64
-	input.keeper.cdc.UnmarshalBinaryLengthPrefixed(activeIterator.Value(), &proposalID)
+	amino.UnmarshalBinaryLengthPrefixed(activeIterator.Value(), &proposalID)
 	require.Equal(t, proposalID, proposal.ProposalID)
 	activeIterator.Close()
 }
@@ -160,11 +160,11 @@ func TestDeposits(t *testing.T) {
 	// Test deposit iterator
 	depositsIterator := input.keeper.GetDepositsIterator(ctx, proposalID)
 	require.True(t, depositsIterator.Valid())
-	input.keeper.cdc.MustUnmarshalBinaryLengthPrefixed(depositsIterator.Value(), &deposit)
+	amino.MustUnmarshalBinaryLengthPrefixed(depositsIterator.Value(), &deposit)
 	require.Equal(t, input.addrs[0], deposit.Depositor)
 	require.Equal(t, fourStake.Add(fiveStake), deposit.Amount)
 	depositsIterator.Next()
-	input.keeper.cdc.MustUnmarshalBinaryLengthPrefixed(depositsIterator.Value(), &deposit)
+	amino.MustUnmarshalBinaryLengthPrefixed(depositsIterator.Value(), &deposit)
 	require.Equal(t, input.addrs[1], deposit.Depositor)
 	require.Equal(t, fourStake, deposit.Amount)
 	depositsIterator.Next()
@@ -227,14 +227,14 @@ func TestVotes(t *testing.T) {
 	// Test vote iterator
 	votesIterator := input.keeper.GetVotesIterator(ctx, proposalID)
 	require.True(t, votesIterator.Valid())
-	input.keeper.cdc.MustUnmarshalBinaryLengthPrefixed(votesIterator.Value(), &vote)
+	amino.MustUnmarshalBinaryLengthPrefixed(votesIterator.Value(), &vote)
 	require.True(t, votesIterator.Valid())
 	require.Equal(t, input.addrs[0], vote.Voter)
 	require.Equal(t, proposalID, vote.ProposalID)
 	require.Equal(t, OptionYes, vote.Option)
 	votesIterator.Next()
 	require.True(t, votesIterator.Valid())
-	input.keeper.cdc.MustUnmarshalBinaryLengthPrefixed(votesIterator.Value(), &vote)
+	amino.MustUnmarshalBinaryLengthPrefixed(votesIterator.Value(), &vote)
 	require.True(t, votesIterator.Valid())
 	require.Equal(t, input.addrs[1], vote.Voter)
 	require.Equal(t, proposalID, vote.ProposalID)
@@ -261,7 +261,7 @@ func TestProposalQueues(t *testing.T) {
 	inactiveIterator := input.keeper.InactiveProposalQueueIterator(ctx, proposal.DepositEndTime)
 	require.True(t, inactiveIterator.Valid())
 	var proposalID uint64
-	input.keeper.cdc.UnmarshalBinaryLengthPrefixed(inactiveIterator.Value(), &proposalID)
+	amino.UnmarshalBinaryLengthPrefixed(inactiveIterator.Value(), &proposalID)
 	require.Equal(t, proposalID, proposal.ProposalID)
 	inactiveIterator.Close()
 
@@ -272,7 +272,7 @@ func TestProposalQueues(t *testing.T) {
 
 	activeIterator := input.keeper.ActiveProposalQueueIterator(ctx, proposal.VotingEndTime)
 	require.True(t, activeIterator.Valid())
-	input.keeper.cdc.UnmarshalBinaryLengthPrefixed(activeIterator.Value(), &proposalID)
+	amino.UnmarshalBinaryLengthPrefixed(activeIterator.Value(), &proposalID)
 	require.Equal(t, proposalID, proposal.ProposalID)
 	activeIterator.Close()
 }
@@ -312,7 +312,8 @@ func (invalidProposalValidation) ValidateBasic() sdk.Error {
 	return sdk.NewError(sdk.CodespaceUndefined, sdk.CodeInternal, "")
 }
 
-func registerTestCodec(cdc *codec.Codec) {
+/*
+func registerTestCodec() {
 	cdc.RegisterConcrete(validProposal{}, "test/validproposal", nil)
 	cdc.RegisterConcrete(invalidProposalTitle1{}, "test/invalidproposalt1", nil)
 	cdc.RegisterConcrete(invalidProposalTitle2{}, "test/invalidproposalt2", nil)
@@ -321,11 +322,10 @@ func registerTestCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(invalidProposalRoute{}, "test/invalidproposalr", nil)
 	cdc.RegisterConcrete(invalidProposalValidation{}, "test/invalidproposalv", nil)
 }
+*/
 
 func TestSubmitProposal(t *testing.T) {
 	input := getMockApp(t, 0, GenesisState{}, nil)
-
-	registerTestCodec(input.keeper.cdc)
 
 	header := abci.Header{Height: input.mApp.LastBlockHeight() + 1}
 	input.mApp.BeginBlock(abci.RequestBeginBlock{Header: header})

@@ -5,8 +5,8 @@ import (
 
 	"github.com/tendermint/classic/crypto"
 	"github.com/tendermint/classic/libs/log"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/auth/exported"
 	"github.com/tendermint/classic/sdk/x/auth/types"
@@ -22,9 +22,6 @@ type AccountKeeper struct {
 	// The prototypical Account constructor.
 	proto func() exported.Account
 
-	// The codec codec for binary encoding/decoding of accounts.
-	cdc *codec.Codec
-
 	paramSubspace subspace.Subspace
 }
 
@@ -32,13 +29,12 @@ type AccountKeeper struct {
 // (binary) encode and decode concrete sdk.Accounts.
 // nolint
 func NewAccountKeeper(
-	cdc *codec.Codec, key sdk.StoreKey, paramstore subspace.Subspace, proto func() exported.Account,
+	key sdk.StoreKey, paramstore subspace.Subspace, proto func() exported.Account,
 ) AccountKeeper {
 
 	return AccountKeeper{
 		key:           key,
 		proto:         proto,
-		cdc:           cdc,
 		paramSubspace: paramstore.WithKeyTable(types.ParamKeyTable()),
 	}
 }
@@ -98,7 +94,7 @@ func (ak AccountKeeper) GetAllAccounts(ctx sdk.Context) []exported.Account {
 func (ak AccountKeeper) SetAccount(ctx sdk.Context, acc exported.Account) {
 	addr := acc.GetAddress()
 	store := ctx.KVStore(ak.key)
-	bz, err := ak.cdc.MarshalBinaryBare(acc)
+	bz, err := amino.MarshalBinaryBare(acc)
 	if err != nil {
 		panic(err)
 	}
@@ -157,13 +153,13 @@ func (ak AccountKeeper) GetNextAccountNumber(ctx sdk.Context) uint64 {
 	if bz == nil {
 		accNumber = 0
 	} else {
-		err := ak.cdc.UnmarshalBinaryLengthPrefixed(bz, &accNumber)
+		err := amino.UnmarshalBinaryLengthPrefixed(bz, &accNumber)
 		if err != nil {
 			panic(err)
 		}
 	}
 
-	bz = ak.cdc.MustMarshalBinaryLengthPrefixed(accNumber + 1)
+	bz = amino.MustMarshalBinaryLengthPrefixed(accNumber + 1)
 	store.Set(types.GlobalAccountNumberKey, bz)
 
 	return accNumber
@@ -187,7 +183,7 @@ func (ak AccountKeeper) GetParams(ctx sdk.Context) (params types.Params) {
 // Misc.
 
 func (ak AccountKeeper) decodeAccount(bz []byte) (acc exported.Account) {
-	err := ak.cdc.UnmarshalBinaryBare(bz, &acc)
+	err := amino.UnmarshalBinaryBare(bz, &acc)
 	if err != nil {
 		panic(err)
 	}

@@ -6,14 +6,13 @@ import (
 	"testing"
 	"time"
 
-	abci "github.com/tendermint/classic/abci/types"
-	"github.com/tendermint/classic/libs/log"
-
 	"github.com/stretchr/testify/require"
 
+	abci "github.com/tendermint/classic/abci/types"
 	dbm "github.com/tendermint/classic/db"
+	"github.com/tendermint/classic/libs/log"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/tendermint/classic/sdk/store"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/auth"
@@ -26,7 +25,6 @@ import (
 
 type testInput struct {
 	ctx        sdk.Context
-	cdc        *codec.Codec
 	mintKeeper Keeper
 }
 

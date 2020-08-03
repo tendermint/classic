@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	abci "github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/mint/internal/types"
 )
@@ -32,7 +32,7 @@ func NewQuerier(k Keeper) sdk.Querier {
 func queryParams(ctx sdk.Context, k Keeper) ([]byte, sdk.Error) {
 	params := k.GetParams(ctx)
 
-	res, err := codec.MarshalJSONIndent(k.cdc, params)
+	res, err := amino.MarshalJSONIndent(params)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("failed to marshal JSON", err.Error()))
 	}
@@ -43,7 +43,7 @@ func queryParams(ctx sdk.Context, k Keeper) ([]byte, sdk.Error) {
 func queryInflation(ctx sdk.Context, k Keeper) ([]byte, sdk.Error) {
 	minter := k.GetMinter(ctx)
 
-	res, err := codec.MarshalJSONIndent(k.cdc, minter.Inflation)
+	res, err := amino.MarshalJSONIndent(minter.Inflation)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("failed to marshal JSON", err.Error()))
 	}
@@ -54,7 +54,7 @@ func queryInflation(ctx sdk.Context, k Keeper) ([]byte, sdk.Error) {
 func queryAnnualProvisions(ctx sdk.Context, k Keeper) ([]byte, sdk.Error) {
 	minter := k.GetMinter(ctx)
 
-	res, err := codec.MarshalJSONIndent(k.cdc, minter.AnnualProvisions)
+	res, err := amino.MarshalJSONIndent(minter.AnnualProvisions)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("failed to marshal JSON", err.Error()))
 	}

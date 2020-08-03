@@ -17,10 +17,10 @@ import (
 	"github.com/tendermint/classic/crypto"
 	"github.com/tendermint/classic/libs/common"
 	tmtypes "github.com/tendermint/classic/types"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client"
 	"github.com/tendermint/classic/sdk/client/context"
-	"github.com/tendermint/classic/sdk/codec"
 	kbkeys "github.com/tendermint/classic/sdk/crypto/keys"
 	"github.com/tendermint/classic/sdk/server"
 	sdk "github.com/tendermint/classic/sdk/types"
@@ -41,7 +41,7 @@ type StakingMsgBuildingHelpers interface {
 
 // GenTxCmd builds the application's gentx command.
 // nolint: errcheck
-func GenTxCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager, smbh StakingMsgBuildingHelpers,
+func GenTxCmd(ctx *server.Context, mbm module.BasicManager, smbh StakingMsgBuildingHelpers,
 	genAccIterator types.GenesisAccountsIterator, defaultNodeHome, defaultCLIHome string) *cobra.Command {
 
 	ipDefault, _ := server.ExternalIP()
@@ -84,7 +84,7 @@ func GenTxCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager, sm
 			}
 
 			var genesisState map[string]json.RawMessage
-			if err = cdc.UnmarshalJSON(genDoc.AppState, &genesisState); err != nil {
+			if err = amino.UnmarshalJSON(genDoc.AppState, &genesisState); err != nil {
 				return err
 			}
 
@@ -114,13 +114,13 @@ func GenTxCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager, sm
 				return err
 			}
 
-			err = genutil.ValidateAccountInGenesis(genesisState, genAccIterator, key.GetAddress(), coins, cdc)
+			err = genutil.ValidateAccountInGenesis(genesisState, genAccIterator, key.GetAddress(), coins)
 			if err != nil {
 				return err
 			}
 
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := client.NewCLIContext().WithCodec(cdc)
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder())
+			cliCtx := client.NewCLIContext()
 
 			// Set the generate-only flag here after the CLI context has
 			// been created. This allows the from name/key to be correctly populated.
@@ -154,7 +154,7 @@ func GenTxCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager, sm
 			}
 
 			// read the transaction
-			stdTx, err := readUnsignedGenTxFile(cdc, w)
+			stdTx, err := readUnsignedGenTxFile(w)
 			if err != nil {
 				return err
 			}
@@ -174,7 +174,7 @@ func GenTxCmd(ctx *server.Context, cdc *codec.Codec, mbm module.BasicManager, sm
 				}
 			}
 
-			if err := writeSignedGenTx(cdc, outputDocument, signedTx); err != nil {
+			if err := writeSignedGenTx(outputDocument, signedTx); err != nil {
 				return err
 			}
 
@@ -203,23 +203,23 @@ func makeOutputFilepath(rootDir, nodeID string) (string, error) {
 	return filepath.Join(writePath, fmt.Sprintf("gentx-%v.json", nodeID)), nil
 }
 
-func readUnsignedGenTxFile(cdc *codec.Codec, r io.Reader) (auth.StdTx, error) {
+func readUnsignedGenTxFile(r io.Reader) (auth.StdTx, error) {
 	var stdTx auth.StdTx
 	bytes, err := ioutil.ReadAll(r)
 	if err != nil {
 		return stdTx, err
 	}
-	err = cdc.UnmarshalJSON(bytes, &stdTx)
+	err = amino.UnmarshalJSON(bytes, &stdTx)
 	return stdTx, err
 }
 
-func writeSignedGenTx(cdc *codec.Codec, outputDocument string, tx auth.StdTx) error {
+func writeSignedGenTx(outputDocument string, tx auth.StdTx) error {
 	outputFile, err := os.OpenFile(outputDocument, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
 	defer outputFile.Close()
-	json, err := cdc.MarshalJSON(tx)
+	json, err := amino.MarshalJSON(tx)
 	if err != nil {
 		return err
 	}

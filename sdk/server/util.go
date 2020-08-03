@@ -20,9 +20,9 @@ import (
 	tmflags "github.com/tendermint/classic/libs/cli/flags"
 	"github.com/tendermint/classic/libs/log"
 	pvm "github.com/tendermint/classic/privval"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client/flags"
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/tendermint/classic/sdk/server/config"
 	"github.com/tendermint/classic/sdk/version"
 )
@@ -118,8 +118,7 @@ func interceptLoadConfig() (conf *cfg.Config, err error) {
 
 // add server commands
 func AddCommands(
-	ctx *Context, cdc *codec.Codec,
-	rootCmd *cobra.Command,
+	ctx *Context, rootCmd *cobra.Command,
 	appCreator AppCreator, appExport AppExporter) {
 
 	rootCmd.PersistentFlags().String("log_level", ctx.Config.LogLevel, "Log level")
@@ -141,7 +140,7 @@ func AddCommands(
 		UnsafeResetAllCmd(ctx),
 		flags.LineBreak,
 		tendermintCmd,
-		ExportCmd(ctx, cdc, appExport),
+		ExportCmd(ctx, appExport),
 		flags.LineBreak,
 		version.Cmd,
 	)
@@ -154,15 +153,15 @@ func AddCommands(
 //
 // NOTE: The ordering of the keys returned as the resulting JSON message is
 // non-deterministic, so the client should not rely on key ordering.
-func InsertKeyJSON(cdc *codec.Codec, baseJSON []byte, key string, value json.RawMessage) ([]byte, error) {
+func InsertKeyJSON(baseJSON []byte, key string, value json.RawMessage) ([]byte, error) {
 	var jsonMap map[string]json.RawMessage
 
-	if err := cdc.UnmarshalJSON(baseJSON, &jsonMap); err != nil {
+	if err := amino.UnmarshalJSON(baseJSON, &jsonMap); err != nil {
 		return nil, err
 	}
 
 	jsonMap[key] = value
-	bz, err := codec.MarshalJSONIndent(cdc, jsonMap)
+	bz, err := amino.MarshalJSONIndent(jsonMap)
 
 	return json.RawMessage(bz), err
 }

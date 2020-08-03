@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	tmcrypto "github.com/tendermint/classic/crypto"
-	cryptoAmino "github.com/tendermint/classic/crypto/encoding/amino"
 
 	"github.com/tendermint/classic/sdk/crypto/keys/hd"
 	"github.com/tendermint/classic/sdk/tests"
@@ -237,7 +236,7 @@ func TestRealLedgerSecp256k1(t *testing.T) {
 
 	// now, let's serialize the public key and make sure it still works
 	bs := priv.PubKey().Bytes()
-	pub2, err := cryptoAmino.PubKeyFromBytes(bs)
+	pub2, err := tmcrypto.PubKeyFromBytes(bs)
 	require.Nil(t, err, "%+v", err)
 
 	// make sure we get the same pubkey when we load from disk
@@ -251,7 +250,7 @@ func TestRealLedgerSecp256k1(t *testing.T) {
 
 	// make sure pubkeys serialize properly as well
 	bs = pub.Bytes()
-	bpub, err := cryptoAmino.PubKeyFromBytes(bs)
+	bpub, err := tmcrypto.PubKeyFromBytes(bs)
 	require.NoError(t, err)
 	require.Equal(t, pub, bpub)
 }

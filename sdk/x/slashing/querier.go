@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	abci "github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client"
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 )
 
@@ -29,7 +29,7 @@ func NewQuerier(k Keeper) sdk.Querier {
 func queryParams(ctx sdk.Context, k Keeper) ([]byte, sdk.Error) {
 	params := k.GetParams(ctx)
 
-	res, err := codec.MarshalJSONIndent(ModuleCdc, params)
+	res, err := amino.MarshalJSONIndent(params)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("failed to marshal JSON", err.Error()))
 	}
@@ -40,7 +40,7 @@ func queryParams(ctx sdk.Context, k Keeper) ([]byte, sdk.Error) {
 func querySigningInfo(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
 	var params QuerySigningInfoParams
 
-	err := ModuleCdc.UnmarshalJSON(req.Data, &params)
+	err := amino.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
 	}
@@ -50,7 +50,7 @@ func querySigningInfo(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 		return nil, ErrNoSigningInfoFound(DefaultCodespace, params.ConsAddress)
 	}
 
-	res, err := codec.MarshalJSONIndent(ModuleCdc, signingInfo)
+	res, err := amino.MarshalJSONIndent(signingInfo)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("failed to JSON marshal result: %s", err.Error()))
 	}
@@ -61,7 +61,7 @@ func querySigningInfo(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 func querySigningInfos(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
 	var params QuerySigningInfosParams
 
-	err := ModuleCdc.UnmarshalJSON(req.Data, &params)
+	err := amino.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
 	}
@@ -80,7 +80,7 @@ func querySigningInfos(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte
 		signingInfos = signingInfos[start:end]
 	}
 
-	res, err := codec.MarshalJSONIndent(ModuleCdc, signingInfos)
+	res, err := amino.MarshalJSONIndent(signingInfos)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("failed to JSON marshal result: %s", err.Error()))
 	}

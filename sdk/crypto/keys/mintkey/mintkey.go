@@ -8,7 +8,6 @@ import (
 
 	"github.com/tendermint/classic/crypto"
 	"github.com/tendermint/classic/crypto/armor"
-	cryptoAmino "github.com/tendermint/classic/crypto/encoding/amino"
 	"github.com/tendermint/classic/crypto/xsalsa20symmetric"
 
 	cmn "github.com/tendermint/classic/libs/common"
@@ -151,6 +150,6 @@ func decryptPrivKey(saltBytes []byte, encBytes []byte, passphrase string) (privK
 	} else if err != nil {
 		return privKey, err
 	}
-	privKey, err = cryptoAmino.PrivKeyFromBytes(privKeyBytes)
+	privKey, err = crypto.PrivKeyFromBytes(privKeyBytes)
 	return privKey, err
 }

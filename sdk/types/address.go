@@ -11,7 +11,6 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/tendermint/classic/crypto"
-	cryptoAmino "github.com/tendermint/classic/crypto/encoding/amino"
 
 	"github.com/tendermint/classic/libs/bech32"
 )
@@ -636,7 +635,7 @@ func GetAccPubKeyBech32(pubkey string) (pk crypto.PubKey, err error) {
 		return nil, err
 	}
 
-	pk, err = cryptoAmino.PubKeyFromBytes(bz)
+	pk, err = crypto.PubKeyFromBytes(bz)
 	if err != nil {
 		return nil, err
 	}
@@ -664,7 +663,7 @@ func GetValPubKeyBech32(pubkey string) (pk crypto.PubKey, err error) {
 		return nil, err
 	}
 
-	pk, err = cryptoAmino.PubKeyFromBytes(bz)
+	pk, err = crypto.PubKeyFromBytes(bz)
 	if err != nil {
 		return nil, err
 	}
@@ -692,7 +691,7 @@ func GetConsPubKeyBech32(pubkey string) (pk crypto.PubKey, err error) {
 		return nil, err
 	}
 
-	pk, err = cryptoAmino.PubKeyFromBytes(bz)
+	pk, err = crypto.PubKeyFromBytes(bz)
 	if err != nil {
 		return nil, err
 	}

@@ -4,12 +4,11 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/tendermint/classic/sdk/client"
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/tendermint/classic/sdk/x/auth/types"
 )
 
 // GetTxCmd returns the transaction commands for this module
-func GetTxCmd(cdc *codec.Codec) *cobra.Command {
+func GetTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      "Auth transaction subcommands",
@@ -18,8 +17,8 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 	txCmd.AddCommand(
-		GetMultiSignCommand(cdc),
-		GetSignCommand(cdc),
+		GetMultiSignCommand(),
+		GetSignCommand(),
 	)
 	return txCmd
 }

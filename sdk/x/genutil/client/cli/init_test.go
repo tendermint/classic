@@ -13,9 +13,9 @@ import (
 	tcmd "github.com/tendermint/classic/cmd/tendermint/commands"
 	"github.com/tendermint/classic/libs/cli"
 	"github.com/tendermint/classic/libs/log"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client"
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/tendermint/classic/sdk/server"
 	"github.com/tendermint/classic/sdk/server/mock"
 	"github.com/tendermint/classic/sdk/tests"
@@ -37,8 +37,7 @@ func TestInitCmd(t *testing.T) {
 	require.Nil(t, err)
 
 	ctx := server.NewContext(cfg, logger)
-	cdc := makeCodec()
-	cmd := InitCmd(ctx, cdc, testMbm, home)
+	cmd := InitCmd(ctx, testMbm, home)
 
 	require.NoError(t, cmd.RunE(nil, []string{"appnode-test"}))
 }
@@ -61,15 +60,14 @@ func TestEmptyState(t *testing.T) {
 	require.Nil(t, err)
 
 	ctx := server.NewContext(cfg, logger)
-	cdc := makeCodec()
 
-	cmd := InitCmd(ctx, cdc, testMbm, home)
+	cmd := InitCmd(ctx, testMbm, home)
 	require.NoError(t, cmd.RunE(nil, []string{"appnode-test"}))
 
 	old := os.Stdout
 	r, w, _ := os.Pipe()
 	os.Stdout = w
-	cmd = server.ExportCmd(ctx, cdc, nil)
+	cmd = server.ExportCmd(ctx, nil)
 
 	err = cmd.RunE(nil, nil)
 	require.NoError(t, err)
@@ -102,8 +100,7 @@ func TestStartStandAlone(t *testing.T) {
 	cfg, err := tcmd.ParseConfig()
 	require.Nil(t, err)
 	ctx := server.NewContext(cfg, logger)
-	cdc := makeCodec()
-	initCmd := InitCmd(ctx, cdc, testMbm, home)
+	initCmd := InitCmd(ctx, testMbm, home)
 	require.NoError(t, initCmd.RunE(nil, []string{"appnode-test"}))
 
 	app, err := mock.NewApp(home, logger)
@@ -133,12 +130,4 @@ func TestInitNodeValidatorFiles(t *testing.T) {
 	require.Nil(t, err)
 	require.NotEqual(t, "", nodeID)
 	require.NotEqual(t, 0, len(valPubKey.Bytes()))
-}
-
-// custom tx codec
-func makeCodec() *codec.Codec {
-	var cdc = codec.New()
-	sdk.RegisterCodec(cdc)
-	codec.RegisterCrypto(cdc)
-	return cdc
 }

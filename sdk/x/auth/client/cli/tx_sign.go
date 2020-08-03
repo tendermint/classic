@@ -8,10 +8,10 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/tendermint/classic/crypto/multisig"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client/context"
 	"github.com/tendermint/classic/sdk/client/flags"
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/auth/client/utils"
 	"github.com/tendermint/classic/sdk/x/auth/types"
@@ -27,7 +27,7 @@ const (
 )
 
 // GetSignCommand returns the transaction sign command.
-func GetSignCommand(codec *codec.Codec) *cobra.Command {
+func GetSignCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "sign [file]",
 		Short: "Sign transactions generated offline",
@@ -53,7 +53,7 @@ key. It implies --signature-only. Full multisig signed transactions may eventual
 be generated via the 'multisign' command.
 `,
 		PreRun: preSignCmd,
-		RunE:   makeSignCmd(codec),
+		RunE:   makeSignCmd(),
 		Args:   cobra.ExactArgs(1),
 	}
 
@@ -91,15 +91,15 @@ func preSignCmd(cmd *cobra.Command, _ []string) {
 	}
 }
 
-func makeSignCmd(cdc *codec.Codec) func(cmd *cobra.Command, args []string) error {
+func makeSignCmd() func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		stdTx, err := utils.ReadStdTxFromFile(cdc, args[0])
+		stdTx, err := utils.ReadStdTxFromFile(args[0])
 		if err != nil {
 			return err
 		}
 
 		offline := viper.GetBool(flagOffline)
-		cliCtx := context.NewCLIContext().WithCodec(cdc)
+		cliCtx := context.NewCLIContext()
 		txBldr := types.NewTxBuilderFromCLI()
 
 		if viper.GetBool(flagValidateSigs) {
@@ -136,7 +136,7 @@ func makeSignCmd(cdc *codec.Codec) func(cmd *cobra.Command, args []string) error
 			return err
 		}
 
-		json, err := getSignatureJSON(cdc, newTx, cliCtx.Indent, generateSignatureOnly)
+		json, err := getSignatureJSON(newTx, cliCtx.Indent, generateSignatureOnly)
 		if err != nil {
 			return err
 		}
@@ -160,23 +160,23 @@ func makeSignCmd(cdc *codec.Codec) func(cmd *cobra.Command, args []string) error
 	}
 }
 
-func getSignatureJSON(cdc *codec.Codec, newTx types.StdTx, indent, generateSignatureOnly bool) ([]byte, error) {
+func getSignatureJSON(newTx types.StdTx, indent, generateSignatureOnly bool) ([]byte, error) {
 	switch generateSignatureOnly {
 	case true:
 		switch indent {
 		case true:
-			return cdc.MarshalJSONIndent(newTx.Signatures[0], "", "  ")
+			return amino.MarshalJSONIndent(newTx.Signatures[0], "", "  ")
 
 		default:
-			return cdc.MarshalJSON(newTx.Signatures[0])
+			return amino.MarshalJSON(newTx.Signatures[0])
 		}
 	default:
 		switch indent {
 		case true:
-			return cdc.MarshalJSONIndent(newTx, "", "  ")
+			return amino.MarshalJSONIndent(newTx, "", "  ")
 
 		default:
-			return cdc.MarshalJSON(newTx)
+			return amino.MarshalJSON(newTx)
 		}
 	}
 }
@@ -242,7 +242,7 @@ func printAndValidateSigs(
 		multiPK, ok := sig.PubKey.(multisig.PubKeyMultisigThreshold)
 		if ok {
 			var multiSig multisig.Multisignature
-			cliCtx.Codec.MustUnmarshalBinaryBare(sig.Signature, &multiSig)
+			amino.MustUnmarshalBinaryBare(sig.Signature, &multiSig)
 
 			var b strings.Builder
 			b.WriteString("\n  MultiSig Signatures:\n")

@@ -4,10 +4,10 @@ package keeper
 
 import (
 	abci "github.com/tendermint/classic/abci/types"
-	"github.com/tendermint/classic/libs/log"
 	dbm "github.com/tendermint/classic/db"
+	"github.com/tendermint/classic/libs/log"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	"github.com/tendermint/classic/sdk/store"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/auth"
@@ -16,7 +16,6 @@ import (
 )
 
 type testInput struct {
-	cdc *codec.Codec
 	ctx sdk.Context
 	k   Keeper
 	ak  auth.AccountKeeper
@@ -25,10 +24,6 @@ type testInput struct {
 
 func setupTestInput() testInput {
 	db := dbm.NewMemDB()
-
-	cdc := codec.New()
-	auth.RegisterCodec(cdc)
-	codec.RegisterCrypto(cdc)
 
 	authCapKey := sdk.NewKVStoreKey("authCapKey")
 	keyParams := sdk.NewKVStoreKey("params")
@@ -43,10 +38,10 @@ func setupTestInput() testInput {
 	blacklistedAddrs := make(map[string]bool)
 	blacklistedAddrs[sdk.AccAddress([]byte("moduleAcc")).String()] = true
 
-	pk := params.NewKeeper(cdc, keyParams, tkeyParams, params.DefaultCodespace)
+	pk := params.NewKeeper(keyParams, tkeyParams, params.DefaultCodespace)
 
 	ak := auth.NewAccountKeeper(
-		cdc, authCapKey, pk.Subspace(auth.DefaultParamspace), auth.ProtoBaseAccount,
+		authCapKey, pk.Subspace(auth.DefaultParamspace), auth.ProtoBaseAccount,
 	)
 	ctx := sdk.NewContext(ms, abci.Header{ChainID: "test-chain-id"}, false, log.NewNopLogger())
 
@@ -55,5 +50,5 @@ func setupTestInput() testInput {
 	bankKeeper := NewBaseKeeper(ak, pk.Subspace(types.DefaultParamspace), types.DefaultCodespace, blacklistedAddrs)
 	bankKeeper.SetSendEnabled(ctx, true)
 
-	return testInput{cdc: cdc, ctx: ctx, k: bankKeeper, ak: ak, pk: pk}
+	return testInput{ctx: ctx, k: bankKeeper, ak: ak, pk: pk}
 }

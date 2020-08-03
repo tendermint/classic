@@ -7,8 +7,8 @@ import (
 
 	"github.com/tendermint/classic/libs/common"
 	tmtypes "github.com/tendermint/classic/types"
+	"github.com/tendermint/go-amino-x"
 
-	"github.com/tendermint/classic/sdk/codec"
 	authtypes "github.com/tendermint/classic/sdk/x/auth/types"
 	stakingtypes "github.com/tendermint/classic/sdk/x/staking/types"
 )
@@ -30,25 +30,25 @@ func NewGenesisState(genTxs []json.RawMessage) GenesisState {
 func NewGenesisStateFromStdTx(genTxs []authtypes.StdTx) GenesisState {
 	genTxsBz := make([]json.RawMessage, len(genTxs))
 	for i, genTx := range genTxs {
-		genTxsBz[i] = ModuleCdc.MustMarshalJSON(genTx)
+		genTxsBz[i] = amino.MustMarshalJSON(genTx)
 	}
 	return NewGenesisState(genTxsBz)
 }
 
 // GetGenesisStateFromAppState gets the genutil genesis state from the expected app state
-func GetGenesisStateFromAppState(cdc *codec.Codec, appState map[string]json.RawMessage) GenesisState {
+func GetGenesisStateFromAppState(appState map[string]json.RawMessage) GenesisState {
 	var genesisState GenesisState
 	if appState[ModuleName] != nil {
-		cdc.MustUnmarshalJSON(appState[ModuleName], &genesisState)
+		amino.MustUnmarshalJSON(appState[ModuleName], &genesisState)
 	}
 	return genesisState
 }
 
 // SetGenesisStateInAppState sets the genutil genesis state within the expected app state
-func SetGenesisStateInAppState(cdc *codec.Codec,
+func SetGenesisStateInAppState(
 	appState map[string]json.RawMessage, genesisState GenesisState) map[string]json.RawMessage {
 
-	genesisStateBz := cdc.MustMarshalJSON(genesisState)
+	genesisStateBz := amino.MustMarshalJSON(genesisState)
 	appState[ModuleName] = genesisStateBz
 	return appState
 }
@@ -57,10 +57,10 @@ func SetGenesisStateInAppState(cdc *codec.Codec,
 // for the application.
 //
 // NOTE: The pubkey input is this machines pubkey.
-func GenesisStateFromGenDoc(cdc *codec.Codec, genDoc tmtypes.GenesisDoc,
+func GenesisStateFromGenDoc(genDoc tmtypes.GenesisDoc,
 ) (genesisState map[string]json.RawMessage, err error) {
 
-	if err = cdc.UnmarshalJSON(genDoc.AppState, &genesisState); err != nil {
+	if err = amino.UnmarshalJSON(genDoc.AppState, &genesisState); err != nil {
 		return genesisState, err
 	}
 	return genesisState, nil
@@ -70,7 +70,7 @@ func GenesisStateFromGenDoc(cdc *codec.Codec, genDoc tmtypes.GenesisDoc,
 // for the application.
 //
 // NOTE: The pubkey input is this machines pubkey.
-func GenesisStateFromGenFile(cdc *codec.Codec, genFile string,
+func GenesisStateFromGenFile(genFile string,
 ) (genesisState map[string]json.RawMessage, genDoc *tmtypes.GenesisDoc, err error) {
 
 	if !common.FileExists(genFile) {
@@ -82,7 +82,7 @@ func GenesisStateFromGenFile(cdc *codec.Codec, genFile string,
 		return genesisState, genDoc, err
 	}
 
-	genesisState, err = GenesisStateFromGenDoc(cdc, *genDoc)
+	genesisState, err = GenesisStateFromGenDoc(*genDoc)
 	return genesisState, genDoc, err
 }
 
@@ -90,7 +90,7 @@ func GenesisStateFromGenFile(cdc *codec.Codec, genFile string,
 func ValidateGenesis(genesisState GenesisState) error {
 	for i, genTx := range genesisState.GenTxs {
 		var tx authtypes.StdTx
-		if err := ModuleCdc.UnmarshalJSON(genTx, &tx); err != nil {
+		if err := amino.UnmarshalJSON(genTx, &tx); err != nil {
 			return err
 		}
 

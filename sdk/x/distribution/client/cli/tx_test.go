@@ -5,18 +5,17 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tendermint/classic/crypto/secp256k1"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/client/context"
-	"github.com/tendermint/classic/sdk/codec"
 	sdk "github.com/tendermint/classic/sdk/types"
 	"github.com/tendermint/classic/sdk/x/auth"
 	"github.com/tendermint/classic/sdk/x/auth/client/utils"
 )
 
 func createFakeTxBuilder() auth.TxBuilder {
-	cdc := codec.New()
 	return auth.NewTxBuilder(
-		utils.GetTxEncoder(cdc),
+		utils.GetTxEncoder(),
 		123,
 		9876,
 		0,
