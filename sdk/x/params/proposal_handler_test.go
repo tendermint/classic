@@ -8,7 +8,7 @@ import (
 	"github.com/tendermint/classic/libs/log"
 
 	dbm "github.com/tendermint/classic/db"
-	"github.com/tendermint/classic/go-amino-x"
+	"github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/sdk/store"
 	sdk "github.com/tendermint/classic/sdk/types"
