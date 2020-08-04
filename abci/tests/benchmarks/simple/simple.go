@@ -9,6 +9,7 @@ import (
 
 	"github.com/tendermint/classic/abci/types"
 	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/go-amino-x"
 )
 
 func main() {
@@ -21,7 +22,7 @@ func main() {
 	// Make a bunch of requests
 	counter := 0
 	for i := 0; ; i++ {
-		req := types.ToRequestEcho("foobar")
+		req := types.RequestEcho{Message: "foobar"}
 		_, err := makeRequest(conn, req)
 		if err != nil {
 			log.Fatal(err.Error())
@@ -33,15 +34,15 @@ func main() {
 	}
 }
 
-func makeRequest(conn net.Conn, req *types.Request) (*types.Response, error) {
+func makeRequest(conn net.Conn, req types.Request) (types.Response, error) {
 	var bufWriter = bufio.NewWriter(conn)
 
 	// Write desired request
-	err := types.WriteMessage(req, bufWriter)
+	err := amino.MarshalLengthPrefixedWriter(&req, bufWriter)
 	if err != nil {
 		return nil, err
 	}
-	err = types.WriteMessage(types.ToRequestFlush(), bufWriter)
+	err = amino.MarshalLengthPrefixedWriter(&types.RequestFlush{}, bufWriter)
 	if err != nil {
 		return nil, err
 	}
@@ -51,17 +52,17 @@ func makeRequest(conn net.Conn, req *types.Request) (*types.Response, error) {
 	}
 
 	// Read desired response
-	var res = &types.Response{}
-	err = types.ReadMessage(conn, res)
+	var res types.Response
+	err = amino.UnmarshalLengthPrefixedReader(conn, &res)
 	if err != nil {
 		return nil, err
 	}
-	var resFlush = &types.Response{}
-	err = types.ReadMessage(conn, resFlush)
+	var resFlush types.Response
+	err = amino.UnmarshalLengthPrefixedReader(conn, &res)
 	if err != nil {
 		return nil, err
 	}
-	if _, ok := resFlush.Value.(*types.Response_Flush); !ok {
+	if _, ok := resFlush.(types.ResponseFlush); !ok {
 		return nil, fmt.Errorf("Expected flush response but got something else: %v", reflect.TypeOf(resFlush))
 	}
 

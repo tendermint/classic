@@ -7,12 +7,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tendermint/classic/abci/example/code"
+	"github.com/tendermint/classic/abci/example/errors"
 	"github.com/tendermint/classic/abci/types"
 	"github.com/tendermint/classic/crypto/ed25519"
+	dbm "github.com/tendermint/classic/db"
 	"github.com/tendermint/classic/libs/log"
 	tmtypes "github.com/tendermint/classic/types"
-	dbm "github.com/tendermint/classic/db"
 )
 
 const (
@@ -176,8 +176,11 @@ func (app *PersistentKVStoreApplication) execValidatorTx(tx []byte) types.Respon
 	pubKeyAndPower := strings.Split(string(tx), "!")
 	if len(pubKeyAndPower) != 2 {
 		return types.ResponseDeliverTx{
-			Code: code.CodeTypeEncodingError,
-			Log:  fmt.Sprintf("Expected 'pubkey!power'. Got %v", pubKeyAndPower)}
+			ResponseBase: {
+				Error: errors.EncodingError{},
+				Log:   fmt.Sprintf("Expected 'pubkey!power'. Got %v", pubKeyAndPower),
+			},
+		}
 	}
 	pubkeyS, powerS := pubKeyAndPower[0], pubKeyAndPower[1]
 
@@ -185,16 +188,22 @@ func (app *PersistentKVStoreApplication) execValidatorTx(tx []byte) types.Respon
 	pubkey, err := base64.StdEncoding.DecodeString(pubkeyS)
 	if err != nil {
 		return types.ResponseDeliverTx{
-			Code: code.CodeTypeEncodingError,
-			Log:  fmt.Sprintf("Pubkey (%s) is invalid base64", pubkeyS)}
+			ResponseBase: {
+				Error: errors.EncodingError{},
+				Log:   fmt.Sprintf("Pubkey (%s) is invalid base64", pubkeyS),
+			},
+		}
 	}
 
 	// decode the power
 	power, err := strconv.ParseInt(powerS, 10, 64)
 	if err != nil {
 		return types.ResponseDeliverTx{
-			Code: code.CodeTypeEncodingError,
-			Log:  fmt.Sprintf("Power (%s) is not an int", powerS)}
+			ResponseBase: {
+				Error: errors.EncodingError{},
+				Log:   fmt.Sprintf("Power (%s) is not an int", powerS),
+			},
+		}
 	}
 
 	// update
@@ -213,25 +222,31 @@ func (app *PersistentKVStoreApplication) updateValidator(v types.ValidatorUpdate
 		if !app.app.state.db.Has(key) {
 			pubStr := base64.StdEncoding.EncodeToString(v.PubKey.Data)
 			return types.ResponseDeliverTx{
-				Code: code.CodeTypeUnauthorized,
-				Log:  fmt.Sprintf("Cannot remove non-existent validator %s", pubStr)}
+				ResponseBase: {
+					Error: errors.Unauthorized{},
+					Log:   fmt.Sprintf("Cannot remove non-existent validator %s", pubStr),
+				},
+			}
 		}
 		app.app.state.db.Delete(key)
 		delete(app.valAddrToPubKeyMap, string(pubkey.Address()))
 	} else {
 		// add or update validator
-		value := bytes.NewBuffer(make([]byte, 0))
-		if err := types.WriteMessage(&v, value); err != nil {
+		bz, err := amino.Marshal(v)
+		if err != nil {
 			return types.ResponseDeliverTx{
-				Code: code.CodeTypeEncodingError,
-				Log:  fmt.Sprintf("Error encoding validator: %v", err)}
+				ResponseBase: {
+					Error: errors.EncodingError{},
+					Log:   fmt.Sprintf("Error encoding validator: %v", err),
+				},
+			}
 		}
-		app.app.state.db.Set(key, value.Bytes())
+		app.app.state.db.Set(key, bz)
 		app.valAddrToPubKeyMap[string(pubkey.Address())] = v.PubKey
 	}
 
 	// we only update the changes array if we successfully updated the tree
 	app.ValUpdates = append(app.ValUpdates, v)
 
-	return types.ResponseDeliverTx{Code: code.CodeTypeOK}
+	return types.ResponseDeliverTx{}
 }

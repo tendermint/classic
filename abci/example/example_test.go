@@ -17,7 +17,7 @@ import (
 	"github.com/tendermint/classic/libs/log"
 
 	abcicli "github.com/tendermint/classic/abci/client"
-	"github.com/tendermint/classic/abci/example/code"
+	"github.com/tendermint/classic/abci/example/errors"
 	"github.com/tendermint/classic/abci/example/kvstore"
 	abciserver "github.com/tendermint/classic/abci/server"
 	"github.com/tendermint/classic/abci/types"
@@ -64,8 +64,8 @@ func testStream(t *testing.T, app types.Application) {
 		switch r := res.Value.(type) {
 		case *types.Response_DeliverTx:
 			counter++
-			if r.DeliverTx.Code != code.CodeTypeOK {
-				t.Error("DeliverTx failed with ret_code", r.DeliverTx.Code)
+			if r.DeliverTx.Error != nil {
+				t.Error("DeliverTx failed with error", r.DeliverTx.Error)
 			}
 			if counter > numDeliverTxs {
 				t.Fatalf("Too many DeliverTx responses. Got %d, expected %d", counter, numDeliverTxs)
@@ -139,8 +139,8 @@ func testGRPCSync(t *testing.T, app *types.GRPCApplication) {
 			t.Fatalf("Error in GRPC DeliverTx: %v", err.Error())
 		}
 		counter++
-		if response.Code != code.CodeTypeOK {
-			t.Error("DeliverTx failed with ret_code", response.Code)
+		if response.Error != nil {
+			t.Error("DeliverTx failed with error", response.Error)
 		}
 		if counter > numDeliverTxs {
 			t.Fatal("Too many DeliverTx responses")

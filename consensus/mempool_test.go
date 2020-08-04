@@ -9,12 +9,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/tendermint/classic/abci/example/code"
+	"github.com/tendermint/classic/abci/example/errors"
 	abci "github.com/tendermint/classic/abci/types"
+	dbm "github.com/tendermint/classic/db"
 	mempl "github.com/tendermint/classic/mempool"
 	sm "github.com/tendermint/classic/state"
 	"github.com/tendermint/classic/types"
-	dbm "github.com/tendermint/classic/db"
 )
 
 // for testing
@@ -151,10 +151,10 @@ func TestMempoolRmBadTx(t *testing.T) {
 	checkTxRespCh := make(chan struct{})
 	go func() {
 		// Try to send the tx through the mempool.
-		// CheckTx should not err, but the app should return a bad abci code
+		// CheckTx should not err, but the app should return an abci Error.
 		// and the tx should get removed from the pool
 		err := assertMempool(cs.txNotifier).CheckTx(txBytes, func(r *abci.Response) {
-			if r.GetCheckTx().Code != code.CodeTypeBadNonce {
+			if _, ok := r.GetCheckTx().Error.(errors.BadNonce); !ok {
 				t.Errorf("expected checktx to return bad nonce, got %v", r)
 				return
 			}

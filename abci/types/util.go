@@ -12,19 +12,17 @@ type ValidatorUpdates []ValidatorUpdate
 
 var _ sort.Interface = (ValidatorUpdates)(nil)
 
-// All these methods for ValidatorUpdates:
-//    Len, Less and Swap
-// are for ValidatorUpdates to implement sort.Interface
-// which will be used by the sort package.
-// See Issue https://github.com/tendermint/abci/issues/212
-
 func (v ValidatorUpdates) Len() int {
 	return len(v)
 }
 
-// XXX: doesn't distinguish same validator with different power
 func (v ValidatorUpdates) Less(i, j int) bool {
-	return bytes.Compare(v[i].PubKey.Data, v[j].PubKey.Data) <= 0
+	cmpAddr := bytes.Compare(v[i].PubKey.Bytes(), v[j].PubKey.Bytes())
+	if cmpAddr == 0 {
+		return v[i].Power < v[j].Power
+	} else {
+		return cmpAddr < 0
+	}
 }
 
 func (v ValidatorUpdates) Swap(i, j int) {

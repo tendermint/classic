@@ -13,7 +13,7 @@ import (
 	"github.com/tendermint/classic/libs/log"
 
 	abcicli "github.com/tendermint/classic/abci/client"
-	"github.com/tendermint/classic/abci/example/code"
+	"github.com/tendermint/classic/abci/example/errors"
 	abciserver "github.com/tendermint/classic/abci/server"
 	"github.com/tendermint/classic/abci/types"
 )
@@ -36,7 +36,7 @@ func testKVStore(t *testing.T, app types.Application, tx []byte, key, value stri
 		Path: "/store",
 		Data: []byte(key),
 	})
-	require.Equal(t, code.CodeTypeOK, resQuery.Code)
+	require.Equal(t, nil, resQuery.Error)
 	require.Equal(t, value, string(resQuery.Value))
 
 	// make sure proof is fine
@@ -45,7 +45,7 @@ func testKVStore(t *testing.T, app types.Application, tx []byte, key, value stri
 		Data:  []byte(key),
 		Prove: true,
 	})
-	require.EqualValues(t, code.CodeTypeOK, resQuery.Code)
+	require.EqualValues(t, nil, resQuery.Error)
 	require.Equal(t, value, string(resQuery.Value))
 }
 
@@ -302,7 +302,7 @@ func testClient(t *testing.T, app abcicli.Client, tx []byte, key, value string) 
 		Data: []byte(key),
 	})
 	require.Nil(t, err)
-	require.Equal(t, code.CodeTypeOK, resQuery.Code)
+	require.Equal(t, nil, resQuery.Error)
 	require.Equal(t, value, string(resQuery.Value))
 
 	// make sure proof is fine
@@ -312,6 +312,6 @@ func testClient(t *testing.T, app abcicli.Client, tx []byte, key, value string) 
 		Prove: true,
 	})
 	require.Nil(t, err)
-	require.Equal(t, code.CodeTypeOK, resQuery.Code)
+	require.Equal(t, nil, resQuery.Error)
 	require.Equal(t, value, string(resQuery.Value))
 }

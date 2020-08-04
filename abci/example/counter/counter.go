@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/tendermint/classic/abci/example/code"
+	"github.com/tendermint/classic/abci/example/errors"
 	"github.com/tendermint/classic/abci/types"
 )
 
@@ -21,7 +21,9 @@ func NewCounterApplication(serial bool) *CounterApplication {
 }
 
 func (app *CounterApplication) Info(req types.RequestInfo) types.ResponseInfo {
-	return types.ResponseInfo{Data: fmt.Sprintf("{\"hashes\":%v,\"txs\":%v}", app.hashCount, app.txCount)}
+	return types.ResponseInfo{ResponseBase: types.ResponseBase{
+		Data: []byte(fmt.Sprintf("{\"hashes\":%v,\"txs\":%v}", app.hashCount, app.txCount)),
+	}}
 }
 
 func (app *CounterApplication) SetOption(req types.RequestSetOption) types.ResponseSetOption {
@@ -45,9 +47,10 @@ func (app *CounterApplication) SetOption(req types.RequestSetOption) types.Respo
 func (app *CounterApplication) DeliverTx(req types.RequestDeliverTx) types.ResponseDeliverTx {
 	if app.serial {
 		if len(req.Tx) > 8 {
-			return types.ResponseDeliverTx{
-				Code: code.CodeTypeEncodingError,
-				Log:  fmt.Sprintf("Max tx size is 8 bytes, got %d", len(req.Tx))}
+			return types.ResponseDeliverTx{ResponseBase: types.ResponseBase{
+				Error: errors.EncodingError{},
+				Log:   fmt.Sprintf("Max tx size is 8 bytes, got %d", len(req.Tx)),
+			}}
 		}
 		tx8 := make([]byte, 8)
 		copy(tx8[len(tx8)-len(req.Tx):], req.Tx)

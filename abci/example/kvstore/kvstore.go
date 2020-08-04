@@ -6,11 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/tendermint/classic/abci/example/code"
+	"github.com/tendermint/classic/abci/example/errors"
 	"github.com/tendermint/classic/abci/types"
+	dbm "github.com/tendermint/classic/db"
 	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/classic/version"
-	dbm "github.com/tendermint/classic/db"
 )
 
 var (
@@ -98,11 +98,11 @@ func (app *KVStoreApplication) DeliverTx(req types.RequestDeliverTx) types.Respo
 		},
 	}
 
-	return types.ResponseDeliverTx{Code: code.CodeTypeOK, Events: events}
+	return types.ResponseDeliverTx{Events: events}
 }
 
 func (app *KVStoreApplication) CheckTx(req types.RequestCheckTx) types.ResponseCheckTx {
-	return types.ResponseCheckTx{Code: code.CodeTypeOK, GasWanted: 1}
+	return types.ResponseCheckTx{GasWanted: 1}
 }
 
 func (app *KVStoreApplication) Commit() types.ResponseCommit {

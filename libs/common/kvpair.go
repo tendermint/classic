@@ -8,14 +8,10 @@ import (
 //----------------------------------------
 // KVPair
 
-/*
-Defined in types.proto
-
 type KVPair struct {
 	Key   []byte
 	Value []byte
 }
-*/
 
 type KVPairs []KVPair
 
@@ -39,13 +35,10 @@ func (kvs KVPairs) Sort()         { sort.Sort(kvs) }
 //----------------------------------------
 // KI64Pair
 
-/*
-Defined in types.proto
 type KI64Pair struct {
 	Key   []byte
 	Value int64
 }
-*/
 
 type KI64Pairs []KI64Pair
 

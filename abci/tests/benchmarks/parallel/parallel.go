@@ -7,9 +7,12 @@ import (
 
 	"github.com/tendermint/classic/abci/types"
 	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/go-amino-x"
 )
 
 func main() {
+
+	const maxSize = 1e6
 
 	conn, err := cmn.Connect("unix://test.sock")
 	if err != nil {
@@ -20,8 +23,8 @@ func main() {
 	go func() {
 		counter := 0
 		for {
-			var res = &types.Response{}
-			err := types.ReadMessage(conn, res)
+			var res types.Response
+			_, err := amino.UnmarshalBinaryLengthPrefixed(conn, &res, maxSize)
 			if err != nil {
 				log.Fatal(err.Error())
 			}
@@ -38,10 +41,7 @@ func main() {
 		var bufWriter = bufio.NewWriter(conn)
 		var req = types.ToRequestEcho("foobar")
 
-		err := types.WriteMessage(req, bufWriter)
-		if err != nil {
-			log.Fatal(err.Error())
-		}
+		amino.MustMarshalBinaryLengthPrefixed(req, bufWriter)
 		err = bufWriter.Flush()
 		if err != nil {
 			log.Fatal(err.Error())

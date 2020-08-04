@@ -15,8 +15,8 @@ import (
 	"github.com/tendermint/classic/libs/log"
 
 	abcicli "github.com/tendermint/classic/abci/client"
-	"github.com/tendermint/classic/abci/example/code"
 	"github.com/tendermint/classic/abci/example/counter"
+	"github.com/tendermint/classic/abci/example/errors"
 	"github.com/tendermint/classic/abci/example/kvstore"
 	"github.com/tendermint/classic/abci/server"
 	servertest "github.com/tendermint/classic/abci/tests/server"
@@ -314,17 +314,17 @@ func cmdTest(cmd *cobra.Command, args []string) error {
 			func() error { return servertest.InitChain(client) },
 			func() error { return servertest.SetOption(client, "serial", "on") },
 			func() error { return servertest.Commit(client, nil) },
-			func() error { return servertest.DeliverTx(client, []byte("abc"), code.CodeTypeBadNonce, nil) },
+			func() error { return servertest.DeliverTx(client, []byte("abc"), errors.BadNonce{}, nil) },
 			func() error { return servertest.Commit(client, nil) },
-			func() error { return servertest.DeliverTx(client, []byte{0x00}, code.CodeTypeOK, nil) },
+			func() error { return servertest.DeliverTx(client, []byte{0x00}, nil, nil) },
 			func() error { return servertest.Commit(client, []byte{0, 0, 0, 0, 0, 0, 0, 1}) },
-			func() error { return servertest.DeliverTx(client, []byte{0x00}, code.CodeTypeBadNonce, nil) },
-			func() error { return servertest.DeliverTx(client, []byte{0x01}, code.CodeTypeOK, nil) },
-			func() error { return servertest.DeliverTx(client, []byte{0x00, 0x02}, code.CodeTypeOK, nil) },
-			func() error { return servertest.DeliverTx(client, []byte{0x00, 0x03}, code.CodeTypeOK, nil) },
-			func() error { return servertest.DeliverTx(client, []byte{0x00, 0x00, 0x04}, code.CodeTypeOK, nil) },
+			func() error { return servertest.DeliverTx(client, []byte{0x00}, errors.BadNonce{}, nil) },
+			func() error { return servertest.DeliverTx(client, []byte{0x01}, nil, nil) },
+			func() error { return servertest.DeliverTx(client, []byte{0x00, 0x02}, nil, nil) },
+			func() error { return servertest.DeliverTx(client, []byte{0x00, 0x03}, nil, nil) },
+			func() error { return servertest.DeliverTx(client, []byte{0x00, 0x00, 0x04}, nil, nil) },
 			func() error {
-				return servertest.DeliverTx(client, []byte{0x00, 0x00, 0x06}, code.CodeTypeBadNonce, nil)
+				return servertest.DeliverTx(client, []byte{0x00, 0x00, 0x06}, errors.BadNonce{}, nil)
 			},
 			func() error { return servertest.Commit(client, []byte{0, 0, 0, 0, 0, 0, 0, 5}) },
 		})

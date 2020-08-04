@@ -20,16 +20,16 @@ func AddressHash(bz []byte) Address {
 }
 
 type PubKey interface {
-	Address() Address
-	Bytes() []byte
+	Address() Address // deterministic
+	Bytes() []byte    // deterministic
 	VerifyBytes(msg []byte, sig []byte) bool
 	Equals(PubKey) bool
 }
 
 type PrivKey interface {
-	Bytes() []byte
+	Bytes() []byte // determinstic
 	Sign(msg []byte) ([]byte, error)
-	PubKey() PubKey
+	PubKey() PubKey // deterministic
 	Equals(PrivKey) bool
 }
 

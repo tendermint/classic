@@ -5,11 +5,11 @@ import (
 )
 
 func PrivKeyFromBytes(privKeyBytes []byte) (privKey PrivKey, err error) {
-	err = amino.UnmarshalBinaryBare(privKeyBytes, &privKey)
+	err = amino.Unmarshal(privKeyBytes, &privKey)
 	return
 }
 
 func PubKeyFromBytes(pubKeyBytes []byte) (pubKey PubKey, err error) {
-	err = amino.UnmarshalBinaryBare(pubKeyBytes, &pubKey)
+	err = amino.Unmarshal(pubKeyBytes, &pubKey)
 	return
 }
