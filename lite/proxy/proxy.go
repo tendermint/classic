@@ -148,8 +148,8 @@ func makeBroadcastTxAsyncFunc(c rpcclient.Client) func(ctx *rpctypes.Context, tx
 	}
 }
 
-func makeABCIQueryFunc(c rpcclient.Client) func(ctx *rpctypes.Context, path string, data cmn.HexBytes) (*ctypes.ResultABCIQuery, error) {
-	return func(ctx *rpctypes.Context, path string, data cmn.HexBytes) (*ctypes.ResultABCIQuery, error) {
+func makeABCIQueryFunc(c rpcclient.Client) func(ctx *rpctypes.Context, path string, data []byte) (*ctypes.ResultABCIQuery, error) {
+	return func(ctx *rpctypes.Context, path string, data []byte) (*ctypes.ResultABCIQuery, error) {
 		return c.ABCIQuery(path, data)
 	}
 }

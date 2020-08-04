@@ -19,7 +19,7 @@ var (
 
 type Part struct {
 	Index int                `json:"index"`
-	Bytes cmn.HexBytes       `json:"bytes"`
+	Bytes []byte             `json:"bytes"`
 	Proof merkle.SimpleProof `json:"proof"`
 }
 
@@ -55,8 +55,8 @@ func (part *Part) StringIndented(indent string) string {
 //-------------------------------------
 
 type PartSetHeader struct {
-	Total int          `json:"total"`
-	Hash  cmn.HexBytes `json:"hash"`
+	Total int    `json:"total"`
+	Hash  []byte `json:"hash"`
 }
 
 func (psh PartSetHeader) String() string {

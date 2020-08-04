@@ -3,7 +3,6 @@ package abcicli
 import (
 	"bufio"
 	"container/list"
-	"errors"
 	"fmt"
 	"net"
 	"reflect"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/tendermint/classic/abci/types"
 	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/go-amino-x"
 )
 
 const reqQueueSize = 256 // TODO make configurable
@@ -35,8 +35,8 @@ type socketClient struct {
 
 	mtx     sync.Mutex
 	err     error
-	reqSent *list.List                            // list of requests sent, waiting for response
-	resCb   func(*types.Request, *types.Response) // called on all requests, if set.
+	reqSent *list.List                        // list of requests sent, waiting for response
+	resCb   func(abci.Request, abci.Response) // called on all requests, if set.
 
 }
 
@@ -126,7 +126,7 @@ func (cli *socketClient) sendRequestsRoutine(conn net.Conn) {
 		select {
 		case <-cli.flushTimer.Ch:
 			select {
-			case cli.reqQueue <- NewReqRes(types.ToRequestFlush()):
+			case cli.reqQueue <- NewReqRes(abci.RequestFlush{}):
 			default:
 				// Probably will fill the buffer, or retry later.
 			}
@@ -134,13 +134,13 @@ func (cli *socketClient) sendRequestsRoutine(conn net.Conn) {
 			return
 		case reqres := <-cli.reqQueue:
 			cli.willSendReq(reqres)
-			err := types.WriteMessage(reqres.Request, w)
+			_, err := amino.MarshalLengthPrefixedWriter(w, reqres.Request)
 			if err != nil {
 				cli.StopForError(fmt.Errorf("Error writing msg: %v", err))
 				return
 			}
 			// cli.Logger.Debug("Sent request", "requestType", reflect.TypeOf(reqres.Request), "request", reqres.Request)
-			if _, ok := reqres.Request.Value.(*types.Request_Flush); ok {
+			if _, ok := reqres.Request.(abci.RequestFlush); ok {
 				err = w.Flush()
 				if err != nil {
 					cli.StopForError(fmt.Errorf("Error flushing writer: %v", err))
@@ -155,16 +155,16 @@ func (cli *socketClient) recvResponseRoutine(conn net.Conn) {
 
 	r := bufio.NewReader(conn) // Buffer reads
 	for {
-		var res = &types.Response{}
-		err := types.ReadMessage(r, res)
+		var res abci.Response
+		_, err := amino.UnmarshalLengthPrefixedReader(r, res, 0)
 		if err != nil {
 			cli.StopForError(err)
 			return
 		}
-		switch r := res.Value.(type) {
-		case *types.Response_Exception:
+		switch res := res.(type) {
+		case abci.ResponseException:
 			// XXX After setting cli.err, release waiters (e.g. reqres.Done())
-			cli.StopForError(errors.New(r.Exception.Error))
+			cli.StopForError(res.Error)
 			return
 		default:
 			// cli.Logger.Debug("Received response", "responseType", reflect.TypeOf(res), "response", res)
@@ -183,19 +183,19 @@ func (cli *socketClient) willSendReq(reqres *ReqRes) {
 	cli.reqSent.PushBack(reqres)
 }
 
-func (cli *socketClient) didRecvResponse(res *types.Response) error {
+func (cli *socketClient) didRecvResponse(res abci.Response) error {
 	cli.mtx.Lock()
 	defer cli.mtx.Unlock()
 
 	// Get the first ReqRes
 	next := cli.reqSent.Front()
 	if next == nil {
-		return fmt.Errorf("Unexpected result type %v when nothing expected", reflect.TypeOf(res.Value))
+		return fmt.Errorf("Unexpected result type %v when nothing expected", reflect.TypeOf(res))
 	}
 	reqres := next.Value.(*ReqRes)
 	if !resMatchesReq(reqres.Request, res) {
 		return fmt.Errorf("Unexpected result type %v when response to %v expected",
-			reflect.TypeOf(res.Value), reflect.TypeOf(reqres.Request.Value))
+			reflect.TypeOf(res), reflect.TypeOf(reqres.Request))
 	}
 
 	reqres.Response = res    // Set response
@@ -220,53 +220,53 @@ func (cli *socketClient) didRecvResponse(res *types.Response) error {
 //----------------------------------------
 
 func (cli *socketClient) EchoAsync(msg string) *ReqRes {
-	return cli.queueRequest(types.ToRequestEcho(msg))
+	return cli.queueRequest(abci.RequestEcho{Message: msg})
 }
 
 func (cli *socketClient) FlushAsync() *ReqRes {
-	return cli.queueRequest(types.ToRequestFlush())
+	return cli.queueRequest(abci.RequestFlush{})
 }
 
-func (cli *socketClient) InfoAsync(req types.RequestInfo) *ReqRes {
-	return cli.queueRequest(types.ToRequestInfo(req))
+func (cli *socketClient) InfoAsync(req abci.RequestInfo) *ReqRes {
+	return cli.queueRequest(req)
 }
 
-func (cli *socketClient) SetOptionAsync(req types.RequestSetOption) *ReqRes {
-	return cli.queueRequest(types.ToRequestSetOption(req))
+func (cli *socketClient) SetOptionAsync(req abci.RequestSetOption) *ReqRes {
+	return cli.queueRequest(req)
 }
 
-func (cli *socketClient) DeliverTxAsync(req types.RequestDeliverTx) *ReqRes {
-	return cli.queueRequest(types.ToRequestDeliverTx(req))
+func (cli *socketClient) DeliverTxAsync(req abci.RequestDeliverTx) *ReqRes {
+	return cli.queueRequest(req)
 }
 
-func (cli *socketClient) CheckTxAsync(req types.RequestCheckTx) *ReqRes {
-	return cli.queueRequest(types.ToRequestCheckTx(req))
+func (cli *socketClient) CheckTxAsync(req abci.RequestCheckTx) *ReqRes {
+	return cli.queueRequest(req)
 }
 
-func (cli *socketClient) QueryAsync(req types.RequestQuery) *ReqRes {
-	return cli.queueRequest(types.ToRequestQuery(req))
+func (cli *socketClient) QueryAsync(req abci.RequestQuery) *ReqRes {
+	return cli.queueRequest(req)
 }
 
 func (cli *socketClient) CommitAsync() *ReqRes {
-	return cli.queueRequest(types.ToRequestCommit())
+	return cli.queueRequest(abci.RequestCommit{})
 }
 
-func (cli *socketClient) InitChainAsync(req types.RequestInitChain) *ReqRes {
-	return cli.queueRequest(types.ToRequestInitChain(req))
+func (cli *socketClient) InitChainAsync(req abci.RequestInitChain) *ReqRes {
+	return cli.queueRequest(req)
 }
 
-func (cli *socketClient) BeginBlockAsync(req types.RequestBeginBlock) *ReqRes {
-	return cli.queueRequest(types.ToRequestBeginBlock(req))
+func (cli *socketClient) BeginBlockAsync(req abci.RequestBeginBlock) *ReqRes {
+	return cli.queueRequest(req)
 }
 
-func (cli *socketClient) EndBlockAsync(req types.RequestEndBlock) *ReqRes {
-	return cli.queueRequest(types.ToRequestEndBlock(req))
+func (cli *socketClient) EndBlockAsync(req abci.RequestEndBlock) *ReqRes {
+	return cli.queueRequest(req)
 }
 
 //----------------------------------------
 
 func (cli *socketClient) FlushSync() error {
-	reqRes := cli.queueRequest(types.ToRequestFlush())
+	reqRes := cli.queueRequest(abci.RequestFlush{})
 	if err := cli.Error(); err != nil {
 		return err
 	}
@@ -274,77 +274,77 @@ func (cli *socketClient) FlushSync() error {
 	return cli.Error()
 }
 
-func (cli *socketClient) EchoSync(msg string) (*types.ResponseEcho, error) {
-	reqres := cli.queueRequest(types.ToRequestEcho(msg))
+func (cli *socketClient) EchoSync(msg string) (abci.ResponseEcho, error) {
+	reqres := cli.queueRequest(abci.RequestEcho{Message: msg})
 	cli.FlushSync()
-	return reqres.Response.GetEcho(), cli.Error()
+	return reqres.Response.(abci.ResponseEcho), cli.Error()
 }
 
-func (cli *socketClient) InfoSync(req types.RequestInfo) (*types.ResponseInfo, error) {
-	reqres := cli.queueRequest(types.ToRequestInfo(req))
+func (cli *socketClient) InfoSync(req abci.RequestInfo) (abci.ResponseInfo, error) {
+	reqres := cli.queueRequest(req)
 	cli.FlushSync()
-	return reqres.Response.GetInfo(), cli.Error()
+	return reqres.Response.(abci.ResponseInfo), cli.Error()
 }
 
-func (cli *socketClient) SetOptionSync(req types.RequestSetOption) (*types.ResponseSetOption, error) {
-	reqres := cli.queueRequest(types.ToRequestSetOption(req))
+func (cli *socketClient) SetOptionSync(req abci.RequestSetOption) (abci.ResponseSetOption, error) {
+	reqres := cli.queueRequest(req)
 	cli.FlushSync()
-	return reqres.Response.GetSetOption(), cli.Error()
+	return reqres.Response.(abci.ResponseSetOption), cli.Error()
 }
 
-func (cli *socketClient) DeliverTxSync(req types.RequestDeliverTx) (*types.ResponseDeliverTx, error) {
-	reqres := cli.queueRequest(types.ToRequestDeliverTx(req))
+func (cli *socketClient) DeliverTxSync(req abci.RequestDeliverTx) (abci.ResponseDeliverTx, error) {
+	reqres := cli.queueRequest(req)
 	cli.FlushSync()
-	return reqres.Response.GetDeliverTx(), cli.Error()
+	return reqres.Response.(abci.ResponseDeliverTx), cli.Error()
 }
 
-func (cli *socketClient) CheckTxSync(req types.RequestCheckTx) (*types.ResponseCheckTx, error) {
-	reqres := cli.queueRequest(types.ToRequestCheckTx(req))
+func (cli *socketClient) CheckTxSync(req abci.RequestCheckTx) (abci.ResponseCheckTx, error) {
+	reqres := cli.queueRequest(req)
 	cli.FlushSync()
-	return reqres.Response.GetCheckTx(), cli.Error()
+	return reqres.Response.(abci.ResponseCheckTx), cli.Error()
 }
 
-func (cli *socketClient) QuerySync(req types.RequestQuery) (*types.ResponseQuery, error) {
-	reqres := cli.queueRequest(types.ToRequestQuery(req))
+func (cli *socketClient) QuerySync(req abci.RequestQuery) (abci.ResponseQuery, error) {
+	reqres := cli.queueRequest(req)
 	cli.FlushSync()
-	return reqres.Response.GetQuery(), cli.Error()
+	return reqres.Response.(abci.ResponseQuery), cli.Error()
 }
 
-func (cli *socketClient) CommitSync() (*types.ResponseCommit, error) {
-	reqres := cli.queueRequest(types.ToRequestCommit())
+func (cli *socketClient) CommitSync() (abci.ResponseCommit, error) {
+	reqres := cli.queueRequest(abci.RequestCommit{})
 	cli.FlushSync()
-	return reqres.Response.GetCommit(), cli.Error()
+	return reqres.Response.(abci.ResponseCommit), cli.Error()
 }
 
-func (cli *socketClient) InitChainSync(req types.RequestInitChain) (*types.ResponseInitChain, error) {
-	reqres := cli.queueRequest(types.ToRequestInitChain(req))
+func (cli *socketClient) InitChainSync(req abci.RequestInitChain) (abci.ResponseInitChain, error) {
+	reqres := cli.queueRequest(req)
 	cli.FlushSync()
-	return reqres.Response.GetInitChain(), cli.Error()
+	return reqres.Response.(abci.ResponseInitChain), cli.Error()
 }
 
-func (cli *socketClient) BeginBlockSync(req types.RequestBeginBlock) (*types.ResponseBeginBlock, error) {
-	reqres := cli.queueRequest(types.ToRequestBeginBlock(req))
+func (cli *socketClient) BeginBlockSync(req abci.RequestBeginBlock) (abci.ResponseBeginBlock, error) {
+	reqres := cli.queueRequest(req)
 	cli.FlushSync()
-	return reqres.Response.GetBeginBlock(), cli.Error()
+	return reqres.Response.(abci.ResponseBeginBlock), cli.Error()
 }
 
-func (cli *socketClient) EndBlockSync(req types.RequestEndBlock) (*types.ResponseEndBlock, error) {
-	reqres := cli.queueRequest(types.ToRequestEndBlock(req))
+func (cli *socketClient) EndBlockSync(req abci.RequestEndBlock) (abci.ResponseEndBlock, error) {
+	reqres := cli.queueRequest(req)
 	cli.FlushSync()
-	return reqres.Response.GetEndBlock(), cli.Error()
+	return reqres.Response.(abci.ResponseEndBlock), cli.Error()
 }
 
 //----------------------------------------
 
-func (cli *socketClient) queueRequest(req *types.Request) *ReqRes {
+func (cli *socketClient) queueRequest(req abci.Request) *ReqRes {
 	reqres := NewReqRes(req)
 
 	// TODO: set cli.err if reqQueue times out
 	cli.reqQueue <- reqres
 
 	// Maybe auto-flush, or unset auto-flush
-	switch req.Value.(type) {
-	case *types.Request_Flush:
+	switch req.(type) {
+	case abci.RequestFlush:
 		cli.flushTimer.Unset()
 	default:
 		cli.flushTimer.Set()
@@ -374,30 +374,30 @@ LOOP:
 
 //----------------------------------------
 
-func resMatchesReq(req *types.Request, res *types.Response) (ok bool) {
-	switch req.Value.(type) {
-	case *types.Request_Echo:
-		_, ok = res.Value.(*types.Response_Echo)
-	case *types.Request_Flush:
-		_, ok = res.Value.(*types.Response_Flush)
-	case *types.Request_Info:
-		_, ok = res.Value.(*types.Response_Info)
-	case *types.Request_SetOption:
-		_, ok = res.Value.(*types.Response_SetOption)
-	case *types.Request_DeliverTx:
-		_, ok = res.Value.(*types.Response_DeliverTx)
-	case *types.Request_CheckTx:
-		_, ok = res.Value.(*types.Response_CheckTx)
-	case *types.Request_Commit:
-		_, ok = res.Value.(*types.Response_Commit)
-	case *types.Request_Query:
-		_, ok = res.Value.(*types.Response_Query)
-	case *types.Request_InitChain:
-		_, ok = res.Value.(*types.Response_InitChain)
-	case *types.Request_BeginBlock:
-		_, ok = res.Value.(*types.Response_BeginBlock)
-	case *types.Request_EndBlock:
-		_, ok = res.Value.(*types.Response_EndBlock)
+func resMatchesReq(req abci.Request, res abci.Response) (ok bool) {
+	switch req.(type) {
+	case abci.RequestEcho:
+		_, ok = res.(abci.ResponseEcho)
+	case abci.RequestFlush:
+		_, ok = res.(abci.ResponseFlush)
+	case abci.RequestInfo:
+		_, ok = res.(abci.ResponseInfo)
+	case abci.RequestSetOption:
+		_, ok = res.(abci.ResponseSetOption)
+	case abci.RequestDeliverTx:
+		_, ok = res.(abci.ResponseDeliverTx)
+	case abci.RequestCheckTx:
+		_, ok = res.(abci.ResponseCheckTx)
+	case abci.RequestCommit:
+		_, ok = res.(abci.ResponseCommit)
+	case abci.RequestQuery:
+		_, ok = res.(abci.ResponseQuery)
+	case abci.RequestInitChain:
+		_, ok = res.(abci.ResponseInitChain)
+	case abci.RequestBeginBlock:
+		_, ok = res.(abci.ResponseBeginBlock)
+	case abci.RequestEndBlock:
+		_, ok = res.(abci.ResponseEndBlock)
 	}
 	return ok
 }

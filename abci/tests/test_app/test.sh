@@ -18,11 +18,6 @@ ABCI_APP="counter" go run -mod=readonly ./*.go
 echo "----------------------"
 
 
-echo "RUN COUNTER OVER GRPC"
-# test golang counter via grpc
-ABCI_APP="counter --abci=grpc" ABCI="grpc" go run -mod=readonly ./*.go
-echo "----------------------"
-
 # test nodejs counter
 # TODO: fix node app
 #ABCI_APP="node $GOPATH/src/github.com/tendermint/js-abci/example/app.js" go test -test.run TestCounter

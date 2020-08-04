@@ -14,6 +14,7 @@ import (
 	"github.com/tendermint/classic/crypto/tmhash"
 	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/classic/version"
+	"github.com/tendermint/go-amino-x"
 )
 
 const (
@@ -172,7 +173,7 @@ func (b *Block) fillHeader() {
 
 // Hash computes and returns the block hash.
 // If the block is incomplete, block hash is nil for safety.
-func (b *Block) Hash() cmn.HexBytes {
+func (b *Block) Hash() []byte {
 	if b == nil {
 		return nil
 	}
@@ -198,7 +199,7 @@ func (b *Block) MakePartSet(partSize int) *PartSet {
 
 	// We prefix the byte length, so that unmarshaling
 	// can easily happen via a reader.
-	bz, err := cdc.MarshalLengthPrefixed(b)
+	bz, err := amino.MarshalLengthPrefixed(b)
 	if err != nil {
 		panic(err)
 	}
@@ -219,7 +220,7 @@ func (b *Block) HashesTo(hash []byte) bool {
 
 // Size returns size of the block in bytes.
 func (b *Block) Size() int {
-	bz, err := cdc.Marshal(b)
+	bz, err := amino.Marshal(b)
 	if err != nil {
 		return 0
 	}
@@ -255,28 +256,6 @@ func (b *Block) StringShort() string {
 		return "nil-Block"
 	}
 	return fmt.Sprintf("Block#%v", b.Hash())
-}
-
-//-----------------------------------------------------------
-// These methods are for Protobuf Compatibility
-
-// Marshal returns the amino encoding.
-func (b *Block) Marshal() ([]byte, error) {
-	return cdc.Marshal(b)
-}
-
-// MarshalTo calls Marshal and copies to the given buffer.
-func (b *Block) MarshalTo(data []byte) (int, error) {
-	bs, err := b.Marshal()
-	if err != nil {
-		return -1, err
-	}
-	return copy(data, bs), nil
-}
-
-// Unmarshal deserializes from amino encoded form.
-func (b *Block) Unmarshal(bs []byte) error {
-	return cdc.Unmarshal(bs, b)
 }
 
 //-----------------------------------------------------------------------------
@@ -347,19 +326,19 @@ type Header struct {
 	LastBlockID BlockID `json:"last_block_id"`
 
 	// hashes of block data
-	LastCommitHash cmn.HexBytes `json:"last_commit_hash"` // commit from validators from the last block
-	DataHash       cmn.HexBytes `json:"data_hash"`        // transactions
+	LastCommitHash []byte `json:"last_commit_hash"` // commit from validators from the last block
+	DataHash       []byte `json:"data_hash"`        // transactions
 
 	// hashes from the app output from the prev block
-	ValidatorsHash     cmn.HexBytes `json:"validators_hash"`      // validators for the current block
-	NextValidatorsHash cmn.HexBytes `json:"next_validators_hash"` // validators for the next block
-	ConsensusHash      cmn.HexBytes `json:"consensus_hash"`       // consensus params for current block
-	AppHash            cmn.HexBytes `json:"app_hash"`             // state after txs from the previous block
-	LastResultsHash    cmn.HexBytes `json:"last_results_hash"`    // root hash of all results from the txs from the previous block
+	ValidatorsHash     []byte `json:"validators_hash"`      // validators for the current block
+	NextValidatorsHash []byte `json:"next_validators_hash"` // validators for the next block
+	ConsensusHash      []byte `json:"consensus_hash"`       // consensus params for current block
+	AppHash            []byte `json:"app_hash"`             // state after txs from the previous block
+	LastResultsHash    []byte `json:"last_results_hash"`    // root hash of all results from the txs from the previous block
 
 	// consensus info
-	EvidenceHash    cmn.HexBytes `json:"evidence_hash"`    // evidence included in the block
-	ProposerAddress Address      `json:"proposer_address"` // original proposer of the block
+	EvidenceHash    []byte  `json:"evidence_hash"`    // evidence included in the block
+	ProposerAddress Address `json:"proposer_address"` // original proposer of the block
 }
 
 // Populate the Header with state-derived data.
@@ -390,27 +369,27 @@ func (h *Header) Populate(
 // Returns nil if ValidatorHash is missing,
 // since a Header is not valid unless there is
 // a ValidatorsHash (corresponding to the validator set).
-func (h *Header) Hash() cmn.HexBytes {
+func (h *Header) Hash() []byte {
 	if h == nil || len(h.ValidatorsHash) == 0 {
 		return nil
 	}
 	return merkle.SimpleHashFromByteSlices([][]byte{
-		cdcEncode(h.Version),
-		cdcEncode(h.ChainID),
-		cdcEncode(h.Height),
-		cdcEncode(h.Time),
-		cdcEncode(h.NumTxs),
-		cdcEncode(h.TotalTxs),
-		cdcEncode(h.LastBlockID),
-		cdcEncode(h.LastCommitHash),
-		cdcEncode(h.DataHash),
-		cdcEncode(h.ValidatorsHash),
-		cdcEncode(h.NextValidatorsHash),
-		cdcEncode(h.ConsensusHash),
-		cdcEncode(h.AppHash),
-		cdcEncode(h.LastResultsHash),
-		cdcEncode(h.EvidenceHash),
-		cdcEncode(h.ProposerAddress),
+		bytesOrNil(h.Version),
+		bytesOrNil(h.ChainID),
+		bytesOrNil(h.Height),
+		bytesOrNil(h.Time),
+		bytesOrNil(h.NumTxs),
+		bytesOrNil(h.TotalTxs),
+		bytesOrNil(h.LastBlockID),
+		bytesOrNil(h.LastCommitHash),
+		bytesOrNil(h.DataHash),
+		bytesOrNil(h.ValidatorsHash),
+		bytesOrNil(h.NextValidatorsHash),
+		bytesOrNil(h.ConsensusHash),
+		bytesOrNil(h.AppHash),
+		bytesOrNil(h.LastResultsHash),
+		bytesOrNil(h.EvidenceHash),
+		bytesOrNil(h.ProposerAddress),
 	})
 }
 
@@ -497,7 +476,7 @@ type Commit struct {
 	// isn't used for unmarshaling
 	height   int64
 	round    int
-	hash     cmn.HexBytes
+	hash     []byte
 	bitArray *cmn.BitArray
 }
 
@@ -669,14 +648,14 @@ func (commit *Commit) ValidateBasic() error {
 }
 
 // Hash returns the hash of the commit
-func (commit *Commit) Hash() cmn.HexBytes {
+func (commit *Commit) Hash() []byte {
 	if commit == nil {
 		return nil
 	}
 	if commit.hash == nil {
 		bs := make([][]byte, len(commit.Precommits))
 		for i, precommit := range commit.Precommits {
-			bs[i] = cdcEncode(precommit)
+			bs[i] = bytesOrNil(precommit)
 		}
 		commit.hash = merkle.SimpleHashFromByteSlices(bs)
 	}
@@ -779,11 +758,11 @@ type Data struct {
 	Txs Txs `json:"txs"`
 
 	// Volatile
-	hash cmn.HexBytes
+	hash []byte
 }
 
 // Hash returns the hash of the data
-func (data *Data) Hash() cmn.HexBytes {
+func (data *Data) Hash() []byte {
 	if data == nil {
 		return (Txs{}).Hash()
 	}
@@ -820,11 +799,11 @@ type EvidenceData struct {
 	Evidence EvidenceList `json:"evidence"`
 
 	// Volatile
-	hash cmn.HexBytes
+	hash []byte
 }
 
 // Hash returns the hash of the data.
-func (data *EvidenceData) Hash() cmn.HexBytes {
+func (data *EvidenceData) Hash() []byte {
 	if data.hash == nil {
 		data.hash = data.Evidence.Hash()
 	}
@@ -855,7 +834,7 @@ func (data *EvidenceData) StringIndented(indent string) string {
 
 // BlockID defines the unique ID of a block as its Hash and its PartSetHeader
 type BlockID struct {
-	Hash        cmn.HexBytes  `json:"hash"`
+	Hash        []byte        `json:"hash"`
 	PartsHeader PartSetHeader `json:"parts"`
 }
 
@@ -867,7 +846,7 @@ func (blockID BlockID) Equals(other BlockID) bool {
 
 // Key returns a machine-readable string representation of the BlockID
 func (blockID BlockID) Key() string {
-	bz, err := cdc.Marshal(blockID.PartsHeader)
+	bz, err := amino.Marshal(blockID.PartsHeader)
 	if err != nil {
 		panic(err)
 	}

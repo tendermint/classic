@@ -1,5 +1,11 @@
 # Changelog
 
+## Tendermint/Classic
+
+BREAKING:
+
+ - Remove HexBytes
+
 ## 0.9.0
 
 *June 24th, 2018*

@@ -1,4 +1,4 @@
-package types
+package abci
 
 // Application is an interface that enables any finite, deterministic state
 // machine to be driven by a blockchain-based replication engine via the ABCI.

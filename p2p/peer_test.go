@@ -140,7 +140,7 @@ type remotePeer struct {
 	PrivKey    crypto.PrivKey
 	Config     *config.P2PConfig
 	addr       *NetAddress
-	channels   cmn.HexBytes
+	channels   []byte
 	listenAddr string
 	listener   net.Listener
 }

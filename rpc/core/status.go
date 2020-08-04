@@ -80,8 +80,8 @@ func Status(ctx *rpctypes.Context) (*ctypes.ResultStatus, error) {
 	}
 	var (
 		latestBlockMeta     *types.BlockMeta
-		latestBlockHash     cmn.HexBytes
-		latestAppHash       cmn.HexBytes
+		latestBlockHash     []byte
+		latestAppHash       []byte
 		latestBlockTimeNano int64
 	)
 	if latestHeight != 0 {

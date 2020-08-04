@@ -9,7 +9,7 @@ import (
 )
 
 type CounterApplication struct {
-	types.BaseApplication
+	abci.BaseApplication
 
 	hashCount int
 	txCount   int
@@ -20,13 +20,13 @@ func NewCounterApplication(serial bool) *CounterApplication {
 	return &CounterApplication{serial: serial}
 }
 
-func (app *CounterApplication) Info(req types.RequestInfo) types.ResponseInfo {
-	return types.ResponseInfo{ResponseBase: types.ResponseBase{
+func (app *CounterApplication) Info(req abci.RequestInfo) abci.ResponseInfo {
+	return abci.ResponseInfo{ResponseBase: abci.ResponseBase{
 		Data: []byte(fmt.Sprintf("{\"hashes\":%v,\"txs\":%v}", app.hashCount, app.txCount)),
 	}}
 }
 
-func (app *CounterApplication) SetOption(req types.RequestSetOption) types.ResponseSetOption {
+func (app *CounterApplication) SetOption(req abci.RequestSetOption) abci.ResponseSetOption {
 	key, value := req.Key, req.Value
 	if key == "serial" && value == "on" {
 		app.serial = true
@@ -34,73 +34,84 @@ func (app *CounterApplication) SetOption(req types.RequestSetOption) types.Respo
 		/*
 			TODO Panic and have the ABCI server pass an exception.
 			The client can call SetOptionSync() and get an `error`.
-			return types.ResponseSetOption{
+			return abci.ResponseSetOption{
 				Error: fmt.Sprintf("Unknown key (%s) or value (%s)", key, value),
 			}
 		*/
-		return types.ResponseSetOption{}
+		return abci.ResponseSetOption{}
 	}
 
-	return types.ResponseSetOption{}
+	return abci.ResponseSetOption{}
 }
 
-func (app *CounterApplication) DeliverTx(req types.RequestDeliverTx) types.ResponseDeliverTx {
+func (app *CounterApplication) DeliverTx(req abci.RequestDeliverTx) abci.ResponseDeliverTx {
 	if app.serial {
 		if len(req.Tx) > 8 {
-			return types.ResponseDeliverTx{ResponseBase: types.ResponseBase{
-				Error: errors.EncodingError{},
-				Log:   fmt.Sprintf("Max tx size is 8 bytes, got %d", len(req.Tx)),
-			}}
+			return abci.ResponseDeliverTx{
+				ResponseBase: abci.ResponseBase{
+					Error: errors.EncodingError{},
+					Log:   fmt.Sprintf("Max tx size is 8 bytes, got %d", len(req.Tx)),
+				},
+			}
 		}
 		tx8 := make([]byte, 8)
 		copy(tx8[len(tx8)-len(req.Tx):], req.Tx)
 		txValue := binary.BigEndian.Uint64(tx8)
 		if txValue != uint64(app.txCount) {
-			return types.ResponseDeliverTx{
-				Code: code.CodeTypeBadNonce,
-				Log:  fmt.Sprintf("Invalid nonce. Expected %v, got %v", app.txCount, txValue)}
+			return abci.ResponseDeliverTx{
+				ResponseBase: abci.ResponseBase{
+					Error: errors.BadNonce{},
+					Log:   fmt.Sprintf("Invalid nonce. Expected %v, got %v", app.txCount, txValue),
+				},
+			}
 		}
 	}
 	app.txCount++
-	return types.ResponseDeliverTx{Code: code.CodeTypeOK}
+	return abci.ResponseDeliverTx{}
 }
 
-func (app *CounterApplication) CheckTx(req types.RequestCheckTx) types.ResponseCheckTx {
+func (app *CounterApplication) CheckTx(req abci.RequestCheckTx) abci.ResponseCheckTx {
 	if app.serial {
 		if len(req.Tx) > 8 {
-			return types.ResponseCheckTx{
-				Code: code.CodeTypeEncodingError,
-				Log:  fmt.Sprintf("Max tx size is 8 bytes, got %d", len(req.Tx))}
+			return abci.ResponseCheckTx{
+				ResponseBase: abci.ResponseBase{
+					Error: errors.EncodingError{},
+					Log:   fmt.Sprintf("Max tx size is 8 bytes, got %d", len(req.Tx)),
+				},
+			}
 		}
 		tx8 := make([]byte, 8)
 		copy(tx8[len(tx8)-len(req.Tx):], req.Tx)
 		txValue := binary.BigEndian.Uint64(tx8)
 		if txValue < uint64(app.txCount) {
-			return types.ResponseCheckTx{
-				Code: code.CodeTypeBadNonce,
-				Log:  fmt.Sprintf("Invalid nonce. Expected >= %v, got %v", app.txCount, txValue)}
+			return abci.ResponseCheckTx{
+				ResponseBase: abci.ResponseBase{
+					Error: errors.BadNonce{},
+					Log:   fmt.Sprintf("Invalid nonce. Expected >= %v, got %v", app.txCount, txValue),
+				},
+			}
 		}
 	}
-	return types.ResponseCheckTx{Code: code.CodeTypeOK}
+	return abci.ResponseCheckTx{}
 }
 
-func (app *CounterApplication) Commit() (resp types.ResponseCommit) {
+func (app *CounterApplication) Commit() (resp abci.ResponseCommit) {
 	app.hashCount++
 	if app.txCount == 0 {
-		return types.ResponseCommit{}
+		return abci.ResponseCommit{}
 	}
 	hash := make([]byte, 8)
 	binary.BigEndian.PutUint64(hash, uint64(app.txCount))
-	return types.ResponseCommit{Data: hash}
+	return abci.ResponseCommit{ResponseBase: abci.ResponseBase{Data: hash}}
 }
 
-func (app *CounterApplication) Query(reqQuery types.RequestQuery) types.ResponseQuery {
+func (app *CounterApplication) Query(reqQuery abci.RequestQuery) abci.ResponseQuery {
 	switch reqQuery.Path {
 	case "hash":
-		return types.ResponseQuery{Value: []byte(fmt.Sprintf("%v", app.hashCount))}
+		return abci.ResponseQuery{Value: []byte(fmt.Sprintf("%v", app.hashCount))}
 	case "tx":
-		return types.ResponseQuery{Value: []byte(fmt.Sprintf("%v", app.txCount))}
+		return abci.ResponseQuery{Value: []byte(fmt.Sprintf("%v", app.txCount))}
 	default:
-		return types.ResponseQuery{Log: fmt.Sprintf("Invalid query path. Expected hash or tx, got %v", reqQuery.Path)}
+		return abci.ResponseQuery{ResponseBase: abci.ResponseBase{Log: fmt.Sprintf("Invalid query path. Expected hash or tx, got %v", reqQuery.Path)}}
 	}
 }

@@ -46,7 +46,7 @@ func TestThresholdMultisigValidCases(t *testing.T) {
 			)
 			require.False(
 				t,
-				multisigKey.VerifyBytes(tc.msg, multisignature.Marshal()),
+				multisigKey.VerifyBytes(tc.msg, amino.MustMarshal(multisignature)),
 				"multisig passed when i < k, tc %d, i %d", tcIndex, i,
 			)
 			require.NoError(
@@ -63,7 +63,7 @@ func TestThresholdMultisigValidCases(t *testing.T) {
 
 		require.False(
 			t,
-			multisigKey.VerifyBytes(tc.msg, multisignature.Marshal()),
+			multisigKey.VerifyBytes(tc.msg, amino.MustMarshal(multisignature)),
 			"multisig passed with k - 1 sigs, tc %d", tcIndex,
 		)
 		require.NoError(
@@ -72,7 +72,7 @@ func TestThresholdMultisigValidCases(t *testing.T) {
 		)
 		require.True(
 			t,
-			multisigKey.VerifyBytes(tc.msg, multisignature.Marshal()),
+			multisigKey.VerifyBytes(tc.msg, amino.MustMarshal(multisignature)),
 			"multisig failed after k good signatures, tc %d", tcIndex,
 		)
 
@@ -86,7 +86,7 @@ func TestThresholdMultisigValidCases(t *testing.T) {
 			require.Equal(
 				t,
 				tc.passAfterKSignatures[i-tc.k-1],
-				multisigKey.VerifyBytes(tc.msg, multisignature.Marshal()),
+				multisigKey.VerifyBytes(tc.msg, amino.MustMarshal(multisignature)),
 				"multisig didn't verify as expected after k sigs, tc %d, i %d", tcIndex, i,
 			)
 			require.NoError(
@@ -109,11 +109,11 @@ func TestThresholdMultisigDuplicateSignatures(t *testing.T) {
 	pubkeys, sigs := generatePubKeysAndSignatures(5, msg)
 	multisigKey := NewPubKeyMultisigThreshold(2, pubkeys)
 	multisignature := NewMultisig(5)
-	require.False(t, multisigKey.VerifyBytes(msg, multisignature.Marshal()))
+	require.False(t, multisigKey.VerifyBytes(msg, amino.MustMarshal(multisignature)))
 	multisignature.AddSignatureFromPubKey(sigs[0], pubkeys[0], pubkeys)
 	// Add second signature manually
 	multisignature.Sigs = append(multisignature.Sigs, sigs[0])
-	require.False(t, multisigKey.VerifyBytes(msg, multisignature.Marshal()))
+	require.False(t, multisigKey.VerifyBytes(msg, amino.MustMarshal(multisignature)))
 }
 
 // TODO: Fully replace this test with table driven tests

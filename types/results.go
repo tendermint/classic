@@ -13,7 +13,7 @@ import (
 // https://github.com/tendermint/classic/issues/1007
 type ABCIResult struct {
 	Code uint32       `json:"code"`
-	Data cmn.HexBytes `json:"data"`
+	Data []byte `json:"data"`
 }
 
 // Bytes returns the amino encoded ABCIResult

@@ -9,8 +9,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"google.golang.org/grpc"
-
 	"golang.org/x/net/context"
 
 	cmn "github.com/tendermint/classic/libs/common"
@@ -102,55 +100,4 @@ func testStream(t *testing.T, app types.Application) {
 	client.FlushAsync()
 
 	<-done
-}
-
-//-------------------------
-// test grpc
-
-func dialerFunc(ctx context.Context, addr string) (net.Conn, error) {
-	return cmn.Connect(addr)
-}
-
-func testGRPCSync(t *testing.T, app *types.GRPCApplication) {
-	numDeliverTxs := 2000
-
-	// Start the listener
-	server := abciserver.NewGRPCServer("unix://test.sock", app)
-	server.SetLogger(log.TestingLogger().With("module", "abci-server"))
-	if err := server.Start(); err != nil {
-		t.Fatalf("Error starting GRPC server: %v", err.Error())
-	}
-	defer server.Stop()
-
-	// Connect to the socket
-	conn, err := grpc.Dial("unix://test.sock", grpc.WithInsecure(), grpc.WithContextDialer(dialerFunc))
-	if err != nil {
-		t.Fatalf("Error dialing GRPC server: %v", err.Error())
-	}
-	defer conn.Close()
-
-	client := types.NewABCIApplicationClient(conn)
-
-	// Write requests
-	for counter := 0; counter < numDeliverTxs; counter++ {
-		// Send request
-		response, err := client.DeliverTx(context.Background(), &types.RequestDeliverTx{Tx: []byte("test")})
-		if err != nil {
-			t.Fatalf("Error in GRPC DeliverTx: %v", err.Error())
-		}
-		counter++
-		if response.Error != nil {
-			t.Error("DeliverTx failed with error", response.Error)
-		}
-		if counter > numDeliverTxs {
-			t.Fatal("Too many DeliverTx responses")
-		}
-		t.Log("response", counter)
-		if counter == numDeliverTxs {
-			go func() {
-				time.Sleep(time.Second * 1) // Wait for a bit to allow counter overflow
-			}()
-		}
-
-	}
 }

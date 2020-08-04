@@ -91,9 +91,9 @@ type RoundState struct {
 type RoundStateSimple struct {
 	HeightRoundStep   string          `json:"height/round/step"`
 	StartTime         time.Time       `json:"start_time"`
-	ProposalBlockHash cmn.HexBytes    `json:"proposal_block_hash"`
-	LockedBlockHash   cmn.HexBytes    `json:"locked_block_hash"`
-	ValidBlockHash    cmn.HexBytes    `json:"valid_block_hash"`
+	ProposalBlockHash []byte          `json:"proposal_block_hash"`
+	LockedBlockHash   []byte          `json:"locked_block_hash"`
+	ValidBlockHash    []byte          `json:"valid_block_hash"`
 	Votes             json.RawMessage `json:"height_vote_set"`
 }
 
@@ -197,32 +197,4 @@ func (rs *RoundState) StringIndented(indent string) string {
 func (rs *RoundState) StringShort() string {
 	return fmt.Sprintf(`RoundState{H:%v R:%v S:%v ST:%v}`,
 		rs.Height, rs.Round, rs.Step, rs.StartTime)
-}
-
-//-----------------------------------------------------------
-// These methods are for Protobuf Compatibility
-
-// Size returns the size of the amino encoding, in bytes.
-func (rs *RoundStateSimple) Size() int {
-	bs, _ := rs.Marshal()
-	return len(bs)
-}
-
-// Marshal returns the amino encoding.
-func (rs *RoundStateSimple) Marshal() ([]byte, error) {
-	return cdc.Marshal(rs)
-}
-
-// MarshalTo calls Marshal and copies to the given buffer.
-func (rs *RoundStateSimple) MarshalTo(data []byte) (int, error) {
-	bs, err := rs.Marshal()
-	if err != nil {
-		return -1, err
-	}
-	return copy(data, bs), nil
-}
-
-// Unmarshal deserializes from amino encoded form.
-func (rs *RoundStateSimple) Unmarshal(bs []byte) error {
-	return cdc.Unmarshal(bs, rs)
 }

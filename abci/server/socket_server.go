@@ -9,6 +9,7 @@ import (
 
 	"github.com/tendermint/classic/abci/types"
 	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/go-amino-x"
 )
 
 // var maxNumberConnections = 2
@@ -25,10 +26,10 @@ type SocketServer struct {
 	nextConnID int
 
 	appMtx sync.Mutex
-	app    types.Application
+	app    abci.Application
 }
 
-func NewSocketServer(protoAddr string, app types.Application) cmn.Service {
+func NewSocketServer(protoAddr string, app abci.Application) cmn.Service {
 	proto, addr := cmn.ProtocolAndAddress(protoAddr)
 	s := &SocketServer{
 		proto:    proto,
@@ -112,8 +113,8 @@ func (s *SocketServer) acceptConnectionsRoutine() {
 
 		connID := s.addConn(conn)
 
-		closeConn := make(chan error, 2)              // Push to signal connection closed
-		responses := make(chan *types.Response, 1000) // A channel to buffer responses
+		closeConn := make(chan error, 2)            // Push to signal connection closed
+		responses := make(chan abci.Response, 1000) // A channel to buffer responses
 
 		// Read requests from conn and deal with them
 		go s.handleRequests(closeConn, conn, responses)
@@ -144,7 +145,7 @@ func (s *SocketServer) waitForClose(closeConn chan error, connID int) {
 }
 
 // Read requests from conn and deal with them
-func (s *SocketServer) handleRequests(closeConn chan error, conn net.Conn, responses chan<- *types.Response) {
+func (s *SocketServer) handleRequests(closeConn chan error, conn net.Conn, responses chan<- abci.Response) {
 	var count int
 	var bufReader = bufio.NewReader(conn)
 
@@ -159,8 +160,8 @@ func (s *SocketServer) handleRequests(closeConn chan error, conn net.Conn, respo
 
 	for {
 
-		var req = &types.Request{}
-		err := types.ReadMessage(bufReader, req)
+		var req abci.Request
+		_, err := amino.UnmarshalLengthPrefixedReader(bufReader, &req, 0)
 		if err != nil {
 			if err == io.EOF {
 				closeConn <- err
@@ -176,56 +177,60 @@ func (s *SocketServer) handleRequests(closeConn chan error, conn net.Conn, respo
 	}
 }
 
-func (s *SocketServer) handleRequest(req *types.Request, responses chan<- *types.Response) {
-	switch r := req.Value.(type) {
-	case *types.Request_Echo:
-		responses <- types.ToResponseEcho(r.Echo.Message)
-	case *types.Request_Flush:
-		responses <- types.ToResponseFlush()
-	case *types.Request_Info:
-		res := s.app.Info(*r.Info)
-		responses <- types.ToResponseInfo(res)
-	case *types.Request_SetOption:
-		res := s.app.SetOption(*r.SetOption)
-		responses <- types.ToResponseSetOption(res)
-	case *types.Request_DeliverTx:
-		res := s.app.DeliverTx(*r.DeliverTx)
-		responses <- types.ToResponseDeliverTx(res)
-	case *types.Request_CheckTx:
-		res := s.app.CheckTx(*r.CheckTx)
-		responses <- types.ToResponseCheckTx(res)
-	case *types.Request_Commit:
+func (s *SocketServer) handleRequest(req abci.Request, responses chan<- abci.Response) {
+	switch req := req.(type) {
+	case abci.RequestEcho:
+		responses <- abci.ResponseEcho{Message: req.Message}
+	case abci.RequestFlush:
+		responses <- abci.ResponseFlush{}
+	case abci.RequestInfo:
+		res := s.app.Info(req)
+		responses <- res
+	case abci.RequestSetOption:
+		res := s.app.SetOption(req)
+		responses <- res
+	case abci.RequestDeliverTx:
+		res := s.app.DeliverTx(req)
+		responses <- res
+	case abci.RequestCheckTx:
+		res := s.app.CheckTx(req)
+		responses <- res
+	case abci.RequestCommit:
 		res := s.app.Commit()
-		responses <- types.ToResponseCommit(res)
-	case *types.Request_Query:
-		res := s.app.Query(*r.Query)
-		responses <- types.ToResponseQuery(res)
-	case *types.Request_InitChain:
-		res := s.app.InitChain(*r.InitChain)
-		responses <- types.ToResponseInitChain(res)
-	case *types.Request_BeginBlock:
-		res := s.app.BeginBlock(*r.BeginBlock)
-		responses <- types.ToResponseBeginBlock(res)
-	case *types.Request_EndBlock:
-		res := s.app.EndBlock(*r.EndBlock)
-		responses <- types.ToResponseEndBlock(res)
+		responses <- res
+	case abci.RequestQuery:
+		res := s.app.Query(req)
+		responses <- res
+	case abci.RequestInitChain:
+		res := s.app.InitChain(req)
+		responses <- res
+	case abci.RequestBeginBlock:
+		res := s.app.BeginBlock(req)
+		responses <- res
+	case abci.RequestEndBlock:
+		res := s.app.EndBlock(req)
+		responses <- res
 	default:
-		responses <- types.ToResponseException("Unknown request")
+		responses <- abci.ResponseException{
+			ResponseBase: abci.ResponseBase{
+				Error: abci.StringError{"Unknown request"},
+			},
+		}
 	}
 }
 
 // Pull responses from 'responses' and write them to conn.
-func (s *SocketServer) handleResponses(closeConn chan error, conn net.Conn, responses <-chan *types.Response) {
+func (s *SocketServer) handleResponses(closeConn chan error, conn net.Conn, responses <-chan abci.Response) {
 	var count int
 	var bufWriter = bufio.NewWriter(conn)
 	for {
 		var res = <-responses
-		err := types.WriteMessage(res, bufWriter)
+		_, err := amino.MarshalLengthPrefixedWriter(bufWriter, &res) // &res for Any.
 		if err != nil {
 			closeConn <- fmt.Errorf("Error writing message: %v", err.Error())
 			return
 		}
-		if _, ok := res.Value.(*types.Response_Flush); ok {
+		if _, ok := res.(abci.ResponseFlush); ok {
 			err = bufWriter.Flush()
 			if err != nil {
 				closeConn <- fmt.Errorf("Error flushing write buffer: %v", err.Error())

@@ -255,5 +255,5 @@ func moniker(i int) string {
 }
 
 func randomMoniker() string {
-	return cmn.HexBytes(cmn.RandBytes(8)).String()
+	return []byte(cmn.RandBytes(8)).String()
 }

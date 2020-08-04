@@ -18,8 +18,8 @@ func TestStatus(t *testing.T) {
 		Call: mock.Call{
 			Response: &ctypes.ResultStatus{
 				SyncInfo: ctypes.SyncInfo{
-					LatestBlockHash:   cmn.HexBytes("block"),
-					LatestAppHash:     cmn.HexBytes("app"),
+					LatestBlockHash:   []byte("block"),
+					LatestAppHash:     []byte("app"),
 					LatestBlockHeight: 10,
 				},
 			}},

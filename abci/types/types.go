@@ -1,4 +1,4 @@
-package types
+package abci
 
 import (
 	"time"
@@ -192,20 +192,33 @@ type ResponseCommit struct {
 // Interface types
 
 type Error interface {
-	AssertError()
+	AssertABCIError()
 	Error() string
 }
 
 type Event interface {
-	AssertEvent()
+	AssertABCIEvent()
 }
 
 type Header interface {
-	AssertHeader()
+	AssertABCIHeader()
 }
 
 type Evidence interface {
-	AssertEvidence()
+	AssertABCIEvidence()
+}
+
+//----------------------------------------
+// Error types
+
+type StringError struct {
+	Message string
+}
+
+func (_ StringError) AssertABCIError() {}
+
+func (err StringError) Error() string {
+	return err.Message
 }
 
 //----------------------------------------

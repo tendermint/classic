@@ -22,7 +22,7 @@ func main() {
 	// Make a bunch of requests
 	counter := 0
 	for i := 0; ; i++ {
-		req := types.RequestEcho{Message: "foobar"}
+		req := abci.RequestEcho{Message: "foobar"}
 		_, err := makeRequest(conn, req)
 		if err != nil {
 			log.Fatal(err.Error())
@@ -34,15 +34,15 @@ func main() {
 	}
 }
 
-func makeRequest(conn net.Conn, req types.Request) (types.Response, error) {
+func makeRequest(conn net.Conn, req abci.Request) (abci.Response, error) {
 	var bufWriter = bufio.NewWriter(conn)
 
 	// Write desired request
-	err := amino.MarshalLengthPrefixedWriter(&req, bufWriter)
+	_, err := amino.MarshalLengthPrefixedWriter(bufWriter, &req)
 	if err != nil {
 		return nil, err
 	}
-	err = amino.MarshalLengthPrefixedWriter(&types.RequestFlush{}, bufWriter)
+	_, err = amino.MarshalLengthPrefixedWriter(bufWriter, &abci.RequestFlush{})
 	if err != nil {
 		return nil, err
 	}
@@ -52,17 +52,17 @@ func makeRequest(conn net.Conn, req types.Request) (types.Response, error) {
 	}
 
 	// Read desired response
-	var res types.Response
-	err = amino.UnmarshalLengthPrefixedReader(conn, &res)
+	var res abci.Response
+	_, err = amino.UnmarshalLengthPrefixedReader(conn, &res, 0)
 	if err != nil {
 		return nil, err
 	}
-	var resFlush types.Response
-	err = amino.UnmarshalLengthPrefixedReader(conn, &res)
+	var resFlush abci.Response
+	_, err = amino.UnmarshalLengthPrefixedReader(conn, &res, 0)
 	if err != nil {
 		return nil, err
 	}
-	if _, ok := resFlush.(types.ResponseFlush); !ok {
+	if _, ok := resFlush.(abci.ResponseFlush); !ok {
 		return nil, fmt.Errorf("Expected flush response but got something else: %v", reflect.TypeOf(resFlush))
 	}
 

@@ -70,7 +70,7 @@ BREAKING CHANGES
 
 FEATURE
 
-- `Address` is a type alias for `cmn.HexBytes`
+- `Address` is a type alias for `[]byte`
 
 BUG FIX
 

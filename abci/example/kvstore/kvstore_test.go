@@ -234,27 +234,6 @@ func makeSocketClientServer(app types.Application, name string) (abcicli.Client,
 	return client, server, nil
 }
 
-func makeGRPCClientServer(app types.Application, name string) (abcicli.Client, cmn.Service, error) {
-	// Start the listener
-	socket := fmt.Sprintf("unix://%s.sock", name)
-	logger := log.TestingLogger()
-
-	gapp := types.NewGRPCApplication(app)
-	server := abciserver.NewGRPCServer(socket, gapp)
-	server.SetLogger(logger.With("module", "abci-server"))
-	if err := server.Start(); err != nil {
-		return nil, nil, err
-	}
-
-	client := abcicli.NewGRPCClient(socket, true)
-	client.SetLogger(logger.With("module", "abci-client"))
-	if err := client.Start(); err != nil {
-		server.Stop()
-		return nil, nil, err
-	}
-	return client, server, nil
-}
-
 func TestClientServer(t *testing.T) {
 	// set up socket app
 	kvstore := NewKVStoreApplication()
@@ -264,15 +243,6 @@ func TestClientServer(t *testing.T) {
 	defer client.Stop()
 
 	runClientTests(t, client)
-
-	// set up grpc app
-	kvstore = NewKVStoreApplication()
-	gclient, gserver, err := makeGRPCClientServer(kvstore, "kvstore-grpc")
-	require.Nil(t, err)
-	defer gserver.Stop()
-	defer gclient.Stop()
-
-	runClientTests(t, gclient)
 }
 
 func runClientTests(t *testing.T, client abcicli.Client) {

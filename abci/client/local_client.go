@@ -3,7 +3,7 @@ package abcicli
 import (
 	"sync"
 
-	types "github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/classic/abci/types"
 	cmn "github.com/tendermint/classic/libs/common"
 )
 
@@ -17,11 +17,11 @@ type localClient struct {
 	cmn.BaseService
 
 	mtx *sync.Mutex
-	types.Application
+	abci.Application
 	Callback
 }
 
-func NewLocalClient(mtx *sync.Mutex, app types.Application) *localClient {
+func NewLocalClient(mtx *sync.Mutex, app abci.Application) *localClient {
 	if mtx == nil {
 		mtx = new(sync.Mutex)
 	}
@@ -39,14 +39,14 @@ func (app *localClient) SetResponseCallback(cb Callback) {
 	app.mtx.Unlock()
 }
 
-// TODO: change types.Application to include Error()?
+// TODO: change abci.Application to include Error()?
 func (app *localClient) Error() error {
 	return nil
 }
 
 func (app *localClient) FlushAsync() *ReqRes {
 	// Do nothing
-	return newLocalReqRes(types.ToRequestFlush(), nil)
+	return newLocalReqRes(abci.RequestFlush{}, nil)
 }
 
 func (app *localClient) EchoAsync(msg string) *ReqRes {
@@ -54,64 +54,49 @@ func (app *localClient) EchoAsync(msg string) *ReqRes {
 	defer app.mtx.Unlock()
 
 	return app.callback(
-		types.ToRequestEcho(msg),
-		types.ToResponseEcho(msg),
+		abci.RequestEcho{Message: msg},
+		abci.ResponseEcho{Message: msg},
 	)
 }
 
-func (app *localClient) InfoAsync(req types.RequestInfo) *ReqRes {
+func (app *localClient) InfoAsync(req abci.RequestInfo) *ReqRes {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
 	res := app.Application.Info(req)
-	return app.callback(
-		types.ToRequestInfo(req),
-		types.ToResponseInfo(res),
-	)
+	return app.callback(req, res)
 }
 
-func (app *localClient) SetOptionAsync(req types.RequestSetOption) *ReqRes {
+func (app *localClient) SetOptionAsync(req abci.RequestSetOption) *ReqRes {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
 	res := app.Application.SetOption(req)
-	return app.callback(
-		types.ToRequestSetOption(req),
-		types.ToResponseSetOption(res),
-	)
+	return app.callback(req, res)
 }
 
-func (app *localClient) DeliverTxAsync(params types.RequestDeliverTx) *ReqRes {
+func (app *localClient) DeliverTxAsync(req abci.RequestDeliverTx) *ReqRes {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	res := app.Application.DeliverTx(params)
-	return app.callback(
-		types.ToRequestDeliverTx(params),
-		types.ToResponseDeliverTx(res),
-	)
+	res := app.Application.DeliverTx(req)
+	return app.callback(req, res)
 }
 
-func (app *localClient) CheckTxAsync(req types.RequestCheckTx) *ReqRes {
+func (app *localClient) CheckTxAsync(req abci.RequestCheckTx) *ReqRes {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
 	res := app.Application.CheckTx(req)
-	return app.callback(
-		types.ToRequestCheckTx(req),
-		types.ToResponseCheckTx(res),
-	)
+	return app.callback(req, res)
 }
 
-func (app *localClient) QueryAsync(req types.RequestQuery) *ReqRes {
+func (app *localClient) QueryAsync(req abci.RequestQuery) *ReqRes {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
 	res := app.Application.Query(req)
-	return app.callback(
-		types.ToRequestQuery(req),
-		types.ToResponseQuery(res),
-	)
+	return app.callback(req, res)
 }
 
 func (app *localClient) CommitAsync() *ReqRes {
@@ -119,43 +104,31 @@ func (app *localClient) CommitAsync() *ReqRes {
 	defer app.mtx.Unlock()
 
 	res := app.Application.Commit()
-	return app.callback(
-		types.ToRequestCommit(),
-		types.ToResponseCommit(res),
-	)
+	return app.callback(abci.RequestCommit{}, res)
 }
 
-func (app *localClient) InitChainAsync(req types.RequestInitChain) *ReqRes {
+func (app *localClient) InitChainAsync(req abci.RequestInitChain) *ReqRes {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
 	res := app.Application.InitChain(req)
-	return app.callback(
-		types.ToRequestInitChain(req),
-		types.ToResponseInitChain(res),
-	)
+	return app.callback(req, res)
 }
 
-func (app *localClient) BeginBlockAsync(req types.RequestBeginBlock) *ReqRes {
+func (app *localClient) BeginBlockAsync(req abci.RequestBeginBlock) *ReqRes {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
 	res := app.Application.BeginBlock(req)
-	return app.callback(
-		types.ToRequestBeginBlock(req),
-		types.ToResponseBeginBlock(res),
-	)
+	return app.callback(req, res)
 }
 
-func (app *localClient) EndBlockAsync(req types.RequestEndBlock) *ReqRes {
+func (app *localClient) EndBlockAsync(req abci.RequestEndBlock) *ReqRes {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
 	res := app.Application.EndBlock(req)
-	return app.callback(
-		types.ToRequestEndBlock(req),
-		types.ToResponseEndBlock(res),
-	)
+	return app.callback(req, res)
 }
 
 //-------------------------------------------------------
@@ -164,90 +137,90 @@ func (app *localClient) FlushSync() error {
 	return nil
 }
 
-func (app *localClient) EchoSync(msg string) (*types.ResponseEcho, error) {
-	return &types.ResponseEcho{Message: msg}, nil
+func (app *localClient) EchoSync(msg string) (abci.ResponseEcho, error) {
+	return abci.ResponseEcho{Message: msg}, nil
 }
 
-func (app *localClient) InfoSync(req types.RequestInfo) (*types.ResponseInfo, error) {
+func (app *localClient) InfoSync(req abci.RequestInfo) (abci.ResponseInfo, error) {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
 	res := app.Application.Info(req)
-	return &res, nil
+	return res, nil
 }
 
-func (app *localClient) SetOptionSync(req types.RequestSetOption) (*types.ResponseSetOption, error) {
+func (app *localClient) SetOptionSync(req abci.RequestSetOption) (abci.ResponseSetOption, error) {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
 	res := app.Application.SetOption(req)
-	return &res, nil
+	return res, nil
 }
 
-func (app *localClient) DeliverTxSync(req types.RequestDeliverTx) (*types.ResponseDeliverTx, error) {
+func (app *localClient) DeliverTxSync(req abci.RequestDeliverTx) (abci.ResponseDeliverTx, error) {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
 	res := app.Application.DeliverTx(req)
-	return &res, nil
+	return res, nil
 }
 
-func (app *localClient) CheckTxSync(req types.RequestCheckTx) (*types.ResponseCheckTx, error) {
+func (app *localClient) CheckTxSync(req abci.RequestCheckTx) (abci.ResponseCheckTx, error) {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
 	res := app.Application.CheckTx(req)
-	return &res, nil
+	return res, nil
 }
 
-func (app *localClient) QuerySync(req types.RequestQuery) (*types.ResponseQuery, error) {
+func (app *localClient) QuerySync(req abci.RequestQuery) (abci.ResponseQuery, error) {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
 	res := app.Application.Query(req)
-	return &res, nil
+	return res, nil
 }
 
-func (app *localClient) CommitSync() (*types.ResponseCommit, error) {
+func (app *localClient) CommitSync() (abci.ResponseCommit, error) {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
 	res := app.Application.Commit()
-	return &res, nil
+	return res, nil
 }
 
-func (app *localClient) InitChainSync(req types.RequestInitChain) (*types.ResponseInitChain, error) {
+func (app *localClient) InitChainSync(req abci.RequestInitChain) (abci.ResponseInitChain, error) {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
 	res := app.Application.InitChain(req)
-	return &res, nil
+	return res, nil
 }
 
-func (app *localClient) BeginBlockSync(req types.RequestBeginBlock) (*types.ResponseBeginBlock, error) {
+func (app *localClient) BeginBlockSync(req abci.RequestBeginBlock) (abci.ResponseBeginBlock, error) {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
 	res := app.Application.BeginBlock(req)
-	return &res, nil
+	return res, nil
 }
 
-func (app *localClient) EndBlockSync(req types.RequestEndBlock) (*types.ResponseEndBlock, error) {
+func (app *localClient) EndBlockSync(req abci.RequestEndBlock) (abci.ResponseEndBlock, error) {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
 	res := app.Application.EndBlock(req)
-	return &res, nil
+	return res, nil
 }
 
 //-------------------------------------------------------
 
-func (app *localClient) callback(req *types.Request, res *types.Response) *ReqRes {
+func (app *localClient) callback(req abci.Request, res abci.Response) *ReqRes {
 	app.Callback(req, res)
 	return newLocalReqRes(req, res)
 }
 
-func newLocalReqRes(req *types.Request, res *types.Response) *ReqRes {
+func newLocalReqRes(req abci.Request, res abci.Response) *ReqRes {
 	reqRes := NewReqRes(req)
 	reqRes.Response = res
 	reqRes.SetDone()

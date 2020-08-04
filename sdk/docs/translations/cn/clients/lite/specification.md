@@ -46,7 +46,7 @@ type KeyExistsProof struct {
     MultiStoreCommitInfo []MultiStoreCommitID // 所有子库提交id
     StoreName string // 当前子库名字
     Height  int64 // 当前子库提交高度
-    RootHash cmn.HexBytes // 此 IAVL 树的根哈希
+    RootHash []byte // 此 IAVL 树的根哈希
     Version  int64 // 此 IAVL 树中 key-value 的版本号
     InnerNodes []proofInnerNode // 从根节点到 key-value 叶子节点的路径
 }
@@ -86,8 +86,8 @@ type KeyExistsProof struct {
 
 ```go
 type proofLeafNode struct {
-    KeyBytes   cmn.HexBytes
-    ValueBytes cmn.HexBytes
+    KeyBytes   []byte
+    ValueBytes []byte
     Version    int64
 }
 
@@ -100,7 +100,7 @@ type KeyAbsentProof struct {
     MultiStoreCommitInfo []MultiStoreCommitID
     StoreName string
     Height  int64
-    RootHash cmn.HexBytes
+    RootHash []byte
     Left  *pathWithNode // Proof the left key exist
     Right *pathWithNode  //Proof the right key exist
 }

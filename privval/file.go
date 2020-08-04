@@ -71,7 +71,7 @@ type FilePVLastSignState struct {
 	Round     int          `json:"round"`
 	Step      int8         `json:"step"`
 	Signature []byte       `json:"signature,omitempty"`
-	SignBytes cmn.HexBytes `json:"signbytes,omitempty"`
+	SignBytes []byte `json:"signbytes,omitempty"`
 
 	filePath string
 }

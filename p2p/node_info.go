@@ -82,9 +82,9 @@ type DefaultNodeInfo struct {
 
 	// Check compatibility.
 	// Channels are HexBytes so easier to read as JSON
-	Network  string       `json:"network"`  // network/chain ID
-	Version  string       `json:"version"`  // major.minor.revision
-	Channels cmn.HexBytes `json:"channels"` // channels this node knows about
+	Network  string `json:"network"`  // network/chain ID
+	Version  string `json:"version"`  // major.minor.revision
+	Channels []byte `json:"channels"` // channels this node knows about
 
 	// ASCIIText fields
 	Moniker string               `json:"moniker"` // arbitrary moniker
@@ -217,32 +217,4 @@ OUTER_LOOP:
 func (info DefaultNodeInfo) NetAddress() (*NetAddress, error) {
 	idAddr := IDAddressString(info.ID(), info.ListenAddr)
 	return NewNetAddressString(idAddr)
-}
-
-//-----------------------------------------------------------
-// These methods are for Protobuf Compatibility
-
-// Size returns the size of the amino encoding, in bytes.
-func (info *DefaultNodeInfo) Size() int {
-	bs, _ := info.Marshal()
-	return len(bs)
-}
-
-// Marshal returns the amino encoding.
-func (info *DefaultNodeInfo) Marshal() ([]byte, error) {
-	return cdc.Marshal(info)
-}
-
-// MarshalTo calls Marshal and copies to the given buffer.
-func (info *DefaultNodeInfo) MarshalTo(data []byte) (int, error) {
-	bs, err := info.Marshal()
-	if err != nil {
-		return -1, err
-	}
-	return copy(data, bs), nil
-}
-
-// Unmarshal deserializes from amino encoded form.
-func (info *DefaultNodeInfo) Unmarshal(bs []byte) error {
-	return cdc.Unmarshal(bs, info)
 }

@@ -93,17 +93,6 @@ func ValidVoteOption(option VoteOption) bool {
 	return false
 }
 
-// Marshal needed for protobuf compatibility.
-func (vo VoteOption) Marshal() ([]byte, error) {
-	return []byte{byte(vo)}, nil
-}
-
-// Unmarshal needed for protobuf compatibility.
-func (vo *VoteOption) Unmarshal(data []byte) error {
-	*vo = VoteOption(data[0])
-	return nil
-}
-
 // Marshals to JSON using string.
 func (vo VoteOption) MarshalJSON() ([]byte, error) {
 	return json.Marshal(vo.String())

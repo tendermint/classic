@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/tendermint/classic/abci/example/errors"
-	"github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/classic/abci/tests/testcli"
 )
 
 var abciType string
@@ -31,8 +31,8 @@ const (
 func ensureABCIIsUp(typ string, n int) error {
 	var err error
 	cmdString := "abci-cli echo hello"
-	if typ == "grpc" {
-		cmdString = "abci-cli --abci grpc echo hello"
+	if typ != "socket" {
+		panic(fmt.Sprintf("abci server type %v not supported", typ))
 	}
 
 	for i := 0; i < n; i++ {
@@ -65,20 +65,42 @@ func testCounter() {
 		log.Fatalf("echo failed: %v", err)
 	}
 
-	client := startClient(abciType)
+	client := testcli.StartSocketClient()
 	defer client.Stop()
 
-	setOption(client, "serial", "on")
-	commit(client, nil)
-	deliverTx(client, []byte("abc"), errors.BadNonce{}, nil)
-	commit(client, nil)
-	deliverTx(client, []byte{0x00}, nil, nil)
-	commit(client, []byte{0, 0, 0, 0, 0, 0, 0, 1})
-	deliverTx(client, []byte{0x00}, errors.BadNonce{}, nil)
-	deliverTx(client, []byte{0x01}, nil, nil)
-	deliverTx(client, []byte{0x00, 0x02}, nil, nil)
-	deliverTx(client, []byte{0x00, 0x03}, nil, nil)
-	deliverTx(client, []byte{0x00, 0x00, 0x04}, nil, nil)
-	deliverTx(client, []byte{0x00, 0x00, 0x06}, errors.BadNonce{}, nil)
-	commit(client, []byte{0, 0, 0, 0, 0, 0, 0, 5})
+	err := compose(
+		[]func() error{
+			func() error { return testcli.InitChain(client) },
+			func() error { return testcli.SetOption(client, "serial", "on") },
+			func() error { return testcli.Commit(client, nil) },
+			func() error { return testcli.DeliverTx(client, []byte("abc"), errors.BadNonce{}, nil) },
+			func() error { return testcli.Commit(client, nil) },
+			func() error { return testcli.DeliverTx(client, []byte{0x00}, nil, nil) },
+			func() error { return testcli.Commit(client, []byte{0, 0, 0, 0, 0, 0, 0, 1}) },
+			func() error { return testcli.DeliverTx(client, []byte{0x00}, errors.BadNonce{}, nil) },
+			func() error { return testcli.DeliverTx(client, []byte{0x01}, nil, nil) },
+			func() error { return testcli.DeliverTx(client, []byte{0x00, 0x02}, nil, nil) },
+			func() error { return testcli.DeliverTx(client, []byte{0x00, 0x03}, nil, nil) },
+			func() error { return testcli.DeliverTx(client, []byte{0x00, 0x00, 0x04}, nil, nil) },
+			func() error {
+				return testcli.DeliverTx(client, []byte{0x00, 0x00, 0x06}, errors.BadNonce{}, nil)
+			},
+			func() error { return testcli.Commit(client, []byte{0, 0, 0, 0, 0, 0, 0, 5}) },
+		})
+	if err != nil {
+		log.Fatalf("test failed: %v", err)
+	}
+}
+
+func compose(fs []func() error) error {
+	if len(fs) == 0 {
+		return nil
+	} else {
+		err := fs[0]()
+		if err == nil {
+			return compose(fs[1:])
+		} else {
+			return err
+		}
+	}
 }

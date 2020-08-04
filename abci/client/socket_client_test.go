@@ -44,10 +44,10 @@ func TestProperSyncCalls(t *testing.T) {
 	resp := make(chan error, 1)
 	go func() {
 		// This is BeginBlockSync unrolled....
-		reqres := c.BeginBlockAsync(types.RequestBeginBlock{})
+		reqres := c.BeginBlockAsync(abci.RequestBeginBlock{})
 		c.FlushSync()
-		res := reqres.Response.GetBeginBlock()
-		require.NotNil(t, res)
+		res := reqres.Response.(abci.ResponseBeginBlock)
+		require.Nil(t, res.Error)
 		resp <- c.Error()
 	}()
 
@@ -70,7 +70,7 @@ func TestHangingSyncCalls(t *testing.T) {
 	resp := make(chan error, 1)
 	go func() {
 		// Start BeginBlock and flush it
-		reqres := c.BeginBlockAsync(types.RequestBeginBlock{})
+		reqres := c.BeginBlockAsync(abci.RequestBeginBlock{})
 		flush := c.FlushAsync()
 		// wait 20 ms for all events to travel socket, but
 		// no response yet from server
@@ -93,7 +93,7 @@ func TestHangingSyncCalls(t *testing.T) {
 	}
 }
 
-func setupClientServer(t *testing.T, app types.Application) (
+func setupClientServer(t *testing.T, app abci.Application) (
 	cmn.Service, abcicli.Client) {
 	// some port between 20k and 30k
 	port := 20000 + cmn.RandInt32()%10000
@@ -112,10 +112,10 @@ func setupClientServer(t *testing.T, app types.Application) (
 }
 
 type slowApp struct {
-	types.BaseApplication
+	abci.BaseApplication
 }
 
-func (slowApp) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
+func (slowApp) BeginBlock(req abci.RequestBeginBlock) abci.ResponseBeginBlock {
 	time.Sleep(200 * time.Millisecond)
-	return types.ResponseBeginBlock{}
+	return abci.ResponseBeginBlock{}
 }

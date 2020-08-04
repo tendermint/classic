@@ -23,8 +23,8 @@ func main() {
 	go func() {
 		counter := 0
 		for {
-			var res types.Response
-			_, err := amino.UnmarshalLengthPrefixed(conn, &res, maxSize)
+			var res abci.Response
+			_, err := amino.UnmarshalLengthPrefixedReader(conn, &res, maxSize)
 			if err != nil {
 				log.Fatal(err.Error())
 			}
@@ -39,9 +39,9 @@ func main() {
 	counter := 0
 	for i := 0; ; i++ {
 		var bufWriter = bufio.NewWriter(conn)
-		var req = types.ToRequestEcho("foobar")
+		var req = abci.RequestEcho{Message: "foobar"}
 
-		amino.MustMarshalLengthPrefixed(req, bufWriter)
+		_, err := amino.MarshalLengthPrefixedWriter(bufWriter, req)
 		err = bufWriter.Flush()
 		if err != nil {
 			log.Fatal(err.Error())

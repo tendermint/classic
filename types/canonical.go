@@ -3,7 +3,6 @@ package types
 import (
 	"time"
 
-	cmn "github.com/tendermint/classic/libs/common"
 	tmtime "github.com/tendermint/classic/types/time"
 )
 
@@ -13,12 +12,12 @@ import (
 const TimeFormat = time.RFC3339Nano
 
 type CanonicalBlockID struct {
-	Hash        cmn.HexBytes
+	Hash        []byte
 	PartsHeader CanonicalPartSetHeader
 }
 
 type CanonicalPartSetHeader struct {
-	Hash  cmn.HexBytes
+	Hash  []byte
 	Total int
 }
 

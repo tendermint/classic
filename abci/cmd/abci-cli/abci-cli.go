@@ -19,7 +19,7 @@ import (
 	"github.com/tendermint/classic/abci/example/errors"
 	"github.com/tendermint/classic/abci/example/kvstore"
 	"github.com/tendermint/classic/abci/server"
-	servertest "github.com/tendermint/classic/abci/tests/server"
+	"github.com/tendermint/classic/abci/tests/testcli"
 	"github.com/tendermint/classic/abci/types"
 	"github.com/tendermint/classic/abci/version"
 	"github.com/tendermint/classic/crypto/merkle"
@@ -112,7 +112,7 @@ func Execute() error {
 
 func addGlobalFlags() {
 	RootCmd.PersistentFlags().StringVarP(&flagAddress, "address", "", "tcp://0.0.0.0:26658", "address of application socket")
-	RootCmd.PersistentFlags().StringVarP(&flagAbci, "abci", "", "socket", "either socket or grpc")
+	RootCmd.PersistentFlags().StringVarP(&flagAbci, "abci", "", "socket", "must be socket (for now)")
 	RootCmd.PersistentFlags().BoolVarP(&flagVerbose, "verbose", "v", false, "print the command and results as if it were a console session")
 	RootCmd.PersistentFlags().StringVarP(&flagLogLevel, "log_level", "", "debug", "set the logger level")
 }
@@ -311,22 +311,22 @@ func compose(fs []func() error) error {
 func cmdTest(cmd *cobra.Command, args []string) error {
 	return compose(
 		[]func() error{
-			func() error { return servertest.InitChain(client) },
-			func() error { return servertest.SetOption(client, "serial", "on") },
-			func() error { return servertest.Commit(client, nil) },
-			func() error { return servertest.DeliverTx(client, []byte("abc"), errors.BadNonce{}, nil) },
-			func() error { return servertest.Commit(client, nil) },
-			func() error { return servertest.DeliverTx(client, []byte{0x00}, nil, nil) },
-			func() error { return servertest.Commit(client, []byte{0, 0, 0, 0, 0, 0, 0, 1}) },
-			func() error { return servertest.DeliverTx(client, []byte{0x00}, errors.BadNonce{}, nil) },
-			func() error { return servertest.DeliverTx(client, []byte{0x01}, nil, nil) },
-			func() error { return servertest.DeliverTx(client, []byte{0x00, 0x02}, nil, nil) },
-			func() error { return servertest.DeliverTx(client, []byte{0x00, 0x03}, nil, nil) },
-			func() error { return servertest.DeliverTx(client, []byte{0x00, 0x00, 0x04}, nil, nil) },
+			func() error { return testcli.InitChain(client) },
+			func() error { return testcli.SetOption(client, "serial", "on") },
+			func() error { return testcli.Commit(client, nil) },
+			func() error { return testcli.DeliverTx(client, []byte("abc"), errors.BadNonce{}, nil) },
+			func() error { return testcli.Commit(client, nil) },
+			func() error { return testcli.DeliverTx(client, []byte{0x00}, nil, nil) },
+			func() error { return testcli.Commit(client, []byte{0, 0, 0, 0, 0, 0, 0, 1}) },
+			func() error { return testcli.DeliverTx(client, []byte{0x00}, errors.BadNonce{}, nil) },
+			func() error { return testcli.DeliverTx(client, []byte{0x01}, nil, nil) },
+			func() error { return testcli.DeliverTx(client, []byte{0x00, 0x02}, nil, nil) },
+			func() error { return testcli.DeliverTx(client, []byte{0x00, 0x03}, nil, nil) },
+			func() error { return testcli.DeliverTx(client, []byte{0x00, 0x00, 0x04}, nil, nil) },
 			func() error {
-				return servertest.DeliverTx(client, []byte{0x00, 0x00, 0x06}, errors.BadNonce{}, nil)
+				return testcli.DeliverTx(client, []byte{0x00, 0x00, 0x06}, errors.BadNonce{}, nil)
 			},
-			func() error { return servertest.Commit(client, []byte{0, 0, 0, 0, 0, 0, 0, 5}) },
+			func() error { return testcli.Commit(client, []byte{0, 0, 0, 0, 0, 0, 0, 5}) },
 		})
 }
 

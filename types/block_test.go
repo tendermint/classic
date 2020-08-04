@@ -482,10 +482,10 @@ func TestSignedHeaderValidateBasic(t *testing.T) {
 
 func TestBlockIDValidateBasic(t *testing.T) {
 	validBlockID := BlockID{
-		Hash: cmn.HexBytes{},
+		Hash: []byte{},
 		PartsHeader: PartSetHeader{
 			Total: 1,
-			Hash:  cmn.HexBytes{},
+			Hash:  []byte{},
 		},
 	}
 
@@ -493,13 +493,13 @@ func TestBlockIDValidateBasic(t *testing.T) {
 		Hash: []byte{0},
 		PartsHeader: PartSetHeader{
 			Total: -1,
-			Hash:  cmn.HexBytes{},
+			Hash:  []byte{},
 		},
 	}
 
 	testCases := []struct {
 		testName           string
-		blockIDHash        cmn.HexBytes
+		blockIDHash        []byte
 		blockIDPartsHeader PartSetHeader
 		expectErr          bool
 	}{

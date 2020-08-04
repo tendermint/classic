@@ -46,7 +46,7 @@ type KeyExistsProof struct {
     MultiStoreCommitInfo []MultiStoreCommitID //All substore commitIDs
     StoreName string //Current substore name
     Height  int64 //The commit height of current substore
-    RootHash cmn.HexBytes //The root hash of this IAVL tree
+    RootHash []byte //The root hash of this IAVL tree
     Version  int64 //The version of the key-value in this IAVL tree
     InnerNodes []proofInnerNode //The path from to root node to key-value leaf node
 }
@@ -87,8 +87,8 @@ type KeyExistsProof struct {
 
 ```go
 type proofLeafNode struct {
-    KeyBytes   cmn.HexBytes
-    ValueBytes cmn.HexBytes
+    KeyBytes   []byte
+    ValueBytes []byte
     Version    int64
 }
 
@@ -101,7 +101,7 @@ type KeyAbsentProof struct {
     MultiStoreCommitInfo []MultiStoreCommitID
     StoreName string
     Height  int64
-    RootHash cmn.HexBytes
+    RootHash []byte
     Left  *pathWithNode // Proof the left key exist
     Right *pathWithNode  //Proof the right key exist
 }

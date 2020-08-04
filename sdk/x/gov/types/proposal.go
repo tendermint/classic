@@ -127,17 +127,6 @@ func ValidProposalStatus(status ProposalStatus) bool {
 	return false
 }
 
-// Marshal needed for protobuf compatibility
-func (status ProposalStatus) Marshal() ([]byte, error) {
-	return []byte{byte(status)}, nil
-}
-
-// Unmarshal needed for protobuf compatibility
-func (status *ProposalStatus) Unmarshal(data []byte) error {
-	*status = ProposalStatus(data[0])
-	return nil
-}
-
 // Marshals to JSON using string
 func (status ProposalStatus) MarshalJSON() ([]byte, error) {
 	return json.Marshal(status.String())

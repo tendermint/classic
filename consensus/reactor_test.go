@@ -823,10 +823,10 @@ func TestVoteSetMaj23MessageValidateBasic(t *testing.T) {
 
 	validBlockID := types.BlockID{}
 	invalidBlockID := types.BlockID{
-		Hash: cmn.HexBytes{},
+		Hash: []byte{},
 		PartsHeader: types.PartSetHeader{
 			Total: -1,
-			Hash:  cmn.HexBytes{},
+			Hash:  []byte{},
 		},
 	}
 
@@ -871,10 +871,10 @@ func TestVoteSetBitsMessageValidateBasic(t *testing.T) {
 		{func(msg *VoteSetBitsMessage) { msg.Type = 0x03 }, "Invalid Type"},
 		{func(msg *VoteSetBitsMessage) {
 			msg.BlockID = types.BlockID{
-				Hash: cmn.HexBytes{},
+				Hash: []byte{},
 				PartsHeader: types.PartSetHeader{
 					Total: -1,
-					Hash:  cmn.HexBytes{},
+					Hash:  []byte{},
 				},
 			}
 		}, "Wrong BlockID: Wrong PartsHeader: Negative Total"},

@@ -21,7 +21,7 @@ import (
 // If there is any error in checking, returns an error.
 func GetWithProof(prt *merkle.ProofRuntime, key []byte, reqHeight int64, node rpcclient.Client,
 	cert lite.Verifier) (
-	val cmn.HexBytes, height int64, proof *merkle.Proof, err error) {
+	val []byte, height int64, proof *merkle.Proof, err error) {
 
 	if reqHeight < 0 {
 		err = cmn.NewError("Height cannot be negative")

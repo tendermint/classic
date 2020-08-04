@@ -2,12 +2,13 @@
 
 ## Tendermint/Classic
 
-* Import tm-db v0.3
-* Import iavl v0.12.4
-* Import cosmos sdk v0.37.4
+* Import tm-db v0.3.
+* Import iavl v0.12.4.
+* Import cosmos sdk v0.37.4.
   - Migrate to go-amino-x, removing codec/cdc.
-* Replace amino with amino-x (in progress)
-* Remove alternative implementations (of blockchain reactor)
+* Replace amino with amino-x (in progress).
+* Remove alternative implementations (of blockchain reactor).
+* Remove GRPC and non-amino proto usage.
 
 ## v0.32.7
 
