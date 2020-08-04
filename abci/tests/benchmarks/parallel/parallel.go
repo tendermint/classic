@@ -24,7 +24,7 @@ func main() {
 		counter := 0
 		for {
 			var res types.Response
-			_, err := amino.UnmarshalBinaryLengthPrefixed(conn, &res, maxSize)
+			_, err := amino.UnmarshalLengthPrefixed(conn, &res, maxSize)
 			if err != nil {
 				log.Fatal(err.Error())
 			}
@@ -41,7 +41,7 @@ func main() {
 		var bufWriter = bufio.NewWriter(conn)
 		var req = types.ToRequestEcho("foobar")
 
-		amino.MustMarshalBinaryLengthPrefixed(req, bufWriter)
+		amino.MustMarshalLengthPrefixed(req, bufWriter)
 		err = bufWriter.Flush()
 		if err != nil {
 			log.Fatal(err.Error())

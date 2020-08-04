@@ -291,7 +291,7 @@ func NewWALEncoder(wr io.Writer) *WALEncoder {
 // the amino-encoded size of v is greater than 1MB. Any error encountered
 // during the write is also returned.
 func (enc *WALEncoder) Encode(v *TimedWALMessage) error {
-	data := cdc.MustMarshalBinaryBare(v)
+	data := cdc.MustMarshal(v)
 
 	crc := crc32.Checksum(data, crc32c)
 	length := uint32(len(data))
@@ -381,7 +381,7 @@ func (dec *WALDecoder) Decode() (*TimedWALMessage, error) {
 	}
 
 	var res = new(TimedWALMessage) // nolint: gosimple
-	err = cdc.UnmarshalBinaryBare(data, res)
+	err = cdc.Unmarshal(data, res)
 	if err != nil {
 		return nil, DataCorruptionError{fmt.Errorf("failed to decode data: %v", err)}
 	}

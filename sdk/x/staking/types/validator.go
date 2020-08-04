@@ -121,7 +121,7 @@ func NewValidator(operator sdk.ValAddress, pubKey crypto.PubKey, description Des
 
 // return the redelegation
 func MustMarshalValidator(validator Validator) []byte {
-	return amino.MustMarshalBinaryLengthPrefixed(validator)
+	return amino.MustMarshalLengthPrefixed(validator)
 }
 
 // unmarshal a redelegation from a store value
@@ -135,7 +135,7 @@ func MustUnmarshalValidator(value []byte) Validator {
 
 // unmarshal a redelegation from a store value
 func UnmarshalValidator(value []byte) (validator Validator, err error) {
-	err = amino.UnmarshalBinaryLengthPrefixed(value, &validator)
+	err = amino.UnmarshalLengthPrefixed(value, &validator)
 	return validator, err
 }
 

@@ -43,7 +43,7 @@ func NewResultFromResponse(response *abci.ResponseDeliverTx) ABCIResult {
 
 // Bytes serializes the ABCIResponse using amino
 func (a ABCIResults) Bytes() []byte {
-	bz, err := cdc.MarshalBinaryLengthPrefixed(a)
+	bz, err := cdc.MarshalLengthPrefixed(a)
 	if err != nil {
 		panic(err)
 	}

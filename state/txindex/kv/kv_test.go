@@ -151,7 +151,7 @@ func TestTxSearchDeprecatedIndexing(t *testing.T) {
 	hash2 := txResult2.Tx.Hash()
 	b := indexer.store.NewBatch()
 
-	rawBytes, err := cdc.MarshalBinaryBare(txResult2)
+	rawBytes, err := cdc.Marshal(txResult2)
 	require.NoError(t, err)
 
 	depKey := []byte(fmt.Sprintf("%s/%s/%d/%d",

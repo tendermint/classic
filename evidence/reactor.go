@@ -126,7 +126,7 @@ func (evR *EvidenceReactor) broadcastEvidenceRoutine(peer p2p.Peer) {
 		ev := next.Value.(types.Evidence)
 		msg, retry := evR.checkSendEvidenceMessage(peer, ev)
 		if msg != nil {
-			success := peer.Send(EvidenceChannel, cdc.MustMarshalBinaryBare(msg))
+			success := peer.Send(EvidenceChannel, cdc.MustMarshal(msg))
 			retry = !success
 		}
 
@@ -210,7 +210,7 @@ func decodeMsg(bz []byte) (msg EvidenceMessage, err error) {
 	if len(bz) > maxMsgSize {
 		return msg, fmt.Errorf("Msg exceeds max size (%d > %d)", len(bz), maxMsgSize)
 	}
-	err = cdc.UnmarshalBinaryBare(bz, &msg)
+	err = cdc.Unmarshal(bz, &msg)
 	return
 }
 

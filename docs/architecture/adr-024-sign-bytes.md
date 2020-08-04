@@ -198,7 +198,7 @@ And the implementation for vote, heartbeat, proposal will look like:
 ```golang
 // type T is one of vote, sign, proposal
 func (tp *T) SignBytes() []byte {
-	bz, err := cdc.MarshalBinary(tp)
+	bz, err := cdc.Marshal(tp)
 	if err != nil {
 		panic(err)
 	}

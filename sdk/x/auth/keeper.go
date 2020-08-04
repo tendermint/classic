@@ -94,7 +94,7 @@ func (ak AccountKeeper) GetAllAccounts(ctx sdk.Context) []exported.Account {
 func (ak AccountKeeper) SetAccount(ctx sdk.Context, acc exported.Account) {
 	addr := acc.GetAddress()
 	store := ctx.KVStore(ak.key)
-	bz, err := amino.MarshalBinaryBare(acc)
+	bz, err := amino.Marshal(acc)
 	if err != nil {
 		panic(err)
 	}
@@ -153,13 +153,13 @@ func (ak AccountKeeper) GetNextAccountNumber(ctx sdk.Context) uint64 {
 	if bz == nil {
 		accNumber = 0
 	} else {
-		err := amino.UnmarshalBinaryLengthPrefixed(bz, &accNumber)
+		err := amino.UnmarshalLengthPrefixed(bz, &accNumber)
 		if err != nil {
 			panic(err)
 		}
 	}
 
-	bz = amino.MustMarshalBinaryLengthPrefixed(accNumber + 1)
+	bz = amino.MustMarshalLengthPrefixed(accNumber + 1)
 	store.Set(types.GlobalAccountNumberKey, bz)
 
 	return accNumber
@@ -183,7 +183,7 @@ func (ak AccountKeeper) GetParams(ctx sdk.Context) (params types.Params) {
 // Misc.
 
 func (ak AccountKeeper) decodeAccount(bz []byte) (acc exported.Account) {
-	err := amino.UnmarshalBinaryBare(bz, &acc)
+	err := amino.Unmarshal(bz, &acc)
 	if err != nil {
 		panic(err)
 	}

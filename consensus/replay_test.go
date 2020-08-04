@@ -534,11 +534,11 @@ func TestMockProxyApp(t *testing.T) {
 		abciResWithEmptyDeliverTx.DeliverTx = append(abciResWithEmptyDeliverTx.DeliverTx, &abci.ResponseDeliverTx{})
 
 		// called when saveABCIResponses:
-		bytes := cdc.MustMarshalBinaryBare(abciResWithEmptyDeliverTx)
+		bytes := cdc.MustMarshal(abciResWithEmptyDeliverTx)
 		loadedAbciRes := new(sm.ABCIResponses)
 
 		// this also happens sm.LoadABCIResponses
-		err := cdc.UnmarshalBinaryBare(bytes, loadedAbciRes)
+		err := cdc.Unmarshal(bytes, loadedAbciRes)
 		require.NoError(t, err)
 
 		mock := newMockProxyApp([]byte("mock_hash"), loadedAbciRes)
@@ -928,7 +928,7 @@ func makeBlockchainFromWAL(wal WAL) ([]*types.Block, []*types.Commit, error) {
 			// if its not the first one, we have a full block
 			if thisBlockParts != nil {
 				var block = new(types.Block)
-				_, err = cdc.UnmarshalBinaryLengthPrefixedReader(thisBlockParts.GetReader(), block, 0)
+				_, err = cdc.UnmarshalLengthPrefixedReader(thisBlockParts.GetReader(), block, 0)
 				if err != nil {
 					panic(err)
 				}
@@ -959,7 +959,7 @@ func makeBlockchainFromWAL(wal WAL) ([]*types.Block, []*types.Commit, error) {
 	}
 	// grab the last block too
 	var block = new(types.Block)
-	_, err = cdc.UnmarshalBinaryLengthPrefixedReader(thisBlockParts.GetReader(), block, 0)
+	_, err = cdc.UnmarshalLengthPrefixedReader(thisBlockParts.GetReader(), block, 0)
 	if err != nil {
 		panic(err)
 	}

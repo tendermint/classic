@@ -272,7 +272,7 @@ func handleMsgUndelegate(ctx sdk.Context, msg types.MsgUndelegate, k keeper.Keep
 		return err.Result()
 	}
 
-	completionTimeBz := types.ModuleCdc.MustMarshalBinaryLengthPrefixed(completionTime)
+	completionTimeBz := types.ModuleCdc.MustMarshalLengthPrefixed(completionTime)
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUnbond,
@@ -309,7 +309,7 @@ func handleMsgBeginRedelegate(ctx sdk.Context, msg types.MsgBeginRedelegate, k k
 		return err.Result()
 	}
 
-	completionTimeBz := types.ModuleCdc.MustMarshalBinaryLengthPrefixed(completionTime)
+	completionTimeBz := types.ModuleCdc.MustMarshalLengthPrefixed(completionTime)
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeRedelegate,

@@ -67,7 +67,7 @@ func (ps *PeerRoundState) Size() int {
 
 // Marshal returns the amino encoding.
 func (ps *PeerRoundState) Marshal() ([]byte, error) {
-	return cdc.MarshalBinaryBare(ps)
+	return cdc.Marshal(ps)
 }
 
 // MarshalTo calls Marshal and copies to the given buffer.
@@ -81,5 +81,5 @@ func (ps *PeerRoundState) MarshalTo(data []byte) (int, error) {
 
 // Unmarshal deserializes from amino encoded form.
 func (ps *PeerRoundState) Unmarshal(bs []byte) error {
-	return cdc.UnmarshalBinaryBare(bs, ps)
+	return cdc.Unmarshal(bs, ps)
 }

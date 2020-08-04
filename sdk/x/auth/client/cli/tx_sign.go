@@ -242,7 +242,7 @@ func printAndValidateSigs(
 		multiPK, ok := sig.PubKey.(multisig.PubKeyMultisigThreshold)
 		if ok {
 			var multiSig multisig.Multisignature
-			amino.MustUnmarshalBinaryBare(sig.Signature, &multiSig)
+			amino.MustUnmarshal(sig.Signature, &multiSig)
 
 			var b strings.Builder
 			b.WriteString("\n  MultiSig Signatures:\n")

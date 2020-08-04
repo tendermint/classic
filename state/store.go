@@ -76,7 +76,7 @@ func loadState(db dbm.DB, key []byte) (state State) {
 		return state
 	}
 
-	err := cdc.UnmarshalBinaryBare(buf, &state)
+	err := cdc.Unmarshal(buf, &state)
 	if err != nil {
 		// DATA HAS BEEN CORRUPTED OR THE SPEC HAS CHANGED
 		cmn.Exit(fmt.Sprintf(`LoadState: Data has been corrupted or its spec has changed:
@@ -134,7 +134,7 @@ func NewABCIResponses(block *types.Block) *ABCIResponses {
 
 // Bytes serializes the ABCIResponse using go-amino.
 func (arz *ABCIResponses) Bytes() []byte {
-	return cdc.MustMarshalBinaryBare(arz)
+	return cdc.MustMarshal(arz)
 }
 
 func (arz *ABCIResponses) ResultsHash() []byte {
@@ -152,7 +152,7 @@ func LoadABCIResponses(db dbm.DB, height int64) (*ABCIResponses, error) {
 	}
 
 	abciResponses := new(ABCIResponses)
-	err := cdc.UnmarshalBinaryBare(buf, abciResponses)
+	err := cdc.Unmarshal(buf, abciResponses)
 	if err != nil {
 		// DATA HAS BEEN CORRUPTED OR THE SPEC HAS CHANGED
 		cmn.Exit(fmt.Sprintf(`LoadABCIResponses: Data has been corrupted or its spec has
@@ -180,7 +180,7 @@ type ValidatorsInfo struct {
 
 // Bytes serializes the ValidatorsInfo using go-amino.
 func (valInfo *ValidatorsInfo) Bytes() []byte {
-	return cdc.MustMarshalBinaryBare(valInfo)
+	return cdc.MustMarshal(valInfo)
 }
 
 // LoadValidators loads the ValidatorSet for a given height.
@@ -230,7 +230,7 @@ func loadValidatorsInfo(db dbm.DB, height int64) *ValidatorsInfo {
 	}
 
 	v := new(ValidatorsInfo)
-	err := cdc.UnmarshalBinaryBare(buf, v)
+	err := cdc.Unmarshal(buf, v)
 	if err != nil {
 		// DATA HAS BEEN CORRUPTED OR THE SPEC HAS CHANGED
 		cmn.Exit(fmt.Sprintf(`LoadValidators: Data has been corrupted or its spec has changed:
@@ -271,7 +271,7 @@ type ConsensusParamsInfo struct {
 
 // Bytes serializes the ConsensusParamsInfo using go-amino.
 func (params ConsensusParamsInfo) Bytes() []byte {
-	return cdc.MustMarshalBinaryBare(params)
+	return cdc.MustMarshal(params)
 }
 
 // LoadConsensusParams loads the ConsensusParams for a given height.
@@ -307,7 +307,7 @@ func loadConsensusParamsInfo(db dbm.DB, height int64) *ConsensusParamsInfo {
 	}
 
 	paramsInfo := new(ConsensusParamsInfo)
-	err := cdc.UnmarshalBinaryBare(buf, paramsInfo)
+	err := cdc.Unmarshal(buf, paramsInfo)
 	if err != nil {
 		// DATA HAS BEEN CORRUPTED OR THE SPEC HAS CHANGED
 		cmn.Exit(fmt.Sprintf(`LoadConsensusParams: Data has been corrupted or its spec has changed:

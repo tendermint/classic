@@ -344,7 +344,7 @@ func TestLoadBlockPart(t *testing.T) {
 	require.Contains(t, panicErr.Error(), "unmarshal to types.Part failed")
 
 	// 3. A good block serialized and saved to the DB should be retrievable
-	db.Set(calcBlockPartKey(height, index), cdc.MustMarshalBinaryBare(part1))
+	db.Set(calcBlockPartKey(height, index), cdc.MustMarshal(part1))
 	gotPart, _, panicErr := doFn(loadPart)
 	require.Nil(t, panicErr, "an existent and proper block should not panic")
 	require.Nil(t, res, "a properly saved block should return a proper block")
@@ -374,11 +374,11 @@ func TestLoadBlockMeta(t *testing.T) {
 
 	// 3. A good blockMeta serialized and saved to the DB should be retrievable
 	meta := &types.BlockMeta{}
-	db.Set(calcBlockMetaKey(height), cdc.MustMarshalBinaryBare(meta))
+	db.Set(calcBlockMetaKey(height), cdc.MustMarshal(meta))
 	gotMeta, _, panicErr := doFn(loadMeta)
 	require.Nil(t, panicErr, "an existent and proper block should not panic")
 	require.Nil(t, res, "a properly saved blockMeta should return a proper blocMeta ")
-	require.Equal(t, cdc.MustMarshalBinaryBare(meta), cdc.MustMarshalBinaryBare(gotMeta),
+	require.Equal(t, cdc.MustMarshal(meta), cdc.MustMarshal(gotMeta),
 		"expecting successful retrieval of previously saved blockMeta")
 }
 
@@ -394,8 +394,8 @@ func TestBlockFetchAtHeight(t *testing.T) {
 	require.Equal(t, bs.Height(), block.Header.Height, "expecting the new height to be changed")
 
 	blockAtHeight := bs.LoadBlock(bs.Height())
-	bz1 := cdc.MustMarshalBinaryBare(block)
-	bz2 := cdc.MustMarshalBinaryBare(blockAtHeight)
+	bz1 := cdc.MustMarshal(block)
+	bz2 := cdc.MustMarshal(blockAtHeight)
 	require.Equal(t, bz1, bz2)
 	require.Equal(t, block.Hash(), blockAtHeight.Hash(),
 		"expecting a successful load of the last saved block")

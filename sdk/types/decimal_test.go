@@ -338,11 +338,11 @@ func TestSerializationGocodecJSON(t *testing.T) {
 func TestSerializationGocodecBinary(t *testing.T) {
 	d := mustNewDecFromStr(t, "0.333")
 
-	bz, err := amino.MarshalBinaryLengthPrefixed(d)
+	bz, err := amino.MarshalLengthPrefixed(d)
 	require.NoError(t, err)
 
 	var d2 Dec
-	err = amino.UnmarshalBinaryLengthPrefixed(bz, &d2)
+	err = amino.UnmarshalLengthPrefixed(bz, &d2)
 	require.NoError(t, err)
 	require.True(t, d.Equal(d2), "original: %v, unmarshalled: %v", d, d2)
 }
@@ -356,11 +356,11 @@ type testDEmbedStruct struct {
 // TODO make work for UnmarshalJSON
 func TestEmbeddedStructSerializationGocodec(t *testing.T) {
 	obj := testDEmbedStruct{"foo", 10, NewDecWithPrec(1, 3)}
-	bz, err := amino.MarshalBinaryLengthPrefixed(obj)
+	bz, err := amino.MarshalLengthPrefixed(obj)
 	require.Nil(t, err)
 
 	var obj2 testDEmbedStruct
-	err = amino.UnmarshalBinaryLengthPrefixed(bz, &obj2)
+	err = amino.UnmarshalLengthPrefixed(bz, &obj2)
 	require.Nil(t, err)
 
 	require.Equal(t, obj.Field1, obj2.Field1)

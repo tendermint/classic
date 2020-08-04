@@ -38,7 +38,7 @@ func NewPubKeyMultisigThreshold(k int, pubkeys []crypto.PubKey) crypto.PubKey {
 // a concern.
 func (pk PubKeyMultisigThreshold) VerifyBytes(msg []byte, marshalledSig []byte) bool {
 	var sig Multisignature
-	err := amino.UnmarshalBinaryBare(marshalledSig, &sig)
+	err := amino.Unmarshal(marshalledSig, &sig)
 	if err != nil {
 		return false
 	}
@@ -70,7 +70,7 @@ func (pk PubKeyMultisigThreshold) VerifyBytes(msg []byte, marshalledSig []byte) 
 
 // Bytes returns the amino encoded version of the PubKeyMultisigThreshold
 func (pk PubKeyMultisigThreshold) Bytes() []byte {
-	return amino.MustMarshalBinaryBare(pk)
+	return amino.MustMarshal(pk)
 }
 
 // Address returns tmhash(PubKeyMultisigThreshold.Bytes())

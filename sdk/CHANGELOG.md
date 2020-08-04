@@ -2055,7 +2055,7 @@ Update to Tendermint v0.19.4 (fixes a consensus bug and improves logging)
 
 BREAKING CHANGES
 
-* [stake] MarshalJSON -> MarshalBinaryLengthPrefixed
+* [stake] MarshalJSON -> MarshalLengthPrefixed
 * Queries against the store must be prefixed with the path "/store"
 
 FEATURES

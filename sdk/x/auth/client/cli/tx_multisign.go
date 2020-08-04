@@ -112,7 +112,7 @@ func makeMultiSignCmd() func(cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		newStdSig := types.StdSignature{Signature: amino.MustMarshalBinaryBare(multisigSig), PubKey: multisigPub}
+		newStdSig := types.StdSignature{Signature: amino.MustMarshal(multisigSig), PubKey: multisigPub}
 		newTx := types.NewStdTx(stdTx.GetMsgs(), stdTx.Fee, []types.StdSignature{newStdSig}, stdTx.GetMemo())
 
 		sigOnly := viper.GetBool(flagSigOnly)

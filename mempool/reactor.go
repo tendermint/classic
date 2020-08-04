@@ -232,7 +232,7 @@ func (memR *Reactor) broadcastTxRoutine(peer p2p.Peer) {
 		if _, ok := memTx.senders.Load(peerID); !ok {
 			// send memTx
 			msg := &TxMessage{Tx: memTx.tx}
-			success := peer.Send(MempoolChannel, cdc.MustMarshalBinaryBare(msg))
+			success := peer.Send(MempoolChannel, cdc.MustMarshal(msg))
 			if !success {
 				time.Sleep(peerCatchupSleepIntervalMS * time.Millisecond)
 				continue
@@ -267,7 +267,7 @@ func (memR *Reactor) decodeMsg(bz []byte) (msg MempoolMessage, err error) {
 	if l := len(bz); l > maxMsgSize {
 		return msg, ErrTxTooLarge{maxMsgSize, l}
 	}
-	err = cdc.UnmarshalBinaryBare(bz, &msg)
+	err = cdc.Unmarshal(bz, &msg)
 	return
 }
 

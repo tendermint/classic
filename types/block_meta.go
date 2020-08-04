@@ -25,7 +25,7 @@ func (bm *BlockMeta) Size() int {
 
 // Marshal returns the amino encoding.
 func (bm *BlockMeta) Marshal() ([]byte, error) {
-	return cdc.MarshalBinaryBare(bm)
+	return cdc.Marshal(bm)
 }
 
 // MarshalTo calls Marshal and copies to the given buffer.
@@ -39,5 +39,5 @@ func (bm *BlockMeta) MarshalTo(data []byte) (int, error) {
 
 // Unmarshal deserializes from amino encoded form.
 func (bm *BlockMeta) Unmarshal(bs []byte) error {
-	return cdc.UnmarshalBinaryBare(bs, bm)
+	return cdc.Unmarshal(bs, bm)
 }

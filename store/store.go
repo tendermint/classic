@@ -64,7 +64,7 @@ func (bs *BlockStore) LoadBlock(height int64) *types.Block {
 		part := bs.LoadBlockPart(height, i)
 		buf = append(buf, part.Bytes...)
 	}
-	err := cdc.UnmarshalBinaryLengthPrefixed(buf, block)
+	err := cdc.UnmarshalLengthPrefixed(buf, block)
 	if err != nil {
 		// NOTE: The existence of meta should imply the existence of the
 		// block. So, make sure meta is only saved after blocks are saved.
@@ -82,7 +82,7 @@ func (bs *BlockStore) LoadBlockPart(height int64, index int) *types.Part {
 	if len(bz) == 0 {
 		return nil
 	}
-	err := cdc.UnmarshalBinaryBare(bz, part)
+	err := cdc.Unmarshal(bz, part)
 	if err != nil {
 		panic(errors.Wrap(err, "Error reading block part"))
 	}
@@ -97,7 +97,7 @@ func (bs *BlockStore) LoadBlockMeta(height int64) *types.BlockMeta {
 	if len(bz) == 0 {
 		return nil
 	}
-	err := cdc.UnmarshalBinaryBare(bz, blockMeta)
+	err := cdc.Unmarshal(bz, blockMeta)
 	if err != nil {
 		panic(errors.Wrap(err, "Error reading block meta"))
 	}
@@ -114,7 +114,7 @@ func (bs *BlockStore) LoadBlockCommit(height int64) *types.Commit {
 	if len(bz) == 0 {
 		return nil
 	}
-	err := cdc.UnmarshalBinaryBare(bz, commit)
+	err := cdc.Unmarshal(bz, commit)
 	if err != nil {
 		panic(errors.Wrap(err, "Error reading block commit"))
 	}
@@ -130,7 +130,7 @@ func (bs *BlockStore) LoadSeenCommit(height int64) *types.Commit {
 	if len(bz) == 0 {
 		return nil
 	}
-	err := cdc.UnmarshalBinaryBare(bz, commit)
+	err := cdc.Unmarshal(bz, commit)
 	if err != nil {
 		panic(errors.Wrap(err, "Error reading block seen commit"))
 	}
@@ -157,7 +157,7 @@ func (bs *BlockStore) SaveBlock(block *types.Block, blockParts *types.PartSet, s
 
 	// Save block meta
 	blockMeta := types.NewBlockMeta(block, blockParts)
-	metaBytes := cdc.MustMarshalBinaryBare(blockMeta)
+	metaBytes := cdc.MustMarshal(blockMeta)
 	bs.db.Set(calcBlockMetaKey(height), metaBytes)
 
 	// Save block parts
@@ -167,12 +167,12 @@ func (bs *BlockStore) SaveBlock(block *types.Block, blockParts *types.PartSet, s
 	}
 
 	// Save block commit (duplicate and separate from the Block)
-	blockCommitBytes := cdc.MustMarshalBinaryBare(block.LastCommit)
+	blockCommitBytes := cdc.MustMarshal(block.LastCommit)
 	bs.db.Set(calcBlockCommitKey(height-1), blockCommitBytes)
 
 	// Save seen commit (seen +2/3 precommits for block)
 	// NOTE: we can delete this at a later height
-	seenCommitBytes := cdc.MustMarshalBinaryBare(seenCommit)
+	seenCommitBytes := cdc.MustMarshal(seenCommit)
 	bs.db.Set(calcSeenCommitKey(height), seenCommitBytes)
 
 	// Save new BlockStoreStateJSON descriptor
@@ -191,7 +191,7 @@ func (bs *BlockStore) saveBlockPart(height int64, index int, part *types.Part) {
 	if height != bs.Height()+1 {
 		panic(fmt.Sprintf("BlockStore can only save contiguous blocks. Wanted %v, got %v", bs.Height()+1, height))
 	}
-	partBytes := cdc.MustMarshalBinaryBare(part)
+	partBytes := cdc.MustMarshal(part)
 	bs.db.Set(calcBlockPartKey(height, index), partBytes)
 }
 

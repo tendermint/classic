@@ -128,11 +128,11 @@ func TestPEXReactorReceive(t *testing.T) {
 
 	size := book.Size()
 	addrs := []*p2p.NetAddress{peer.SocketAddr()}
-	msg := cdc.MustMarshalBinaryBare(&pexAddrsMessage{Addrs: addrs})
+	msg := cdc.MustMarshal(&pexAddrsMessage{Addrs: addrs})
 	r.Receive(PexChannel, peer, msg)
 	assert.Equal(t, size+1, book.Size())
 
-	msg = cdc.MustMarshalBinaryBare(&pexRequestMessage{})
+	msg = cdc.MustMarshal(&pexRequestMessage{})
 	r.Receive(PexChannel, peer, msg) // should not panic.
 }
 
@@ -148,7 +148,7 @@ func TestPEXReactorRequestMessageAbuse(t *testing.T) {
 	assert.True(t, sw.Peers().Has(peer.ID()))
 
 	id := string(peer.ID())
-	msg := cdc.MustMarshalBinaryBare(&pexRequestMessage{})
+	msg := cdc.MustMarshal(&pexRequestMessage{})
 
 	// first time creates the entry
 	r.Receive(PexChannel, peer, msg)
@@ -185,7 +185,7 @@ func TestPEXReactorAddrsMessageAbuse(t *testing.T) {
 	assert.True(t, sw.Peers().Has(peer.ID()))
 
 	addrs := []*p2p.NetAddress{peer.SocketAddr()}
-	msg := cdc.MustMarshalBinaryBare(&pexAddrsMessage{Addrs: addrs})
+	msg := cdc.MustMarshal(&pexAddrsMessage{Addrs: addrs})
 
 	// receive some addrs. should clear the request
 	r.Receive(PexChannel, peer, msg)
@@ -477,7 +477,7 @@ func TestPEXReactorDoesNotAddPrivatePeersToAddrBook(t *testing.T) {
 
 	size := book.Size()
 	addrs := []*p2p.NetAddress{peer.SocketAddr()}
-	msg := cdc.MustMarshalBinaryBare(&pexAddrsMessage{Addrs: addrs})
+	msg := cdc.MustMarshal(&pexAddrsMessage{Addrs: addrs})
 	pexR.Receive(PexChannel, peer, msg)
 	assert.Equal(t, size, book.Size())
 

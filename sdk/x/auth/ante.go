@@ -242,7 +242,7 @@ func consumeSimSigGas(gasmeter sdk.GasMeter, pubkey crypto.PubKey, sig StdSignat
 		simSig.Signature = simSecp256k1Sig[:]
 	}
 
-	sigBz := ModuleCdc.MustMarshalBinaryLengthPrefixed(simSig)
+	sigBz := ModuleCdc.MustMarshalLengthPrefixed(simSig)
 	cost := sdk.Gas(len(sigBz) + 6)
 
 	// If the pubkey is a multi-signature pubkey, then we estimate for the maximum
@@ -304,7 +304,7 @@ func DefaultSigVerificationGasConsumer(
 
 	case multisig.PubKeyMultisigThreshold:
 		var multisignature multisig.Multisignature
-		amino.MustUnmarshalBinaryBare(sig, &multisignature)
+		amino.MustUnmarshal(sig, &multisignature)
 
 		consumeMultisignatureVerificationGas(meter, multisignature, pubkey, params)
 		return sdk.Result{}

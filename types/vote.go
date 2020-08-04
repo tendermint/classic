@@ -71,7 +71,7 @@ func (vote *Vote) CommitSig() *CommitSig {
 }
 
 func (vote *Vote) SignBytes(chainID string) []byte {
-	bz, err := cdc.MarshalBinaryLengthPrefixed(CanonicalizeVote(chainID, vote))
+	bz, err := cdc.MarshalLengthPrefixed(CanonicalizeVote(chainID, vote))
 	if err != nil {
 		panic(err)
 	}

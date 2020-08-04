@@ -204,7 +204,7 @@ func DefaultTxDecoder() sdk.TxDecoder {
 
 		// StdTx.Msg is an interface. The concrete types
 		// are registered by MakeTxCodec
-		err := amino.UnmarshalBinaryLengthPrefixed(txBytes, &tx)
+		err := amino.UnmarshalLengthPrefixed(txBytes, &tx)
 		if err != nil {
 			return nil, sdk.ErrTxDecode("error decoding transaction").TraceSDK(err.Error())
 		}
@@ -216,7 +216,7 @@ func DefaultTxDecoder() sdk.TxDecoder {
 // DefaultTxEncoder logic for standard transaction encoding
 func DefaultTxEncoder() sdk.TxEncoder {
 	return func(tx sdk.Tx) ([]byte, error) {
-		return amino.MarshalBinaryLengthPrefixed(tx)
+		return amino.MarshalLengthPrefixed(tx)
 	}
 }
 

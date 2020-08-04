@@ -38,13 +38,13 @@ func TestGetSimulationLog(t *testing.T) {
 		store  string
 		kvPair cmn.KVPair
 	}{
-		{auth.StoreKey, cmn.KVPair{Key: auth.AddressStoreKey(delAddr1), Value: amino.MustMarshalBinaryBare(auth.BaseAccount{})}},
-		{mint.StoreKey, cmn.KVPair{Key: mint.MinterKey, Value: amino.MustMarshalBinaryLengthPrefixed(mint.Minter{})}},
+		{auth.StoreKey, cmn.KVPair{Key: auth.AddressStoreKey(delAddr1), Value: amino.MustMarshal(auth.BaseAccount{})}},
+		{mint.StoreKey, cmn.KVPair{Key: mint.MinterKey, Value: amino.MustMarshalLengthPrefixed(mint.Minter{})}},
 		{staking.StoreKey, cmn.KVPair{Key: staking.LastValidatorPowerKey, Value: valAddr1.Bytes()}},
-		{gov.StoreKey, cmn.KVPair{Key: gov.VoteKey(1, delAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(gov.Vote{})}},
+		{gov.StoreKey, cmn.KVPair{Key: gov.VoteKey(1, delAddr1), Value: amino.MustMarshalLengthPrefixed(gov.Vote{})}},
 		{distribution.StoreKey, cmn.KVPair{Key: distr.ProposerKey, Value: consAddr1.Bytes()}},
-		{slashing.StoreKey, cmn.KVPair{Key: slashing.GetValidatorMissedBlockBitArrayKey(consAddr1, 6), Value: amino.MustMarshalBinaryLengthPrefixed(true)}},
-		{supply.StoreKey, cmn.KVPair{Key: supply.SupplyKey, Value: amino.MustMarshalBinaryLengthPrefixed(supply.NewSupply(sdk.Coins{}))}},
+		{slashing.StoreKey, cmn.KVPair{Key: slashing.GetValidatorMissedBlockBitArrayKey(consAddr1, 6), Value: amino.MustMarshalLengthPrefixed(true)}},
+		{supply.StoreKey, cmn.KVPair{Key: supply.SupplyKey, Value: amino.MustMarshalLengthPrefixed(supply.NewSupply(sdk.Coins{}))}},
 		{"Empty", cmn.KVPair{}},
 		{"OtherStore", cmn.KVPair{Key: []byte("key"), Value: []byte("value")}},
 	}
@@ -61,8 +61,8 @@ func TestDecodeAccountStore(t *testing.T) {
 	globalAccNumber := uint64(10)
 
 	kvPairs := cmn.KVPairs{
-		cmn.KVPair{Key: auth.AddressStoreKey(delAddr1), Value: amino.MustMarshalBinaryBare(acc)},
-		cmn.KVPair{Key: auth.GlobalAccountNumberKey, Value: amino.MustMarshalBinaryLengthPrefixed(globalAccNumber)},
+		cmn.KVPair{Key: auth.AddressStoreKey(delAddr1), Value: amino.MustMarshal(acc)},
+		cmn.KVPair{Key: auth.GlobalAccountNumberKey, Value: amino.MustMarshalLengthPrefixed(globalAccNumber)},
 		cmn.KVPair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 	tests := []struct {
@@ -90,7 +90,7 @@ func TestDecodeMintStore(t *testing.T) {
 	minter := mint.NewMinter(sdk.OneDec(), sdk.NewDec(15))
 
 	kvPairs := cmn.KVPairs{
-		cmn.KVPair{Key: mint.MinterKey, Value: amino.MustMarshalBinaryLengthPrefixed(minter)},
+		cmn.KVPair{Key: mint.MinterKey, Value: amino.MustMarshalLengthPrefixed(minter)},
 		cmn.KVPair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 	tests := []struct {
@@ -126,15 +126,15 @@ func TestDecodeDistributionStore(t *testing.T) {
 	slashEvent := distr.NewValidatorSlashEvent(10, sdk.OneDec())
 
 	kvPairs := cmn.KVPairs{
-		cmn.KVPair{Key: distr.FeePoolKey, Value: amino.MustMarshalBinaryLengthPrefixed(feePool)},
+		cmn.KVPair{Key: distr.FeePoolKey, Value: amino.MustMarshalLengthPrefixed(feePool)},
 		cmn.KVPair{Key: distr.ProposerKey, Value: consAddr1.Bytes()},
-		cmn.KVPair{Key: distr.GetValidatorOutstandingRewardsKey(valAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(outstanding)},
+		cmn.KVPair{Key: distr.GetValidatorOutstandingRewardsKey(valAddr1), Value: amino.MustMarshalLengthPrefixed(outstanding)},
 		cmn.KVPair{Key: distr.GetDelegatorWithdrawAddrKey(delAddr1), Value: delAddr1.Bytes()},
-		cmn.KVPair{Key: distr.GetDelegatorStartingInfoKey(valAddr1, delAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(info)},
-		cmn.KVPair{Key: distr.GetValidatorHistoricalRewardsKey(valAddr1, 100), Value: amino.MustMarshalBinaryLengthPrefixed(historicalRewards)},
-		cmn.KVPair{Key: distr.GetValidatorCurrentRewardsKey(valAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(currentRewards)},
-		cmn.KVPair{Key: distr.GetValidatorAccumulatedCommissionKey(valAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(commission)},
-		cmn.KVPair{Key: distr.GetValidatorSlashEventKeyPrefix(valAddr1, 13), Value: amino.MustMarshalBinaryLengthPrefixed(slashEvent)},
+		cmn.KVPair{Key: distr.GetDelegatorStartingInfoKey(valAddr1, delAddr1), Value: amino.MustMarshalLengthPrefixed(info)},
+		cmn.KVPair{Key: distr.GetValidatorHistoricalRewardsKey(valAddr1, 100), Value: amino.MustMarshalLengthPrefixed(historicalRewards)},
+		cmn.KVPair{Key: distr.GetValidatorCurrentRewardsKey(valAddr1), Value: amino.MustMarshalLengthPrefixed(currentRewards)},
+		cmn.KVPair{Key: distr.GetValidatorAccumulatedCommissionKey(valAddr1), Value: amino.MustMarshalLengthPrefixed(commission)},
+		cmn.KVPair{Key: distr.GetValidatorSlashEventKeyPrefix(valAddr1, 13), Value: amino.MustMarshalLengthPrefixed(slashEvent)},
 		cmn.KVPair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 
@@ -175,12 +175,12 @@ func TestDecodeStakingStore(t *testing.T) {
 	red := staking.NewRedelegation(delAddr1, valAddr1, valAddr1, 12, bondTime, sdk.OneInt(), sdk.OneDec())
 
 	kvPairs := cmn.KVPairs{
-		cmn.KVPair{Key: staking.LastTotalPowerKey, Value: amino.MustMarshalBinaryLengthPrefixed(sdk.OneInt())},
-		cmn.KVPair{Key: staking.GetValidatorKey(valAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(val)},
+		cmn.KVPair{Key: staking.LastTotalPowerKey, Value: amino.MustMarshalLengthPrefixed(sdk.OneInt())},
+		cmn.KVPair{Key: staking.GetValidatorKey(valAddr1), Value: amino.MustMarshalLengthPrefixed(val)},
 		cmn.KVPair{Key: staking.LastValidatorPowerKey, Value: valAddr1.Bytes()},
-		cmn.KVPair{Key: staking.GetDelegationKey(delAddr1, valAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(del)},
-		cmn.KVPair{Key: staking.GetUBDKey(delAddr1, valAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(ubd)},
-		cmn.KVPair{Key: staking.GetREDKey(delAddr1, valAddr1, valAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(red)},
+		cmn.KVPair{Key: staking.GetDelegationKey(delAddr1, valAddr1), Value: amino.MustMarshalLengthPrefixed(del)},
+		cmn.KVPair{Key: staking.GetUBDKey(delAddr1, valAddr1), Value: amino.MustMarshalLengthPrefixed(ubd)},
+		cmn.KVPair{Key: staking.GetREDKey(delAddr1, valAddr1, valAddr1), Value: amino.MustMarshalLengthPrefixed(red)},
 		cmn.KVPair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 
@@ -215,9 +215,9 @@ func TestDecodeSlashingStore(t *testing.T) {
 	missed := true
 
 	kvPairs := cmn.KVPairs{
-		cmn.KVPair{Key: slashing.GetValidatorSigningInfoKey(consAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(info)},
-		cmn.KVPair{Key: slashing.GetValidatorMissedBlockBitArrayKey(consAddr1, 6), Value: amino.MustMarshalBinaryLengthPrefixed(missed)},
-		cmn.KVPair{Key: slashing.GetAddrPubkeyRelationKey(delAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(delPk1)},
+		cmn.KVPair{Key: slashing.GetValidatorSigningInfoKey(consAddr1), Value: amino.MustMarshalLengthPrefixed(info)},
+		cmn.KVPair{Key: slashing.GetValidatorMissedBlockBitArrayKey(consAddr1, 6), Value: amino.MustMarshalLengthPrefixed(missed)},
+		cmn.KVPair{Key: slashing.GetAddrPubkeyRelationKey(delAddr1), Value: amino.MustMarshalLengthPrefixed(delPk1)},
 		cmn.KVPair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 
@@ -254,10 +254,10 @@ func TestDecodeGovStore(t *testing.T) {
 	vote := gov.NewVote(1, delAddr1, gov.OptionYes)
 
 	kvPairs := cmn.KVPairs{
-		cmn.KVPair{Key: gov.ProposalKey(1), Value: amino.MustMarshalBinaryLengthPrefixed(proposal)},
+		cmn.KVPair{Key: gov.ProposalKey(1), Value: amino.MustMarshalLengthPrefixed(proposal)},
 		cmn.KVPair{Key: gov.InactiveProposalQueueKey(1, endTime), Value: proposalIDBz},
-		cmn.KVPair{Key: gov.DepositKey(1, delAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(deposit)},
-		cmn.KVPair{Key: gov.VoteKey(1, delAddr1), Value: amino.MustMarshalBinaryLengthPrefixed(vote)},
+		cmn.KVPair{Key: gov.DepositKey(1, delAddr1), Value: amino.MustMarshalLengthPrefixed(deposit)},
+		cmn.KVPair{Key: gov.VoteKey(1, delAddr1), Value: amino.MustMarshalLengthPrefixed(vote)},
 		cmn.KVPair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 
@@ -289,7 +289,7 @@ func TestDecodeSupplyStore(t *testing.T) {
 	totalSupply := supply.NewSupply(sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 1000)))
 
 	kvPairs := cmn.KVPairs{
-		cmn.KVPair{Key: supply.SupplyKey, Value: amino.MustMarshalBinaryLengthPrefixed(totalSupply)},
+		cmn.KVPair{Key: supply.SupplyKey, Value: amino.MustMarshalLengthPrefixed(totalSupply)},
 		cmn.KVPair{Key: []byte{0x99}, Value: []byte{0x99}},
 	}
 

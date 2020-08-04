@@ -198,7 +198,7 @@ func (b *Block) MakePartSet(partSize int) *PartSet {
 
 	// We prefix the byte length, so that unmarshaling
 	// can easily happen via a reader.
-	bz, err := cdc.MarshalBinaryLengthPrefixed(b)
+	bz, err := cdc.MarshalLengthPrefixed(b)
 	if err != nil {
 		panic(err)
 	}
@@ -219,7 +219,7 @@ func (b *Block) HashesTo(hash []byte) bool {
 
 // Size returns size of the block in bytes.
 func (b *Block) Size() int {
-	bz, err := cdc.MarshalBinaryBare(b)
+	bz, err := cdc.Marshal(b)
 	if err != nil {
 		return 0
 	}
@@ -262,7 +262,7 @@ func (b *Block) StringShort() string {
 
 // Marshal returns the amino encoding.
 func (b *Block) Marshal() ([]byte, error) {
-	return cdc.MarshalBinaryBare(b)
+	return cdc.Marshal(b)
 }
 
 // MarshalTo calls Marshal and copies to the given buffer.
@@ -276,7 +276,7 @@ func (b *Block) MarshalTo(data []byte) (int, error) {
 
 // Unmarshal deserializes from amino encoded form.
 func (b *Block) Unmarshal(bs []byte) error {
-	return cdc.UnmarshalBinaryBare(bs, b)
+	return cdc.Unmarshal(bs, b)
 }
 
 //-----------------------------------------------------------------------------
@@ -867,7 +867,7 @@ func (blockID BlockID) Equals(other BlockID) bool {
 
 // Key returns a machine-readable string representation of the BlockID
 func (blockID BlockID) Key() string {
-	bz, err := cdc.MarshalBinaryBare(blockID.PartsHeader)
+	bz, err := cdc.Marshal(blockID.PartsHeader)
 	if err != nil {
 		panic(err)
 	}

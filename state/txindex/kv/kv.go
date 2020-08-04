@@ -68,7 +68,7 @@ func (txi *TxIndex) Get(hash []byte) (*types.TxResult, error) {
 	}
 
 	txResult := new(types.TxResult)
-	err := cdc.UnmarshalBinaryBare(rawBytes, &txResult)
+	err := cdc.Unmarshal(rawBytes, &txResult)
 	if err != nil {
 		return nil, fmt.Errorf("Error reading TxResult: %v", err)
 	}
@@ -96,7 +96,7 @@ func (txi *TxIndex) AddBatch(b *txindex.Batch) error {
 		}
 
 		// index tx by hash
-		rawBytes, err := cdc.MarshalBinaryBare(result)
+		rawBytes, err := cdc.Marshal(result)
 		if err != nil {
 			return err
 		}
@@ -126,7 +126,7 @@ func (txi *TxIndex) Index(result *types.TxResult) error {
 	}
 
 	// index tx by hash
-	rawBytes, err := cdc.MarshalBinaryBare(result)
+	rawBytes, err := cdc.Marshal(result)
 	if err != nil {
 		return err
 	}

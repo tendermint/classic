@@ -130,7 +130,7 @@ type TxResult struct {
 // the field number of the parenting struct that contains the transactions []Tx
 // as a field (this field number is repeated for each contained Tx).
 // If some []Tx are encoded directly (without a parenting struct), the default
-// fieldNum is also 1 (see BinFieldNum in amino.MarshalBinaryBare).
+// fieldNum is also 1 (see BinFieldNum in amino.Marshal).
 func ComputeAminoOverhead(tx Tx, fieldNum int) int64 {
 	fnum := uint64(fieldNum)
 	typ3AndFieldNum := (fnum << 3) | uint64(amino.Typ3_ByteLength)

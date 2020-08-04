@@ -140,7 +140,7 @@ func (bcR *BlockchainReactor) GetChannels() []*p2p.ChannelDescriptor {
 
 // AddPeer implements Reactor by sending our state to peer.
 func (bcR *BlockchainReactor) AddPeer(peer p2p.Peer) {
-	msgBytes := amino.MustMarshalBinaryBare(&bcStatusResponseMessage{bcR.store.Height()})
+	msgBytes := amino.MustMarshal(&bcStatusResponseMessage{bcR.store.Height()})
 	peer.Send(BlockchainChannel, msgBytes)
 	// it's OK if send fails. will try later in poolRoutine
 
@@ -162,13 +162,13 @@ func (bcR *BlockchainReactor) respondToPeer(msg *bcBlockRequestMessage,
 
 	block := bcR.store.LoadBlock(msg.Height)
 	if block != nil {
-		msgBytes := amino.MustMarshalBinaryBare(&bcBlockResponseMessage{Block: block})
+		msgBytes := amino.MustMarshal(&bcBlockResponseMessage{Block: block})
 		return src.TrySend(BlockchainChannel, msgBytes)
 	}
 
 	bcR.Logger.Info("Peer asking for a block we don't have", "src", src, "height", msg.Height)
 
-	msgBytes := amino.MustMarshalBinaryBare(&bcNoBlockResponseMessage{Height: msg.Height})
+	msgBytes := amino.MustMarshal(&bcNoBlockResponseMessage{Height: msg.Height})
 	return src.TrySend(BlockchainChannel, msgBytes)
 }
 
@@ -196,7 +196,7 @@ func (bcR *BlockchainReactor) Receive(chID byte, src p2p.Peer, msgBytes []byte) 
 		bcR.pool.AddBlock(src.ID(), msg.Block, len(msgBytes))
 	case *bcStatusRequestMessage:
 		// Send peer our state.
-		msgBytes := amino.MustMarshalBinaryBare(&bcStatusResponseMessage{bcR.store.Height()})
+		msgBytes := amino.MustMarshal(&bcStatusResponseMessage{bcR.store.Height()})
 		src.TrySend(BlockchainChannel, msgBytes)
 	case *bcStatusResponseMessage:
 		// Got a peer status. Unverified.
@@ -236,7 +236,7 @@ func (bcR *BlockchainReactor) poolRoutine() {
 				if peer == nil {
 					continue
 				}
-				msgBytes := amino.MustMarshalBinaryBare(&bcBlockRequestMessage{request.Height})
+				msgBytes := amino.MustMarshal(&bcBlockRequestMessage{request.Height})
 				queued := peer.TrySend(BlockchainChannel, msgBytes)
 				if !queued {
 					bcR.Logger.Debug("Send queue is full, drop block request", "peer", peer.ID(), "height", request.Height)
@@ -362,7 +362,7 @@ FOR_LOOP:
 
 // BroadcastStatusRequest broadcasts `BlockStore` height.
 func (bcR *BlockchainReactor) BroadcastStatusRequest() error {
-	msgBytes := amino.MustMarshalBinaryBare(&bcStatusRequestMessage{bcR.store.Height()})
+	msgBytes := amino.MustMarshal(&bcStatusRequestMessage{bcR.store.Height()})
 	bcR.Switch.Broadcast(BlockchainChannel, msgBytes)
 	return nil
 }
@@ -379,7 +379,7 @@ func decodeMsg(bz []byte) (msg BlockchainMessage, err error) {
 	if len(bz) > maxMsgSize {
 		return msg, fmt.Errorf("Msg exceeds max size (%d > %d)", len(bz), maxMsgSize)
 	}
-	err = amino.UnmarshalBinaryBare(bz, &msg)
+	err = amino.Unmarshal(bz, &msg)
 	return
 }
 

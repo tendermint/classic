@@ -528,13 +528,13 @@ func DecodeAccountStore(kvA, kvB cmn.KVPair) string {
 	switch {
 	case bytes.Equal(kvA.Key[:1], auth.AddressStoreKeyPrefix):
 		var accA, accB auth.Account
-		amino.MustUnmarshalBinaryBare(kvA.Value, &accA)
-		amino.MustUnmarshalBinaryBare(kvB.Value, &accB)
+		amino.MustUnmarshal(kvA.Value, &accA)
+		amino.MustUnmarshal(kvB.Value, &accB)
 		return fmt.Sprintf("%v\n%v", accA, accB)
 	case bytes.Equal(kvA.Key, auth.GlobalAccountNumberKey):
 		var globalAccNumberA, globalAccNumberB uint64
-		amino.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &globalAccNumberA)
-		amino.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &globalAccNumberB)
+		amino.MustUnmarshalLengthPrefixed(kvA.Value, &globalAccNumberA)
+		amino.MustUnmarshalLengthPrefixed(kvB.Value, &globalAccNumberB)
 		return fmt.Sprintf("GlobalAccNumberA: %d\nGlobalAccNumberB: %d", globalAccNumberA, globalAccNumberB)
 	default:
 		panic(fmt.Sprintf("invalid account key %X", kvA.Key))
@@ -546,8 +546,8 @@ func DecodeMintStore(kvA, kvB cmn.KVPair) string {
 	switch {
 	case bytes.Equal(kvA.Key, mint.MinterKey):
 		var minterA, minterB mint.Minter
-		amino.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &minterA)
-		amino.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &minterB)
+		amino.MustUnmarshalLengthPrefixed(kvA.Value, &minterA)
+		amino.MustUnmarshalLengthPrefixed(kvB.Value, &minterB)
 		return fmt.Sprintf("%v\n%v", minterA, minterB)
 	default:
 		panic(fmt.Sprintf("invalid mint key %X", kvA.Key))
@@ -559,8 +559,8 @@ func DecodeDistributionStore(kvA, kvB cmn.KVPair) string {
 	switch {
 	case bytes.Equal(kvA.Key[:1], distribution.FeePoolKey):
 		var feePoolA, feePoolB distribution.FeePool
-		amino.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &feePoolA)
-		amino.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &feePoolB)
+		amino.MustUnmarshalLengthPrefixed(kvA.Value, &feePoolA)
+		amino.MustUnmarshalLengthPrefixed(kvB.Value, &feePoolB)
 		return fmt.Sprintf("%v\n%v", feePoolA, feePoolB)
 
 	case bytes.Equal(kvA.Key[:1], distribution.ProposerKey):
@@ -568,8 +568,8 @@ func DecodeDistributionStore(kvA, kvB cmn.KVPair) string {
 
 	case bytes.Equal(kvA.Key[:1], distribution.ValidatorOutstandingRewardsPrefix):
 		var rewardsA, rewardsB distribution.ValidatorOutstandingRewards
-		amino.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &rewardsA)
-		amino.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &rewardsB)
+		amino.MustUnmarshalLengthPrefixed(kvA.Value, &rewardsA)
+		amino.MustUnmarshalLengthPrefixed(kvB.Value, &rewardsB)
 		return fmt.Sprintf("%v\n%v", rewardsA, rewardsB)
 
 	case bytes.Equal(kvA.Key[:1], distribution.DelegatorWithdrawAddrPrefix):
@@ -577,32 +577,32 @@ func DecodeDistributionStore(kvA, kvB cmn.KVPair) string {
 
 	case bytes.Equal(kvA.Key[:1], distribution.DelegatorStartingInfoPrefix):
 		var infoA, infoB distribution.DelegatorStartingInfo
-		amino.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &infoA)
-		amino.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &infoB)
+		amino.MustUnmarshalLengthPrefixed(kvA.Value, &infoA)
+		amino.MustUnmarshalLengthPrefixed(kvB.Value, &infoB)
 		return fmt.Sprintf("%v\n%v", infoA, infoB)
 
 	case bytes.Equal(kvA.Key[:1], distribution.ValidatorHistoricalRewardsPrefix):
 		var rewardsA, rewardsB distribution.ValidatorHistoricalRewards
-		amino.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &rewardsA)
-		amino.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &rewardsB)
+		amino.MustUnmarshalLengthPrefixed(kvA.Value, &rewardsA)
+		amino.MustUnmarshalLengthPrefixed(kvB.Value, &rewardsB)
 		return fmt.Sprintf("%v\n%v", rewardsA, rewardsB)
 
 	case bytes.Equal(kvA.Key[:1], distribution.ValidatorCurrentRewardsPrefix):
 		var rewardsA, rewardsB distribution.ValidatorCurrentRewards
-		amino.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &rewardsA)
-		amino.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &rewardsB)
+		amino.MustUnmarshalLengthPrefixed(kvA.Value, &rewardsA)
+		amino.MustUnmarshalLengthPrefixed(kvB.Value, &rewardsB)
 		return fmt.Sprintf("%v\n%v", rewardsA, rewardsB)
 
 	case bytes.Equal(kvA.Key[:1], distribution.ValidatorAccumulatedCommissionPrefix):
 		var commissionA, commissionB distribution.ValidatorAccumulatedCommission
-		amino.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &commissionA)
-		amino.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &commissionB)
+		amino.MustUnmarshalLengthPrefixed(kvA.Value, &commissionA)
+		amino.MustUnmarshalLengthPrefixed(kvB.Value, &commissionB)
 		return fmt.Sprintf("%v\n%v", commissionA, commissionB)
 
 	case bytes.Equal(kvA.Key[:1], distribution.ValidatorSlashEventPrefix):
 		var eventA, eventB distribution.ValidatorSlashEvent
-		amino.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &eventA)
-		amino.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &eventB)
+		amino.MustUnmarshalLengthPrefixed(kvA.Value, &eventA)
+		amino.MustUnmarshalLengthPrefixed(kvB.Value, &eventB)
 		return fmt.Sprintf("%v\n%v", eventA, eventB)
 
 	default:
@@ -615,14 +615,14 @@ func DecodeStakingStore(kvA, kvB cmn.KVPair) string {
 	switch {
 	case bytes.Equal(kvA.Key[:1], staking.LastTotalPowerKey):
 		var powerA, powerB sdk.Int
-		amino.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &powerA)
-		amino.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &powerB)
+		amino.MustUnmarshalLengthPrefixed(kvA.Value, &powerA)
+		amino.MustUnmarshalLengthPrefixed(kvB.Value, &powerB)
 		return fmt.Sprintf("%v\n%v", powerA, powerB)
 
 	case bytes.Equal(kvA.Key[:1], staking.ValidatorsKey):
 		var validatorA, validatorB staking.Validator
-		amino.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &validatorA)
-		amino.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &validatorB)
+		amino.MustUnmarshalLengthPrefixed(kvA.Value, &validatorA)
+		amino.MustUnmarshalLengthPrefixed(kvB.Value, &validatorB)
 		return fmt.Sprintf("%v\n%v", validatorA, validatorB)
 
 	case bytes.Equal(kvA.Key[:1], staking.LastValidatorPowerKey),
@@ -632,22 +632,22 @@ func DecodeStakingStore(kvA, kvB cmn.KVPair) string {
 
 	case bytes.Equal(kvA.Key[:1], staking.DelegationKey):
 		var delegationA, delegationB staking.Delegation
-		amino.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &delegationA)
-		amino.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &delegationB)
+		amino.MustUnmarshalLengthPrefixed(kvA.Value, &delegationA)
+		amino.MustUnmarshalLengthPrefixed(kvB.Value, &delegationB)
 		return fmt.Sprintf("%v\n%v", delegationA, delegationB)
 
 	case bytes.Equal(kvA.Key[:1], staking.UnbondingDelegationKey),
 		bytes.Equal(kvA.Key[:1], staking.UnbondingDelegationByValIndexKey):
 		var ubdA, ubdB staking.UnbondingDelegation
-		amino.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &ubdA)
-		amino.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &ubdB)
+		amino.MustUnmarshalLengthPrefixed(kvA.Value, &ubdA)
+		amino.MustUnmarshalLengthPrefixed(kvB.Value, &ubdB)
 		return fmt.Sprintf("%v\n%v", ubdA, ubdB)
 
 	case bytes.Equal(kvA.Key[:1], staking.RedelegationKey),
 		bytes.Equal(kvA.Key[:1], staking.RedelegationByValSrcIndexKey):
 		var redA, redB staking.Redelegation
-		amino.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &redA)
-		amino.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &redB)
+		amino.MustUnmarshalLengthPrefixed(kvA.Value, &redA)
+		amino.MustUnmarshalLengthPrefixed(kvB.Value, &redB)
 		return fmt.Sprintf("%v\n%v", redA, redB)
 
 	default:
@@ -660,20 +660,20 @@ func DecodeSlashingStore(kvA, kvB cmn.KVPair) string {
 	switch {
 	case bytes.Equal(kvA.Key[:1], slashing.ValidatorSigningInfoKey):
 		var infoA, infoB slashing.ValidatorSigningInfo
-		amino.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &infoA)
-		amino.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &infoB)
+		amino.MustUnmarshalLengthPrefixed(kvA.Value, &infoA)
+		amino.MustUnmarshalLengthPrefixed(kvB.Value, &infoB)
 		return fmt.Sprintf("%v\n%v", infoA, infoB)
 
 	case bytes.Equal(kvA.Key[:1], slashing.ValidatorMissedBlockBitArrayKey):
 		var missedA, missedB bool
-		amino.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &missedA)
-		amino.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &missedB)
+		amino.MustUnmarshalLengthPrefixed(kvA.Value, &missedA)
+		amino.MustUnmarshalLengthPrefixed(kvB.Value, &missedB)
 		return fmt.Sprintf("missedA: %v\nmissedB: %v", missedA, missedB)
 
 	case bytes.Equal(kvA.Key[:1], slashing.AddrPubkeyRelationKey):
 		var pubKeyA, pubKeyB crypto.PubKey
-		amino.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &pubKeyA)
-		amino.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &pubKeyB)
+		amino.MustUnmarshalLengthPrefixed(kvA.Value, &pubKeyA)
+		amino.MustUnmarshalLengthPrefixed(kvB.Value, &pubKeyB)
 		bechPKA := sdk.MustBech32ifyAccPub(pubKeyA)
 		bechPKB := sdk.MustBech32ifyAccPub(pubKeyB)
 		return fmt.Sprintf("PubKeyA: %s\nPubKeyB: %s", bechPKA, bechPKB)
@@ -688,8 +688,8 @@ func DecodeGovStore(kvA, kvB cmn.KVPair) string {
 	switch {
 	case bytes.Equal(kvA.Key[:1], gov.ProposalsKeyPrefix):
 		var proposalA, proposalB gov.Proposal
-		amino.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &proposalA)
-		amino.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &proposalB)
+		amino.MustUnmarshalLengthPrefixed(kvA.Value, &proposalA)
+		amino.MustUnmarshalLengthPrefixed(kvB.Value, &proposalB)
 		return fmt.Sprintf("%v\n%v", proposalA, proposalB)
 
 	case bytes.Equal(kvA.Key[:1], gov.ActiveProposalQueuePrefix),
@@ -701,14 +701,14 @@ func DecodeGovStore(kvA, kvB cmn.KVPair) string {
 
 	case bytes.Equal(kvA.Key[:1], gov.DepositsKeyPrefix):
 		var depositA, depositB gov.Deposit
-		amino.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &depositA)
-		amino.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &depositB)
+		amino.MustUnmarshalLengthPrefixed(kvA.Value, &depositA)
+		amino.MustUnmarshalLengthPrefixed(kvB.Value, &depositB)
 		return fmt.Sprintf("%v\n%v", depositA, depositB)
 
 	case bytes.Equal(kvA.Key[:1], gov.VotesKeyPrefix):
 		var voteA, voteB gov.Vote
-		amino.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &voteA)
-		amino.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &voteB)
+		amino.MustUnmarshalLengthPrefixed(kvA.Value, &voteA)
+		amino.MustUnmarshalLengthPrefixed(kvB.Value, &voteB)
 		return fmt.Sprintf("%v\n%v", voteA, voteB)
 
 	default:
@@ -721,8 +721,8 @@ func DecodeSupplyStore(kvA, kvB cmn.KVPair) string {
 	switch {
 	case bytes.Equal(kvA.Key[:1], supply.SupplyKey):
 		var supplyA, supplyB supply.Supply
-		amino.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &supplyA)
-		amino.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &supplyB)
+		amino.MustUnmarshalLengthPrefixed(kvA.Value, &supplyA)
+		amino.MustUnmarshalLengthPrefixed(kvB.Value, &supplyB)
 		return fmt.Sprintf("%v\n%v", supplyB, supplyB)
 	default:
 		panic(fmt.Sprintf("invalid supply key %X", kvA.Key))

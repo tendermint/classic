@@ -28,7 +28,7 @@ type PrivKeyEd25519 [64]byte
 
 // Bytes marshals the privkey using amino encoding.
 func (privKey PrivKeyEd25519) Bytes() []byte {
-	return amino.MustMarshalBinaryBare(privKey)
+	return amino.MustMarshal(privKey)
 }
 
 // Sign produces a signature on the provided message.
@@ -127,7 +127,7 @@ func (pubKey PubKeyEd25519) Address() crypto.Address {
 
 // Bytes marshals the PubKey using amino encoding.
 func (pubKey PubKeyEd25519) Bytes() []byte {
-	bz, err := amino.MarshalBinaryBare(pubKey)
+	bz, err := amino.Marshal(pubKey)
 	if err != nil {
 		panic(err)
 	}

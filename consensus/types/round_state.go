@@ -210,7 +210,7 @@ func (rs *RoundStateSimple) Size() int {
 
 // Marshal returns the amino encoding.
 func (rs *RoundStateSimple) Marshal() ([]byte, error) {
-	return cdc.MarshalBinaryBare(rs)
+	return cdc.Marshal(rs)
 }
 
 // MarshalTo calls Marshal and copies to the given buffer.
@@ -224,5 +224,5 @@ func (rs *RoundStateSimple) MarshalTo(data []byte) (int, error) {
 
 // Unmarshal deserializes from amino encoded form.
 func (rs *RoundStateSimple) Unmarshal(bs []byte) error {
-	return cdc.UnmarshalBinaryBare(bs, rs)
+	return cdc.Unmarshal(bs, rs)
 }

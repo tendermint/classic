@@ -50,7 +50,7 @@ IMPROVEMENTS
 
 BREAKING CHANGES
 
-- Encoding uses MarshalBinaryBare rather than MarshalBinary (which auto-length-prefixes) for pub/priv/sig.
+- Encoding uses Marshal rather than Marshal (which auto-length-prefixes) for pub/priv/sig.
 
 ## 0.6.0 (March 2, 2018)
 

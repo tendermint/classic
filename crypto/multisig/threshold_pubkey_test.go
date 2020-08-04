@@ -122,7 +122,7 @@ func TestMultiSigPubKeyEquality(t *testing.T) {
 	pubkeys, _ := generatePubKeysAndSignatures(5, msg)
 	multisigKey := NewPubKeyMultisigThreshold(2, pubkeys)
 	var unmarshalledMultisig PubKeyMultisigThreshold
-	amino.MustUnmarshalBinaryBare(multisigKey.Bytes(), &unmarshalledMultisig)
+	amino.MustUnmarshal(multisigKey.Bytes(), &unmarshalledMultisig)
 	require.True(t, multisigKey.Equals(unmarshalledMultisig))
 
 	// Ensure that reordering pubkeys is treated as a different pubkey
@@ -146,12 +146,12 @@ func TestPubKeyMultisigThresholdAminoToIface(t *testing.T) {
 	pubkeys, _ := generatePubKeysAndSignatures(5, msg)
 	multisigKey := NewPubKeyMultisigThreshold(2, pubkeys)
 
-	ab, err := amino.MarshalBinaryInterfaceLengthPrefixed(multisigKey)
+	ab, err := amino.MarshalInterfaceLengthPrefixed(multisigKey)
 	require.NoError(t, err)
 	// like other crypto.Pubkey implementations (e.g. ed25519.PubKeyEd25519),
 	// PubKeyMultisigThreshold should be deserializable into a crypto.PubKey:
 	var pubKey crypto.PubKey
-	err = amino.UnmarshalBinaryLengthPrefixed(ab, &pubKey)
+	err = amino.UnmarshalLengthPrefixed(ab, &pubKey)
 	require.NoError(t, err)
 
 	require.Equal(t, multisigKey, pubKey)

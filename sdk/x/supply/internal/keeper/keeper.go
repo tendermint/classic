@@ -47,14 +47,14 @@ func (k Keeper) GetSupply(ctx sdk.Context) (supply exported.SupplyI) {
 	if b == nil {
 		panic("stored supply should not have been nil")
 	}
-	amino.MustUnmarshalBinaryLengthPrefixed(b, &supply)
+	amino.MustUnmarshalLengthPrefixed(b, &supply)
 	return
 }
 
 // SetSupply sets the Supply to store
 func (k Keeper) SetSupply(ctx sdk.Context, supply exported.SupplyI) {
 	store := ctx.KVStore(k.storeKey)
-	b := amino.MustMarshalBinaryLengthPrefixed(supply)
+	b := amino.MustMarshalLengthPrefixed(supply)
 	store.Set(SupplyKey, b)
 }
 

@@ -98,7 +98,7 @@ func GetIndex(pk crypto.Pubkey, []crypto.Pubkey)
 func AddSignature(sig Signature, index int, multiSig *Multisignature)
 ```
 
-The multisignature will be converted to an `[]byte` using amino.MarshalBinaryBare. \*
+The multisignature will be converted to an `[]byte` using amino.Marshal. \*
 
 #### Bit Array
 

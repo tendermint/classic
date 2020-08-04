@@ -108,7 +108,7 @@ func (store *EvidenceStore) listEvidence(prefixKey string, maxNum int64) (eviden
 		count++
 
 		var ei EvidenceInfo
-		err := cdc.UnmarshalBinaryBare(val, &ei)
+		err := cdc.Unmarshal(val, &ei)
 		if err != nil {
 			panic(err)
 		}
@@ -127,7 +127,7 @@ func (store *EvidenceStore) GetEvidenceInfo(height int64, hash []byte) EvidenceI
 		return EvidenceInfo{}
 	}
 	var ei EvidenceInfo
-	err := cdc.UnmarshalBinaryBare(val, &ei)
+	err := cdc.Unmarshal(val, &ei)
 	if err != nil {
 		panic(err)
 	}
@@ -148,7 +148,7 @@ func (store *EvidenceStore) AddNewEvidence(evidence types.Evidence, priority int
 		Priority:  priority,
 		Evidence:  evidence,
 	}
-	eiBytes := cdc.MustMarshalBinaryBare(ei)
+	eiBytes := cdc.MustMarshal(ei)
 
 	// add it to the store
 	key := keyOutqueue(evidence, priority)
@@ -191,7 +191,7 @@ func (store *EvidenceStore) MarkEvidenceAsCommitted(evidence types.Evidence) {
 	}
 
 	lookupKey := keyLookup(evidence)
-	store.db.SetSync(lookupKey, cdc.MustMarshalBinaryBare(ei))
+	store.db.SetSync(lookupKey, cdc.MustMarshal(ei))
 }
 
 //---------------------------------------------------

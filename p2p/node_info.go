@@ -230,7 +230,7 @@ func (info *DefaultNodeInfo) Size() int {
 
 // Marshal returns the amino encoding.
 func (info *DefaultNodeInfo) Marshal() ([]byte, error) {
-	return cdc.MarshalBinaryBare(info)
+	return cdc.Marshal(info)
 }
 
 // MarshalTo calls Marshal and copies to the given buffer.
@@ -244,5 +244,5 @@ func (info *DefaultNodeInfo) MarshalTo(data []byte) (int, error) {
 
 // Unmarshal deserializes from amino encoded form.
 func (info *DefaultNodeInfo) Unmarshal(bs []byte) error {
-	return cdc.UnmarshalBinaryBare(bs, info)
+	return cdc.Unmarshal(bs, info)
 }

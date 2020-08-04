@@ -273,14 +273,14 @@ func (k Keeper) GetLastValidatorPower(ctx sdk.Context, operator sdk.ValAddress) 
 	if bz == nil {
 		return 0
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &power)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &power)
 	return
 }
 
 // Set the last validator power.
 func (k Keeper) SetLastValidatorPower(ctx sdk.Context, operator sdk.ValAddress, power int64) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(power)
+	bz := k.cdc.MustMarshalLengthPrefixed(power)
 	store.Set(types.GetLastValidatorPowerKey(operator), bz)
 }
 
@@ -305,7 +305,7 @@ func (k Keeper) IterateLastValidatorPowers(ctx sdk.Context, handler func(operato
 	for ; iter.Valid(); iter.Next() {
 		addr := sdk.ValAddress(iter.Key()[len(types.LastValidatorPowerKey):])
 		var power int64
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &power)
+		k.cdc.MustUnmarshalLengthPrefixed(iter.Value(), &power)
 		if handler(addr, power) {
 			break
 		}
@@ -350,14 +350,14 @@ func (k Keeper) GetValidatorQueueTimeSlice(ctx sdk.Context, timestamp time.Time)
 	if bz == nil {
 		return []sdk.ValAddress{}
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &valAddrs)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &valAddrs)
 	return valAddrs
 }
 
 // Sets a specific validator queue timeslice.
 func (k Keeper) SetValidatorQueueTimeSlice(ctx sdk.Context, timestamp time.Time, keys []sdk.ValAddress) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(keys)
+	bz := k.cdc.MustMarshalLengthPrefixed(keys)
 	store.Set(types.GetValidatorQueueTimeKey(timestamp), bz)
 }
 
@@ -409,7 +409,7 @@ func (k Keeper) GetAllMatureValidatorQueue(ctx sdk.Context, currTime time.Time) 
 
 	for ; validatorTimesliceIterator.Valid(); validatorTimesliceIterator.Next() {
 		timeslice := []sdk.ValAddress{}
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(validatorTimesliceIterator.Value(), &timeslice)
+		k.cdc.MustUnmarshalLengthPrefixed(validatorTimesliceIterator.Value(), &timeslice)
 		matureValsAddrs = append(matureValsAddrs, timeslice...)
 	}
 
@@ -424,7 +424,7 @@ func (k Keeper) UnbondAllMatureValidatorQueue(ctx sdk.Context) {
 
 	for ; validatorTimesliceIterator.Valid(); validatorTimesliceIterator.Next() {
 		timeslice := []sdk.ValAddress{}
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(validatorTimesliceIterator.Value(), &timeslice)
+		k.cdc.MustUnmarshalLengthPrefixed(validatorTimesliceIterator.Value(), &timeslice)
 
 		for _, valAddr := range timeslice {
 			val, found := k.GetValidator(ctx, valAddr)

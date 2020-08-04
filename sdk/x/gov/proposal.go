@@ -53,14 +53,14 @@ func (keeper Keeper) GetProposal(ctx sdk.Context, proposalID uint64) (proposal P
 	if bz == nil {
 		return
 	}
-	keeper.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &proposal)
+	keeper.cdc.MustUnmarshalLengthPrefixed(bz, &proposal)
 	return proposal, true
 }
 
 // SetProposal set a proposal to store
 func (keeper Keeper) SetProposal(ctx sdk.Context, proposal Proposal) {
 	store := ctx.KVStore(keeper.storeKey)
-	bz := keeper.cdc.MustMarshalBinaryLengthPrefixed(proposal)
+	bz := keeper.cdc.MustMarshalLengthPrefixed(proposal)
 	store.Set(ProposalKey(proposal.ProposalID), bz)
 }
 
@@ -139,14 +139,14 @@ func (keeper Keeper) GetProposalID(ctx sdk.Context) (proposalID uint64, err sdk.
 	if bz == nil {
 		return 0, ErrInvalidGenesis(keeper.codespace, "initial proposal ID hasn't been set")
 	}
-	keeper.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &proposalID)
+	keeper.cdc.MustUnmarshalLengthPrefixed(bz, &proposalID)
 	return proposalID, nil
 }
 
 // Set the proposal ID
 func (keeper Keeper) setProposalID(ctx sdk.Context, proposalID uint64) {
 	store := ctx.KVStore(keeper.storeKey)
-	bz := keeper.cdc.MustMarshalBinaryLengthPrefixed(proposalID)
+	bz := keeper.cdc.MustMarshalLengthPrefixed(proposalID)
 	store.Set(ProposalIDKey, bz)
 }
 

@@ -209,7 +209,7 @@ func byzantineDecideProposalFunc(t *testing.T, height int64, round int, cs *Cons
 func sendProposalAndParts(height int64, round int, cs *ConsensusState, peer p2p.Peer, proposal *types.Proposal, blockHash []byte, parts *types.PartSet) {
 	// proposal
 	msg := &ProposalMessage{Proposal: proposal}
-	peer.Send(DataChannel, cdc.MustMarshalBinaryBare(msg))
+	peer.Send(DataChannel, cdc.MustMarshal(msg))
 
 	// parts
 	for i := 0; i < parts.Total(); i++ {
@@ -219,7 +219,7 @@ func sendProposalAndParts(height int64, round int, cs *ConsensusState, peer p2p.
 			Round:  round,  // This tells peer that this part applies to us.
 			Part:   part,
 		}
-		peer.Send(DataChannel, cdc.MustMarshalBinaryBare(msg))
+		peer.Send(DataChannel, cdc.MustMarshal(msg))
 	}
 
 	// votes
@@ -228,8 +228,8 @@ func sendProposalAndParts(height int64, round int, cs *ConsensusState, peer p2p.
 	precommit, _ := cs.signVote(types.PrecommitType, blockHash, parts.Header())
 	cs.mtx.Unlock()
 
-	peer.Send(VoteChannel, cdc.MustMarshalBinaryBare(&VoteMessage{prevote}))
-	peer.Send(VoteChannel, cdc.MustMarshalBinaryBare(&VoteMessage{precommit}))
+	peer.Send(VoteChannel, cdc.MustMarshal(&VoteMessage{prevote}))
+	peer.Send(VoteChannel, cdc.MustMarshal(&VoteMessage{precommit}))
 }
 
 //----------------------------------------

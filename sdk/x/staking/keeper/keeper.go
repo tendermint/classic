@@ -85,13 +85,13 @@ func (k Keeper) GetLastTotalPower(ctx sdk.Context) (power sdk.Int) {
 	if b == nil {
 		return sdk.ZeroInt()
 	}
-	amino.MustUnmarshalBinaryLengthPrefixed(b, &power)
+	amino.MustUnmarshalLengthPrefixed(b, &power)
 	return
 }
 
 // Set the last total validator power.
 func (k Keeper) SetLastTotalPower(ctx sdk.Context, power sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	b := amino.MustMarshalBinaryLengthPrefixed(power)
+	b := amino.MustMarshalLengthPrefixed(power)
 	store.Set(types.LastTotalPowerKey, b)
 }

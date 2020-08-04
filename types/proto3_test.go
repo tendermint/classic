@@ -54,7 +54,7 @@ func TestProto3Compatibility(t *testing.T) {
 		DataHash:       []byte("data hash"),
 		ValidatorsHash: []byte("validators hash"),
 	}
-	ab, err := cdc.MarshalBinaryBare(aminoHeader)
+	ab, err := cdc.Marshal(aminoHeader)
 	assert.NoError(t, err, "unexpected error")
 
 	pb, err := proto.Marshal(&pbHeader)
@@ -83,7 +83,7 @@ func TestProto3Compatibility(t *testing.T) {
 		ValidatorsHash: []byte("validators hash"),
 	}
 
-	ab, err = cdc.MarshalBinaryBare(emptyLastBlockAm)
+	ab, err = cdc.Marshal(emptyLastBlockAm)
 	assert.NoError(t, err, "unexpected error")
 
 	pb, err = proto.Marshal(&emptyLastBlockPb)
@@ -96,7 +96,7 @@ func TestProto3Compatibility(t *testing.T) {
 	t.Log(pb)
 
 	// While in protobuf Header{} encodes to an empty byte slice it does not in amino:
-	ab, err = cdc.MarshalBinaryBare(Header{})
+	ab, err = cdc.Marshal(Header{})
 	assert.NoError(t, err, "unexpected error")
 	t.Log(ab)
 
@@ -104,7 +104,7 @@ func TestProto3Compatibility(t *testing.T) {
 	assert.NoError(t, err, "unexpected error")
 	t.Log(pb)
 
-	ab, err = cdc.MarshalBinaryBare(time.Time{})
+	ab, err = cdc.Marshal(time.Time{})
 	assert.NoError(t, err, "unexpected error")
 	t.Log(ab)
 }

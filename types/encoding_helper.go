@@ -5,10 +5,10 @@ import (
 )
 
 // cdcEncode returns nil if the input is nil, otherwise returns
-// cdc.MustMarshalBinaryBare(item)
+// cdc.MustMarshal(item)
 func cdcEncode(item interface{}) []byte {
 	if item != nil && !cmn.IsTypedNil(item) && !cmn.IsEmpty(item) {
-		return cdc.MustMarshalBinaryBare(item)
+		return cdc.MustMarshal(item)
 	}
 	return nil
 }

@@ -252,7 +252,7 @@ func (k Keeper) addPubkey(ctx sdk.Context, pubkey crypto.PubKey) {
 func (k Keeper) getPubkey(ctx sdk.Context, address crypto.Address) (crypto.PubKey, error) {
 	store := ctx.KVStore(k.storeKey)
 	var pubkey crypto.PubKey
-	err := amino.UnmarshalBinaryLengthPrefixed(store.Get(types.GetAddrPubkeyRelationKey(address)), &pubkey)
+	err := amino.UnmarshalLengthPrefixed(store.Get(types.GetAddrPubkeyRelationKey(address)), &pubkey)
 	if err != nil {
 		return nil, fmt.Errorf("address %s not found", sdk.ConsAddress(address))
 	}
@@ -261,7 +261,7 @@ func (k Keeper) getPubkey(ctx sdk.Context, address crypto.Address) (crypto.PubKe
 
 func (k Keeper) setAddrPubkeyRelation(ctx sdk.Context, addr crypto.Address, pubkey crypto.PubKey) {
 	store := ctx.KVStore(k.storeKey)
-	bz := amino.MustMarshalBinaryLengthPrefixed(pubkey)
+	bz := amino.MustMarshalLengthPrefixed(pubkey)
 	store.Set(types.GetAddrPubkeyRelationKey(addr), bz)
 }
 

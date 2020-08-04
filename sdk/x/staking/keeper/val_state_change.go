@@ -78,7 +78,7 @@ func (k Keeper) ApplyAndReturnValidatorSetUpdates(ctx sdk.Context) (updates []ab
 
 		// calculate the new power bytes
 		newPower := validator.ConsensusPower()
-		newPowerBytes := k.cdc.MustMarshalBinaryLengthPrefixed(newPower)
+		newPowerBytes := k.cdc.MustMarshalLengthPrefixed(newPower)
 
 		// update the validator set if power has changed
 		if !found || !bytes.Equal(oldPowerBytes, newPowerBytes) {

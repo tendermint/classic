@@ -33,7 +33,7 @@ func (goo PubKeyMultisigThreshold) ToPBMessage(cdc *amino.Codec) (msg proto.Mess
 							if goore != nil {
 								typeUrl := cdc.GetTypeURL(goore)
 								bz := []byte(nil)
-								bz, err = cdc.MarshalBinaryBare(goore)
+								bz, err = cdc.Marshal(goore)
 								if err != nil {
 									return
 								}
@@ -78,7 +78,7 @@ func (goo *PubKeyMultisigThreshold) FromPBMessage(cdc *amino.Codec, msg proto.Me
 								typeUrl := pboev.TypeUrl
 								bz := pboev.Value
 								goorp := &goors[i]
-								err = cdc.UnmarshalBinaryAny(typeUrl, bz, goorp)
+								err = cdc.UnmarshalAny(typeUrl, bz, goorp)
 								if err != nil {
 									return
 								}

@@ -109,7 +109,7 @@ func TestABCIHeader(t *testing.T) {
 	)
 
 	cdc := amino.NewCodec()
-	headerBz := cdc.MustMarshalBinaryBare(header)
+	headerBz := cdc.MustMarshal(header)
 
 	pbHeader := TM2PB.Header(header)
 	pbHeaderBz, err := proto.Marshal(&pbHeader)

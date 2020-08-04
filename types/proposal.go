@@ -89,7 +89,7 @@ func (p *Proposal) String() string {
 
 // SignBytes returns the Proposal bytes for signing
 func (p *Proposal) SignBytes(chainID string) []byte {
-	bz, err := cdc.MarshalBinaryLengthPrefixed(CanonicalizeProposal(chainID, p))
+	bz, err := cdc.MarshalLengthPrefixed(CanonicalizeProposal(chainID, p))
 	if err != nil {
 		panic(err)
 	}

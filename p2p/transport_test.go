@@ -523,7 +523,7 @@ func TestTransportHandshake(t *testing.T) {
 		}
 
 		go func(c net.Conn) {
-			_, err := cdc.MarshalBinaryLengthPrefixedWriter(c, peerNodeInfo.(DefaultNodeInfo))
+			_, err := cdc.MarshalLengthPrefixedWriter(c, peerNodeInfo.(DefaultNodeInfo))
 			if err != nil {
 				t.Error(err)
 			}
@@ -531,7 +531,7 @@ func TestTransportHandshake(t *testing.T) {
 		go func(c net.Conn) {
 			var ni DefaultNodeInfo
 
-			_, err := cdc.UnmarshalBinaryLengthPrefixedReader(
+			_, err := cdc.UnmarshalLengthPrefixedReader(
 				c,
 				&ni,
 				int64(MaxNodeInfoSize()),

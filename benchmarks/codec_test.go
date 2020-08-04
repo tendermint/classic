@@ -84,7 +84,7 @@ func BenchmarkEncodeNodeInfoBinary(b *testing.B) {
 
 	counter := 0
 	for i := 0; i < b.N; i++ {
-		jsonBytes := cdc.MustMarshalBinaryBare(nodeInfo)
+		jsonBytes := cdc.MustMarshal(nodeInfo)
 		counter += len(jsonBytes)
 	}
 

@@ -505,7 +505,7 @@ func getLatestVersion(db dbm.DB) int64 {
 		return 0
 	}
 
-	err := cdc.UnmarshalBinaryLengthPrefixed(latestBytes, &latest)
+	err := cdc.UnmarshalLengthPrefixed(latestBytes, &latest)
 	if err != nil {
 		panic(err)
 	}
@@ -515,7 +515,7 @@ func getLatestVersion(db dbm.DB) int64 {
 
 // Set the latest version.
 func setLatestVersion(batch dbm.Batch, version int64) {
-	latestBytes, _ := cdc.MarshalBinaryLengthPrefixed(version)
+	latestBytes, _ := cdc.MarshalLengthPrefixed(version)
 	batch.Set([]byte(latestVersionKey), latestBytes)
 }
 
@@ -558,7 +558,7 @@ func getCommitInfo(db dbm.DB, ver int64) (commitInfo, error) {
 
 	var cInfo commitInfo
 
-	err := cdc.UnmarshalBinaryLengthPrefixed(cInfoBytes, &cInfo)
+	err := cdc.UnmarshalLengthPrefixed(cInfoBytes, &cInfo)
 	if err != nil {
 		return commitInfo{}, fmt.Errorf("failed to get Store: %v", err)
 	}
@@ -568,7 +568,7 @@ func getCommitInfo(db dbm.DB, ver int64) (commitInfo, error) {
 
 // Set a commitInfo for given version.
 func setCommitInfo(batch dbm.Batch, version int64, cInfo commitInfo) {
-	cInfoBytes := cdc.MustMarshalBinaryLengthPrefixed(cInfo)
+	cInfoBytes := cdc.MustMarshalLengthPrefixed(cInfo)
 	cInfoKey := fmt.Sprintf(commitInfoKeyFmt, version)
 	batch.Set([]byte(cInfoKey), cInfoBytes)
 }

@@ -74,5 +74,5 @@ func (mSig *Multisignature) AddSignatureFromPubKey(sig []byte, pubkey crypto.Pub
 
 // Marshal the multisignature with amino
 func (mSig *Multisignature) Marshal() []byte {
-	return amino.MustMarshalBinaryBare(mSig)
+	return amino.MustMarshal(mSig)
 }

@@ -273,7 +273,7 @@ func TestMaxHeaderBytes(t *testing.T) {
 		ProposerAddress:    crypto.AddressHash([]byte("proposer_address")),
 	}
 
-	bz, err := cdc.MarshalBinaryLengthPrefixed(h)
+	bz, err := cdc.MarshalLengthPrefixed(h)
 	require.NoError(t, err)
 
 	assert.EqualValues(t, MaxHeaderBytes, len(bz))
@@ -365,9 +365,9 @@ func TestCommitToVoteSet(t *testing.T) {
 		vote2 := voteSet2.GetByIndex(i)
 		vote3 := commit.GetVote(i)
 
-		vote1bz := cdc.MustMarshalBinaryBare(vote1)
-		vote2bz := cdc.MustMarshalBinaryBare(vote2)
-		vote3bz := cdc.MustMarshalBinaryBare(vote3)
+		vote1bz := cdc.MustMarshal(vote1)
+		vote2bz := cdc.MustMarshal(vote2)
+		vote3bz := cdc.MustMarshal(vote3)
 		assert.Equal(t, vote1bz, vote2bz)
 		assert.Equal(t, vote1bz, vote3bz)
 	}

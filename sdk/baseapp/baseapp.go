@@ -501,7 +501,7 @@ func handleQueryApp(app *BaseApp, path []string, req abci.RequestQuery) (res abc
 			result = sdk.ErrUnknownRequest(fmt.Sprintf("Unknown query: %s", path)).Result()
 		}
 
-		value := amino.MustMarshalBinaryLengthPrefixed(result)
+		value := amino.MustMarshalLengthPrefixed(result)
 		return abci.ResponseQuery{
 			Code:      uint32(sdk.CodeOK),
 			Codespace: string(sdk.CodespaceRoot),
