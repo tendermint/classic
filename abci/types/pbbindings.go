@@ -5,11 +5,9 @@ import (
 	amino "github.com/tendermint/go-amino-x"
 	abcipb "github.com/tendermint/classic/abci/types/pb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
-	time "time"
 	anypb "google.golang.org/protobuf/types/known/anypb"
 	merklepb "github.com/tendermint/classic/crypto/merkle/pb"
 	merkle "github.com/tendermint/classic/crypto/merkle"
-	crypto "github.com/tendermint/classic/crypto"
 )
 
 func (goo RequestBase) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
