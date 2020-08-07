@@ -133,7 +133,7 @@ func (pubKey PubKeySecp256k1) Address() crypto.Address {
 
 // Bytes returns the pubkey marshalled with amino encoding.
 func (pubKey PubKeySecp256k1) Bytes() []byte {
-	var pubAny crypto.PrivKey = pubKey
+	var pubAny crypto.PubKey = pubKey
 	return amino.MustMarshal(&pubAny)
 }
 
