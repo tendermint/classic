@@ -16,7 +16,7 @@ func (goo ProofOp) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) 
 		}
 		pbo = new(merklepb.ProofOp)
 		{
-			pbo.Type = goo.Type
+			pbo.Type = string(goo.Type)
 		}
 		{
 			goorl := len(goo.Key)

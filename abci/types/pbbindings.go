@@ -63,7 +63,7 @@ func (goo RequestEcho) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err err
 			pbo.RequestBase = pbom.(*abcipb.RequestBase)
 		}
 		{
-			pbo.Message = goo.Message
+			pbo.Message = string(goo.Message)
 		}
 	}
 	msg = pbo
@@ -188,13 +188,13 @@ func (goo RequestInfo) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err err
 			pbo.RequestBase = pbom.(*abcipb.RequestBase)
 		}
 		{
-			pbo.Version = goo.Version
+			pbo.Version = string(goo.Version)
 		}
 		{
-			pbo.BlockVersion = goo.BlockVersion
+			pbo.BlockVersion = uint64(goo.BlockVersion)
 		}
 		{
-			pbo.P2PVersion = goo.P2PVersion
+			pbo.P2PVersion = uint64(goo.P2PVersion)
 		}
 	}
 	msg = pbo
@@ -278,10 +278,10 @@ func (goo RequestSetOption) ToPBMessage(cdc *amino.Codec) (msg proto.Message, er
 			pbo.RequestBase = pbom.(*abcipb.RequestBase)
 		}
 		{
-			pbo.Key = goo.Key
+			pbo.Key = string(goo.Key)
 		}
 		{
-			pbo.Value = goo.Value
+			pbo.Value = string(goo.Value)
 		}
 	}
 	msg = pbo
@@ -362,7 +362,7 @@ func (goo RequestInitChain) ToPBMessage(cdc *amino.Codec) (msg proto.Message, er
 			}
 		}
 		{
-			pbo.ChainID = goo.ChainID
+			pbo.ChainID = string(goo.ChainID)
 		}
 		{
 			if goo.ConsensusParams != nil {
@@ -578,13 +578,13 @@ func (goo RequestQuery) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err er
 			}
 		}
 		{
-			pbo.Path = goo.Path
+			pbo.Path = string(goo.Path)
 		}
 		{
-			pbo.Height = goo.Height
+			pbo.Height = int64(goo.Height)
 		}
 		{
-			pbo.Prove = goo.Prove
+			pbo.Prove = bool(goo.Prove)
 		}
 	}
 	msg = pbo
@@ -1110,7 +1110,7 @@ func (goo RequestEndBlock) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err
 			pbo.RequestBase = pbom.(*abcipb.RequestBase)
 		}
 		{
-			pbo.Height = goo.Height
+			pbo.Height = int64(goo.Height)
 		}
 	}
 	msg = pbo
@@ -1280,10 +1280,10 @@ func (goo ResponseBase) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err er
 			}
 		}
 		{
-			pbo.Log = goo.Log
+			pbo.Log = string(goo.Log)
 		}
 		{
-			pbo.Info = goo.Info
+			pbo.Info = string(goo.Info)
 		}
 	}
 	msg = pbo
@@ -1474,7 +1474,7 @@ func (goo ResponseEcho) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err er
 			pbo.ResponseBase = pbom.(*abcipb.ResponseBase)
 		}
 		{
-			pbo.Message = goo.Message
+			pbo.Message = string(goo.Message)
 		}
 	}
 	msg = pbo
@@ -1599,13 +1599,13 @@ func (goo ResponseInfo) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err er
 			pbo.ResponseBase = pbom.(*abcipb.ResponseBase)
 		}
 		{
-			pbo.ABCIVersion = goo.ABCIVersion
+			pbo.ABCIVersion = string(goo.ABCIVersion)
 		}
 		{
-			pbo.AppVersion = goo.AppVersion
+			pbo.AppVersion = string(goo.AppVersion)
 		}
 		{
-			pbo.LastBlockHeight = goo.LastBlockHeight
+			pbo.LastBlockHeight = int64(goo.LastBlockHeight)
 		}
 		{
 			goorl := len(goo.LastBlockAppHash)
@@ -1973,7 +1973,7 @@ func (goo ResponseQuery) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err e
 			}
 		}
 		{
-			pbo.Height = goo.Height
+			pbo.Height = int64(goo.Height)
 		}
 	}
 	msg = pbo
@@ -2164,10 +2164,10 @@ func (goo ResponseCheckTx) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err
 			pbo.ResponseBase = pbom.(*abcipb.ResponseBase)
 		}
 		{
-			pbo.GasWanted = goo.GasWanted
+			pbo.GasWanted = int64(goo.GasWanted)
 		}
 		{
-			pbo.GasUsed = goo.GasUsed
+			pbo.GasUsed = int64(goo.GasUsed)
 		}
 	}
 	msg = pbo
@@ -2243,10 +2243,10 @@ func (goo ResponseDeliverTx) ToPBMessage(cdc *amino.Codec) (msg proto.Message, e
 			pbo.ResponseBase = pbom.(*abcipb.ResponseBase)
 		}
 		{
-			pbo.GasWanted = goo.GasWanted
+			pbo.GasWanted = int64(goo.GasWanted)
 		}
 		{
-			pbo.GasUsed = goo.GasUsed
+			pbo.GasUsed = int64(goo.GasUsed)
 		}
 	}
 	msg = pbo
@@ -2681,13 +2681,13 @@ func (goo BlockParams) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err err
 		}
 		pbo = new(abcipb.BlockParams)
 		{
-			pbo.MaxTxBytes = goo.MaxTxBytes
+			pbo.MaxTxBytes = int64(goo.MaxTxBytes)
 		}
 		{
-			pbo.MaxGas = goo.MaxGas
+			pbo.MaxGas = int64(goo.MaxGas)
 		}
 		{
-			pbo.TimeIotaMS = goo.TimeIotaMS
+			pbo.TimeIotaMS = int64(goo.TimeIotaMS)
 		}
 	}
 	msg = pbo
@@ -2749,7 +2749,7 @@ func (goo EvidenceParams) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err 
 		}
 		pbo = new(abcipb.EvidenceParams)
 		{
-			pbo.MaxAge = goo.MaxAge
+			pbo.MaxAge = int64(goo.MaxAge)
 		}
 	}
 	msg = pbo
@@ -2804,7 +2804,7 @@ func (goo ValidatorParams) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err
 					{
 						goore := goo.PubKeyTypeURLs[i]
 						{
-							pbos[i] = goore
+							pbos[i] = string(goore)
 						}
 					}
 				}
@@ -2884,7 +2884,7 @@ func (goo ValidatorUpdate) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err
 			}
 		}
 		{
-			pbo.Power = goo.Power
+			pbo.Power = int64(goo.Power)
 		}
 	}
 	msg = pbo
@@ -2944,7 +2944,7 @@ func (goo LastCommitInfo) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err 
 		}
 		pbo = new(abcipb.LastCommitInfo)
 		{
-			pbo.Round = goo.Round
+			pbo.Round = int32(goo.Round)
 		}
 		{
 			goorl := len(goo.Votes)
@@ -3066,10 +3066,10 @@ func (goo VoteInfo) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error)
 			}
 		}
 		{
-			pbo.Power = goo.Power
+			pbo.Power = int64(goo.Power)
 		}
 		{
-			pbo.SignedLastBlock = goo.SignedLastBlock
+			pbo.SignedLastBlock = bool(goo.SignedLastBlock)
 		}
 	}
 	msg = pbo
@@ -3160,7 +3160,7 @@ func (goo Validator) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error
 			}
 		}
 		{
-			pbo.Power = goo.Power
+			pbo.Power = int64(goo.Power)
 		}
 	}
 	msg = pbo
@@ -3253,7 +3253,7 @@ func (goo Violation) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error
 			}
 		}
 		{
-			pbo.Height = goo.Height
+			pbo.Height = int64(goo.Height)
 		}
 		{
 			if !amino.IsEmptyTime(goo.Time) {
@@ -3261,7 +3261,7 @@ func (goo Violation) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error
 			}
 		}
 		{
-			pbo.TotalVotingPower = goo.TotalVotingPower
+			pbo.TotalVotingPower = int64(goo.TotalVotingPower)
 		}
 	}
 	msg = pbo
@@ -3366,7 +3366,7 @@ func (goo SimpleEvent) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err err
 			msg = pbov
 			return
 		}
-		pbo = &abcipb.SimpleEvent{Value: goo}
+		pbo = &abcipb.SimpleEvent{Value: string(goo)}
 	}
 	msg = pbo
 	return
@@ -3405,13 +3405,13 @@ func (goo MockHeader) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err erro
 		}
 		pbo = new(abcipb.MockHeader)
 		{
-			pbo.Version = goo.Version
+			pbo.Version = string(goo.Version)
 		}
 		{
-			pbo.ChainID = goo.ChainID
+			pbo.ChainID = string(goo.ChainID)
 		}
 		{
-			pbo.Height = goo.Height
+			pbo.Height = int64(goo.Height)
 		}
 		{
 			if !amino.IsEmptyTime(goo.Time) {
@@ -3419,10 +3419,10 @@ func (goo MockHeader) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err erro
 			}
 		}
 		{
-			pbo.NumTxs = goo.NumTxs
+			pbo.NumTxs = int64(goo.NumTxs)
 		}
 		{
-			pbo.TotalTxs = goo.TotalTxs
+			pbo.TotalTxs = int64(goo.TotalTxs)
 		}
 	}
 	msg = pbo
