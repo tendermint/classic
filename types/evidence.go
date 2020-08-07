@@ -5,9 +5,8 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+	"github.com/tendermint/classic/abci/types"
 	"github.com/tendermint/classic/crypto/tmhash"
-
-	amino "github.com/tendermint/go-amino-x"
 
 	"github.com/tendermint/classic/crypto"
 	"github.com/tendermint/classic/crypto/merkle"
@@ -54,6 +53,7 @@ func (err *ErrEvidenceOverflow) Error() string {
 
 // Evidence represents any provable malicious activity by a validator
 type Evidence interface {
+	abci.Evidence
 	Height() int64                                     // height of the equivocation
 	Address() []byte                                   // address of the equivocating validator
 	Bytes() []byte                                     // bytes which compromise the evidence
@@ -63,17 +63,6 @@ type Evidence interface {
 
 	ValidateBasic() error
 	String() string
-}
-
-func RegisterEvidences(cdc *amino.Codec) {
-	cdc.RegisterInterface((*Evidence)(nil), nil)
-	cdc.RegisterConcrete(&DuplicateVoteEvidence{}, "tendermint/DuplicateVoteEvidence", nil)
-}
-
-func RegisterMockEvidences(cdc *amino.Codec) {
-	cdc.RegisterConcrete(MockGoodEvidence{}, "tendermint/MockGoodEvidence", nil)
-	cdc.RegisterConcrete(MockRandomGoodEvidence{}, "tendermint/MockRandomGoodEvidence", nil)
-	cdc.RegisterConcrete(MockBadEvidence{}, "tendermint/MockBadEvidence", nil)
 }
 
 const (
@@ -103,6 +92,8 @@ type DuplicateVoteEvidence struct {
 
 var _ Evidence = &DuplicateVoteEvidence{}
 
+func (dve *DuplicateVoteEvidence) AssertABCIEvidence() {}
+
 // String returns a string representation of the evidence.
 func (dve *DuplicateVoteEvidence) String() string {
 	return fmt.Sprintf("VoteA: %v; VoteB: %v", dve.VoteA, dve.VoteB)
@@ -121,12 +112,12 @@ func (dve *DuplicateVoteEvidence) Address() []byte {
 
 // Hash returns the hash of the evidence.
 func (dve *DuplicateVoteEvidence) Bytes() []byte {
-	return cdcEncode(dve)
+	return bytesOrNil(dve)
 }
 
 // Hash returns the hash of the evidence.
 func (dve *DuplicateVoteEvidence) Hash() []byte {
-	return tmhash.Sum(cdcEncode(dve))
+	return tmhash.Sum(bytesOrNil(dve))
 }
 
 // Verify returns an error if the two votes aren't conflicting.
@@ -179,8 +170,8 @@ func (dve *DuplicateVoteEvidence) Equal(ev Evidence) bool {
 	}
 
 	// just check their hashes
-	dveHash := tmhash.Sum(cdcEncode(dve))
-	evHash := tmhash.Sum(cdcEncode(ev))
+	dveHash := tmhash.Sum(bytesOrNil(dve))
+	evHash := tmhash.Sum(bytesOrNil(ev))
 	return bytes.Equal(dveHash, evHash)
 }
 
@@ -218,6 +209,8 @@ func NewMockRandomGoodEvidence(height int64, address []byte, randBytes []byte) M
 	}
 }
 
+func (e MockRandomGoodEvidence) AssertABCIEvidence() {}
+
 func (e MockRandomGoodEvidence) Hash() []byte {
 	return []byte(fmt.Sprintf("%d-%x", e.Height_, e.randBytes))
 }
@@ -235,8 +228,9 @@ func NewMockGoodEvidence(height int64, idx int, address []byte) MockGoodEvidence
 	return MockGoodEvidence{height, address}
 }
 
-func (e MockGoodEvidence) Height() int64   { return e.Height_ }
-func (e MockGoodEvidence) Address() []byte { return e.Address_ }
+func (e MockGoodEvidence) AssertABCIEvidence() {}
+func (e MockGoodEvidence) Height() int64       { return e.Height_ }
+func (e MockGoodEvidence) Address() []byte     { return e.Address_ }
 func (e MockGoodEvidence) Hash() []byte {
 	return []byte(fmt.Sprintf("%d-%x", e.Height_, e.Address_))
 }
@@ -258,6 +252,8 @@ func (e MockGoodEvidence) String() string {
 type MockBadEvidence struct {
 	MockGoodEvidence
 }
+
+func (e MockBadEvidence) AssertABCIEvidence() {}
 
 func (e MockBadEvidence) Verify(chainID string, pubKey crypto.PubKey) error {
 	return fmt.Errorf("MockBadEvidence")

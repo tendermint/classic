@@ -13,7 +13,6 @@ import (
 	"github.com/tendermint/classic/crypto/merkle"
 	"github.com/tendermint/classic/crypto/tmhash"
 	cmn "github.com/tendermint/classic/libs/common"
-	"github.com/tendermint/classic/version"
 	"github.com/tendermint/go-amino-x"
 )
 
@@ -260,54 +259,6 @@ func (b *Block) StringShort() string {
 
 //-----------------------------------------------------------------------------
 
-// MaxDataBytes returns the maximum size of block's data.
-//
-// XXX: Panics on negative result.
-func MaxDataBytes(maxBytes int64, valsCount, evidenceCount int) int64 {
-	maxDataBytes := maxBytes -
-		MaxAminoOverheadForBlock -
-		MaxHeaderBytes -
-		int64(valsCount)*MaxVoteBytes -
-		int64(evidenceCount)*MaxEvidenceBytes
-
-	if maxDataBytes < 0 {
-		panic(fmt.Sprintf(
-			"Negative MaxDataBytes. Block.MaxBytes=%d is too small to accommodate header&lastCommit&evidence=%d",
-			maxBytes,
-			-(maxDataBytes - maxBytes),
-		))
-	}
-
-	return maxDataBytes
-
-}
-
-// MaxDataBytesUnknownEvidence returns the maximum size of block's data when
-// evidence count is unknown. MaxEvidencePerBlock will be used for the size
-// of evidence.
-//
-// XXX: Panics on negative result.
-func MaxDataBytesUnknownEvidence(maxBytes int64, valsCount int) int64 {
-	_, maxEvidenceBytes := MaxEvidencePerBlock(maxBytes)
-	maxDataBytes := maxBytes -
-		MaxAminoOverheadForBlock -
-		MaxHeaderBytes -
-		int64(valsCount)*MaxVoteBytes -
-		maxEvidenceBytes
-
-	if maxDataBytes < 0 {
-		panic(fmt.Sprintf(
-			"Negative MaxDataBytesUnknownEvidence. Block.MaxBytes=%d is too small to accommodate header&lastCommit&evidence=%d",
-			maxBytes,
-			-(maxDataBytes - maxBytes),
-		))
-	}
-
-	return maxDataBytes
-}
-
-//-----------------------------------------------------------------------------
-
 // Header defines the structure of a Tendermint block header.
 // NOTE: changes to the Header should be duplicated in:
 // - header.Hash()
@@ -315,12 +266,12 @@ func MaxDataBytesUnknownEvidence(maxBytes int64, valsCount int) int64 {
 // - /docs/spec/blockchain/blockchain.md
 type Header struct {
 	// basic block info
-	Version  version.Consensus `json:"version"`
-	ChainID  string            `json:"chain_id"`
-	Height   int64             `json:"height"`
-	Time     time.Time         `json:"time"`
-	NumTxs   int64             `json:"num_txs"`
-	TotalTxs int64             `json:"total_txs"`
+	Version  string    `json:"version"`
+	ChainID  string    `json:"chain_id"`
+	Height   int64     `json:"height"`
+	Time     time.Time `json:"time"`
+	NumTxs   int64     `json:"num_txs"`
+	TotalTxs int64     `json:"total_txs"`
 
 	// prev block info
 	LastBlockID BlockID `json:"last_block_id"`
@@ -344,13 +295,13 @@ type Header struct {
 // Populate the Header with state-derived data.
 // Call this after MakeBlock to complete the Header.
 func (h *Header) Populate(
-	version version.Consensus, chainID string,
+	chainID string,
 	timestamp time.Time, lastBlockID BlockID, totalTxs int64,
 	valHash, nextValHash []byte,
 	consensusHash, appHash, lastResultsHash []byte,
 	proposerAddress Address,
 ) {
-	h.Version = version
+	h.Version = BlockVersion
 	h.ChainID = chainID
 	h.Time = timestamp
 	h.LastBlockID = lastBlockID

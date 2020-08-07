@@ -71,7 +71,7 @@ type Callback func(abci.Request, abci.Response)
 
 type ReqRes struct {
 	abci.Request
-	*sync.WaitGroup
+	wg            *sync.WaitGroup
 	abci.Response // Not set atomically, so be sure to use WaitGroup.
 
 	mtx  sync.Mutex
@@ -81,9 +81,9 @@ type ReqRes struct {
 
 func NewReqRes(req abci.Request) *ReqRes {
 	return &ReqRes{
-		Request:   req,
-		WaitGroup: waitGroup1(),
-		Response:  nil,
+		Request:  req,
+		wg:       waitGroup1(),
+		Response: nil,
 
 		done: false,
 		cb:   nil,
@@ -113,11 +113,18 @@ func (reqRes *ReqRes) GetCallback() func(abci.Response) {
 	return reqRes.cb
 }
 
+func (reqRes *ReqRes) Wait() {
+	reqRes.wg.Wait()
+}
+
 // NOTE: it should be safe to read reqRes.cb without locks after this.
-func (reqRes *ReqRes) SetDone() {
+func (reqRes *ReqRes) Done() {
 	reqRes.mtx.Lock()
 	reqRes.done = true
 	reqRes.mtx.Unlock()
+
+	// Finally, release the hounds.
+	reqRes.wg.Done()
 }
 
 func waitGroup1() (wg *sync.WaitGroup) {

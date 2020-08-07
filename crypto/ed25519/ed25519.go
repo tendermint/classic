@@ -26,9 +26,10 @@ const (
 // PrivKeyEd25519 implements crypto.PrivKey.
 type PrivKeyEd25519 [64]byte
 
-// Bytes marshals the privkey using amino encoding.
+// Bytes marshals the privkey using amino encoding w/ type information.
 func (privKey PrivKeyEd25519) Bytes() []byte {
-	return amino.MustMarshal(privKey)
+	var privAny crypto.PrivKey = privKey
+	return amino.MustMarshal(&privAny)
 }
 
 // Sign produces a signature on the provided message.
@@ -127,11 +128,8 @@ func (pubKey PubKeyEd25519) Address() crypto.Address {
 
 // Bytes marshals the PubKey using amino encoding.
 func (pubKey PubKeyEd25519) Bytes() []byte {
-	bz, err := amino.Marshal(pubKey)
-	if err != nil {
-		panic(err)
-	}
-	return bz
+	var pubAny crypto.PubKey = pubKey
+	return amino.MustMarshal(&pubAny)
 }
 
 func (pubKey PubKeyEd25519) VerifyBytes(msg []byte, sig []byte) bool {

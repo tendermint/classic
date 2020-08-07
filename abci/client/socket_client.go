@@ -134,7 +134,8 @@ func (cli *socketClient) sendRequestsRoutine(conn net.Conn) {
 			return
 		case reqres := <-cli.reqQueue:
 			cli.willSendReq(reqres)
-			_, err := amino.MarshalLengthPrefixedWriter(w, reqres.Request)
+			var req abci.Request = reqres.Request
+			_, err := amino.MarshalLengthPrefixedWriter(w, &req) // &req for Any
 			if err != nil {
 				cli.StopForError(fmt.Errorf("Error writing msg: %v", err))
 				return
@@ -156,7 +157,7 @@ func (cli *socketClient) recvResponseRoutine(conn net.Conn) {
 	r := bufio.NewReader(conn) // Buffer reads
 	for {
 		var res abci.Response
-		_, err := amino.UnmarshalLengthPrefixedReader(r, res, 0)
+		_, err := amino.UnmarshalLengthPrefixedReader(r, &res, 0)
 		if err != nil {
 			cli.StopForError(err)
 			return

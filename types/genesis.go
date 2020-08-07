@@ -9,9 +9,11 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/tendermint/classic/abci/types"
 	"github.com/tendermint/classic/crypto"
 	cmn "github.com/tendermint/classic/libs/common"
 	tmtime "github.com/tendermint/classic/types/time"
+	"github.com/tendermint/go-amino-x"
 )
 
 const (
@@ -35,17 +37,17 @@ type GenesisValidator struct {
 
 // GenesisDoc defines the initial conditions for a tendermint blockchain, in particular its validator set.
 type GenesisDoc struct {
-	GenesisTime     time.Time          `json:"genesis_time"`
-	ChainID         string             `json:"chain_id"`
-	ConsensusParams *ConsensusParams   `json:"consensus_params,omitempty"`
-	Validators      []GenesisValidator `json:"validators,omitempty"`
-	AppHash         []byte       `json:"app_hash"`
-	AppState        json.RawMessage    `json:"app_state,omitempty"`
+	GenesisTime     time.Time            `json:"genesis_time"`
+	ChainID         string               `json:"chain_id"`
+	ConsensusParams abci.ConsensusParams `json:"consensus_params,omitempty"`
+	Validators      []GenesisValidator   `json:"validators,omitempty"`
+	AppHash         []byte               `json:"app_hash"`
+	AppState        json.RawMessage      `json:"app_state,omitempty"`
 }
 
 // SaveAs is a utility method for saving GenensisDoc as a JSON file.
 func (genDoc *GenesisDoc) SaveAs(file string) error {
-	genDocBytes, err := cdc.MarshalJSONIndent(genDoc, "", "  ")
+	genDocBytes, err := amino.MarshalJSONIndent(genDoc, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -72,9 +74,9 @@ func (genDoc *GenesisDoc) ValidateAndComplete() error {
 		return errors.Errorf("chain_id in genesis doc is too long (max: %d)", MaxChainIDLen)
 	}
 
-	if genDoc.ConsensusParams == nil {
-		genDoc.ConsensusParams = DefaultConsensusParams()
-	} else if err := genDoc.ConsensusParams.Validate(); err != nil {
+	// Start from defaults and fill in consensus params from GenesisDoc.
+	genDoc.ConsensusParams = DefaultConsensusParams().Update(genDoc.ConsensusParams)
+	if err := ValidateConsensusParams(genDoc.ConsensusParams); err != nil {
 		return err
 	}
 
@@ -103,7 +105,7 @@ func (genDoc *GenesisDoc) ValidateAndComplete() error {
 // GenesisDocFromJSON unmarshalls JSON data into a GenesisDoc.
 func GenesisDocFromJSON(jsonBlob []byte) (*GenesisDoc, error) {
 	genDoc := GenesisDoc{}
-	err := cdc.UnmarshalJSON(jsonBlob, &genDoc)
+	err := amino.UnmarshalJSON(jsonBlob, &genDoc)
 	if err != nil {
 		return nil, err
 	}

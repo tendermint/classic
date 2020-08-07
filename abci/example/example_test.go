@@ -2,23 +2,18 @@ package example
 
 import (
 	"fmt"
-	"net"
 	"reflect"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
-	"golang.org/x/net/context"
-
-	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/classic/libs/log"
 
 	abcicli "github.com/tendermint/classic/abci/client"
-	"github.com/tendermint/classic/abci/example/errors"
 	"github.com/tendermint/classic/abci/example/kvstore"
 	abciserver "github.com/tendermint/classic/abci/server"
-	"github.com/tendermint/classic/abci/types"
+	abci "github.com/tendermint/classic/abci/types"
 )
 
 func TestKVStore(t *testing.T) {
@@ -28,15 +23,10 @@ func TestKVStore(t *testing.T) {
 
 func TestBaseApp(t *testing.T) {
 	fmt.Println("### Testing BaseApp")
-	testStream(t, types.NewBaseApplication())
+	testStream(t, abci.NewBaseApplication())
 }
 
-func TestGRPC(t *testing.T) {
-	fmt.Println("### Testing GRPC")
-	testGRPCSync(t, types.NewGRPCApplication(types.NewBaseApplication()))
-}
-
-func testStream(t *testing.T, app types.Application) {
+func testStream(t *testing.T, app abci.Application) {
 	numDeliverTxs := 20000
 
 	// Start the listener
@@ -57,13 +47,13 @@ func testStream(t *testing.T, app types.Application) {
 
 	done := make(chan struct{})
 	counter := 0
-	client.SetResponseCallback(func(req *types.Request, res *types.Response) {
+	client.SetResponseCallback(func(req abci.Request, res abci.Response) {
 		// Process response
-		switch r := res.Value.(type) {
-		case *types.Response_DeliverTx:
+		switch res := res.(type) {
+		case abci.ResponseDeliverTx:
 			counter++
-			if r.DeliverTx.Error != nil {
-				t.Error("DeliverTx failed with error", r.DeliverTx.Error)
+			if res.Error != nil {
+				t.Error("DeliverTx failed with error", res.Error)
 			}
 			if counter > numDeliverTxs {
 				t.Fatalf("Too many DeliverTx responses. Got %d, expected %d", counter, numDeliverTxs)
@@ -75,17 +65,17 @@ func testStream(t *testing.T, app types.Application) {
 				}()
 				return
 			}
-		case *types.Response_Flush:
+		case abci.ResponseFlush:
 			// ignore
 		default:
-			t.Error("Unexpected response type", reflect.TypeOf(res.Value))
+			t.Error("Unexpected response type", reflect.TypeOf(res))
 		}
 	})
 
 	// Write requests
 	for counter := 0; counter < numDeliverTxs; counter++ {
 		// Send request
-		reqRes := client.DeliverTxAsync(types.RequestDeliverTx{Tx: []byte("test")})
+		reqRes := client.DeliverTxAsync(abci.RequestDeliverTx{Tx: []byte("test")})
 		_ = reqRes
 		// check err ?
 

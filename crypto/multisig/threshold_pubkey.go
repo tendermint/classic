@@ -30,6 +30,10 @@ func NewPubKeyMultisigThreshold(k int, pubkeys []crypto.PubKey) crypto.PubKey {
 	return PubKeyMultisigThreshold{uint(k), pubkeys}
 }
 
+func (pk PubKeyMultisigThreshold) String() string {
+	panic("not yet implemented")
+}
+
 // VerifyBytes expects sig to be an amino encoded version of a MultiSignature.
 // Returns true iff the multisignature contains k or more signatures
 // for the correct corresponding keys,
@@ -70,7 +74,8 @@ func (pk PubKeyMultisigThreshold) VerifyBytes(msg []byte, marshalledSig []byte) 
 
 // Bytes returns the amino encoded version of the PubKeyMultisigThreshold
 func (pk PubKeyMultisigThreshold) Bytes() []byte {
-	return amino.MustMarshal(pk)
+	var pubAny crypto.PubKey = pk
+	return amino.MustMarshal(&pubAny)
 }
 
 // Address returns tmhash(PubKeyMultisigThreshold.Bytes())

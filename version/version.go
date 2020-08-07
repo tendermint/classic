@@ -1,66 +1,55 @@
 package version
 
-var (
-	// GitCommit is the current HEAD set using ldflags.
-	GitCommit string
+import (
+	"sort"
 
-	// Version is the built softwares version.
-	Version string = TMCoreSemVer
+	"golang.org/x/mod/semver"
+
+	abciver "github.com/tendermint/classic/abci/version"
+	bcver "github.com/tendermint/classic/blockchain/version"
+	p2pver "github.com/tendermint/classic/p2p/version"
+)
+
+var (
+	// The major or minor versions must bump when components bump.
+	// The TendermintClassic software version
+	Version = "v1.0.0-rc.0"
 )
 
 func init() {
-	if GitCommit != "" {
-		Version += "-" + GitCommit
+	if abciver.Version != "v1.0.0-rc.0" ||
+		bcver.Version != "v1.0.0-rc.0" ||
+		p2pver.Version != "v1.0.0-rc.0" {
+		panic("bump Version")
 	}
 }
 
-const (
-	// TMCoreSemVer is the current version of Tendermint Core.
-	// It's the Semantic Version of the software.
-	// Must be a string because scripts like dist.sh read this file.
-	// XXX: Don't change the name of this variable or you will break
-	// automation :)
-	TMCoreSemVer = "0.32.7"
-
-	// ABCISemVer is the semantic version of the ABCI library
-	ABCISemVer  = "0.16.1"
-	ABCIVersion = ABCISemVer
-)
-
-// Protocol is used for implementation agnostic versioning.
-type Protocol uint64
-
-// Uint64 returns the Protocol version as a uint64,
-// eg. for compatibility with ABCI types.
-func (p Protocol) Uint64() uint64 {
-	return uint64(p)
+// ProtocolVersion is used to negotiate between clients.
+type ProtocolVersion struct {
+	Name    string // abci, p2p, app, block, etc.
+	Version string
 }
 
-var (
-	// P2PProtocol versions all p2p behaviour and msgs.
-	// This includes proposer selection.
-	P2PProtocol Protocol = 7
+type ProtocolVersionSet []ProtocolVersion
 
-	// BlockProtocol versions all block data structures and processing.
-	// This includes validity of blocks and state updates.
-	BlockProtocol Protocol = 10
-)
-
-//------------------------------------------------------------------------
-// Version types
-
-// App includes the protocol and software version for the application.
-// This information is included in ResponseInfo. The App.Protocol can be
-// updated in ResponseEndBlock.
-type App struct {
-	Protocol Protocol `json:"protocol"`
-	Software string   `json:"software"`
+func (pvs ProtocolVersionSet) Sort() {
+	sort.Slice(pvs, func(i, j int) bool {
+		if pvs[i].Name < pvs[j].Name {
+			return true
+		} else if pvs[i].Name == pvs[j].Name {
+			panic("should not happen")
+		} else {
+			return false
+		}
+	})
 }
 
-// Consensus captures the consensus rules for processing a block in the blockchain,
-// including all blockchain data structures and the rules of the application's
-// state transition machine.
-type Consensus struct {
-	Block Protocol `json:"block"`
-	App   Protocol `json:"app"`
+func (pvs ProtocolVersionSet) GetProtocol(name string) (pv ProtocolVersion, ok bool) {
+	for _, pv := range pvs {
+		if pv.Name == name {
+			return pv, true
+		}
+	}
+	ok = false
+	return
 }

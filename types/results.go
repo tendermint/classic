@@ -3,7 +3,7 @@ package types
 import (
 	abci "github.com/tendermint/classic/abci/types"
 	"github.com/tendermint/classic/crypto/merkle"
-	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/go-amino-x"
 )
 
 //-----------------------------------------------------------------------------
@@ -12,13 +12,14 @@ import (
 // TODO: add tags and other fields
 // https://github.com/tendermint/classic/issues/1007
 type ABCIResult struct {
-	Code uint32       `json:"code"`
-	Data []byte `json:"data"`
+	Error  abci.Error   `json:"error"`
+	Data   []byte       `json:"data"`
+	Events []abci.Event `json:"events"`
 }
 
 // Bytes returns the amino encoded ABCIResult
 func (a ABCIResult) Bytes() []byte {
-	return cdcEncode(a)
+	return bytesOrNil(a)
 }
 
 // ABCIResults wraps the deliver tx results to return a proof
@@ -36,14 +37,15 @@ func NewResults(responses []*abci.ResponseDeliverTx) ABCIResults {
 // NewResultFromResponse creates ABCIResult from ResponseDeliverTx.
 func NewResultFromResponse(response *abci.ResponseDeliverTx) ABCIResult {
 	return ABCIResult{
-		Code: response.Code,
-		Data: response.Data,
+		Error:  response.Error,
+		Data:   response.Data,
+		Events: response.Events,
 	}
 }
 
 // Bytes serializes the ABCIResponse using amino
 func (a ABCIResults) Bytes() []byte {
-	bz, err := cdc.MarshalLengthPrefixed(a)
+	bz, err := amino.MarshalLengthPrefixed(a) // XXX: not length-prefixed
 	if err != nil {
 		panic(err)
 	}

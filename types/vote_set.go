@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 
 	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/go-amino-x"
 )
 
 const (
@@ -463,7 +464,7 @@ func (voteSet *VoteSet) StringIndented(indent string) string {
 func (voteSet *VoteSet) MarshalJSON() ([]byte, error) {
 	voteSet.mtx.Lock()
 	defer voteSet.mtx.Unlock()
-	return cdc.MarshalJSON(VoteSetJSON{
+	return amino.MarshalJSON(VoteSetJSON{
 		voteSet.voteStrings(),
 		voteSet.bitArrayString(),
 		voteSet.peerMaj23s,

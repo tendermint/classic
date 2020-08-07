@@ -7,7 +7,7 @@ import (
 	"net"
 	"sync"
 
-	"github.com/tendermint/classic/abci/types"
+	abci "github.com/tendermint/classic/abci/types"
 	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/go-amino-x"
 )
@@ -224,7 +224,7 @@ func (s *SocketServer) handleResponses(closeConn chan error, conn net.Conn, resp
 	var count int
 	var bufWriter = bufio.NewWriter(conn)
 	for {
-		var res = <-responses
+		var res abci.Response = <-responses
 		_, err := amino.MarshalLengthPrefixedWriter(bufWriter, &res) // &res for Any.
 		if err != nil {
 			closeConn <- fmt.Errorf("Error writing message: %v", err.Error())

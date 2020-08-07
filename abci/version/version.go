@@ -1,9 +1,3 @@
-package version
+package abciver
 
-import (
-	"github.com/tendermint/classic/version"
-)
-
-// TODO: eliminate this after some version refactor
-
-const Version = version.ABCIVersion
+const Version = "v1.0.0-rc.0"

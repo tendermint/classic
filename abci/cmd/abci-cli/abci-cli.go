@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -20,7 +19,7 @@ import (
 	"github.com/tendermint/classic/abci/example/kvstore"
 	"github.com/tendermint/classic/abci/server"
 	"github.com/tendermint/classic/abci/tests/testcli"
-	"github.com/tendermint/classic/abci/types"
+	abci "github.com/tendermint/classic/abci/types"
 	"github.com/tendermint/classic/abci/version"
 	"github.com/tendermint/classic/crypto/merkle"
 )
@@ -89,10 +88,10 @@ var RootCmd = &cobra.Command{
 // Structure for data passed to print response.
 type response struct {
 	// generic abci response
-	Data []byte
-	Code uint32
-	Info string
-	Log  string
+	Data  []byte
+	Error abci.Error
+	Info  string
+	Log   string
 
 	Query *queryResponse
 }
@@ -242,7 +241,7 @@ var versionCmd = &cobra.Command{
 	Long:  "print ABCI console version",
 	Args:  cobra.ExactArgs(0),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Println(version.Version)
+		fmt.Println(abciver.Version)
 		return nil
 	},
 }
@@ -338,7 +337,7 @@ LOOP:
 		line, more, err := bufReader.ReadLine()
 		switch {
 		case more:
-			return errors.New("Input line is too long")
+			return fmt.Errorf("Input line is too long")
 		case err == io.EOF:
 			break LOOP
 		case len(line) == 0:
@@ -362,7 +361,7 @@ func cmdConsole(cmd *cobra.Command, args []string) error {
 		bufReader := bufio.NewReader(os.Stdin)
 		line, more, err := bufReader.ReadLine()
 		if more {
-			return errors.New("Input is too long")
+			return fmt.Errorf("Input is too long")
 		} else if err != nil {
 			return err
 		}
@@ -376,7 +375,7 @@ func cmdConsole(cmd *cobra.Command, args []string) error {
 
 func muxOnCommands(cmd *cobra.Command, pArgs []string) error {
 	if len(pArgs) < 2 {
-		return errors.New("expecting persistent args of the form: abci-cli [command] <...>")
+		return fmt.Errorf("expecting persistent args of the form: abci-cli [command] <...>")
 	}
 
 	// TODO: this parsing is fragile
@@ -441,8 +440,8 @@ func cmdUnimplemented(cmd *cobra.Command, args []string) error {
 		msg += fmt.Sprintf(" args: [%s]", strings.Join(args, " "))
 	}
 	printResponse(cmd, args, response{
-		Code: codeBad,
-		Log:  msg,
+		Error: badError,
+		Log:   msg,
 	})
 
 	fmt.Println("Available commands:")
@@ -480,7 +479,7 @@ func cmdInfo(cmd *cobra.Command, args []string) error {
 	if len(args) == 1 {
 		version = args[0]
 	}
-	res, err := client.InfoSync(types.RequestInfo{Version: version})
+	res, err := client.InfoSync(abci.RequestInfo{Version: version})
 	if err != nil {
 		return err
 	}
@@ -490,20 +489,20 @@ func cmdInfo(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-const codeBad uint32 = 10
+var badError abci.Error = abci.StringError{"badError"}
 
 // Set an option on the application
 func cmdSetOption(cmd *cobra.Command, args []string) error {
 	if len(args) < 2 {
 		printResponse(cmd, args, response{
-			Code: codeBad,
-			Log:  "want at least arguments of the form: <key> <value>",
+			Error: badError,
+			Log:   "want at least arguments of the form: <key> <value>",
 		})
 		return nil
 	}
 
 	key, val := args[0], args[1]
-	_, err := client.SetOptionSync(types.RequestSetOption{Key: key, Value: val})
+	_, err := client.SetOptionSync(abci.RequestSetOption{Key: key, Value: val})
 	if err != nil {
 		return err
 	}
@@ -515,8 +514,8 @@ func cmdSetOption(cmd *cobra.Command, args []string) error {
 func cmdDeliverTx(cmd *cobra.Command, args []string) error {
 	if len(args) == 0 {
 		printResponse(cmd, args, response{
-			Code: codeBad,
-			Log:  "want the tx",
+			Error: badError,
+			Log:   "want the tx",
 		})
 		return nil
 	}
@@ -524,15 +523,15 @@ func cmdDeliverTx(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	res, err := client.DeliverTxSync(types.RequestDeliverTx{Tx: txBytes})
+	res, err := client.DeliverTxSync(abci.RequestDeliverTx{Tx: txBytes})
 	if err != nil {
 		return err
 	}
 	printResponse(cmd, args, response{
-		Code: res.Code,
-		Data: res.Data,
-		Info: res.Info,
-		Log:  res.Log,
+		Error: res.Error,
+		Data:  res.Data,
+		Info:  res.Info,
+		Log:   res.Log,
 	})
 	return nil
 }
@@ -541,8 +540,8 @@ func cmdDeliverTx(cmd *cobra.Command, args []string) error {
 func cmdCheckTx(cmd *cobra.Command, args []string) error {
 	if len(args) == 0 {
 		printResponse(cmd, args, response{
-			Code: codeBad,
-			Info: "want the tx",
+			Error: badError,
+			Info:  "want the tx",
 		})
 		return nil
 	}
@@ -550,15 +549,15 @@ func cmdCheckTx(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	res, err := client.CheckTxSync(types.RequestCheckTx{Tx: txBytes})
+	res, err := client.CheckTxSync(abci.RequestCheckTx{Tx: txBytes})
 	if err != nil {
 		return err
 	}
 	printResponse(cmd, args, response{
-		Code: res.Code,
-		Data: res.Data,
-		Info: res.Info,
-		Log:  res.Log,
+		Error: res.Error,
+		Data:  res.Data,
+		Info:  res.Info,
+		Log:   res.Log,
 	})
 	return nil
 }
@@ -579,9 +578,9 @@ func cmdCommit(cmd *cobra.Command, args []string) error {
 func cmdQuery(cmd *cobra.Command, args []string) error {
 	if len(args) == 0 {
 		printResponse(cmd, args, response{
-			Code: codeBad,
-			Info: "want the query",
-			Log:  "",
+			Error: badError,
+			Info:  "want the query",
+			Log:   "",
 		})
 		return nil
 	}
@@ -590,7 +589,7 @@ func cmdQuery(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	resQuery, err := client.QuerySync(types.RequestQuery{
+	resQuery, err := client.QuerySync(abci.RequestQuery{
 		Data:   queryBytes,
 		Path:   flagPath,
 		Height: int64(flagHeight),
@@ -600,9 +599,9 @@ func cmdQuery(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	printResponse(cmd, args, response{
-		Code: resQuery.Code,
-		Info: resQuery.Info,
-		Log:  resQuery.Log,
+		Error: resQuery.Error,
+		Info:  resQuery.Info,
+		Log:   resQuery.Log,
 		Query: &queryResponse{
 			Key:    resQuery.Key,
 			Value:  resQuery.Value,
@@ -641,7 +640,7 @@ func cmdKVStore(cmd *cobra.Command, args []string) error {
 	logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
 
 	// Create the application - in memory or persisted to disk
-	var app types.Application
+	var app abci.Application
 	if flagPersist == "" {
 		app = kvstore.NewKVStoreApplication()
 	} else {
@@ -678,10 +677,10 @@ func printResponse(cmd *cobra.Command, args []string, rsp response) {
 	}
 
 	// Always print the status code.
-	if rsp.Code == types.CodeTypeOK {
-		fmt.Printf("-> code: OK\n")
+	if rsp.Error == nil {
+		fmt.Printf("-> error: nil\n")
 	} else {
-		fmt.Printf("-> code: %d\n", rsp.Code)
+		fmt.Printf("-> error: %v\n", rsp.Error)
 
 	}
 

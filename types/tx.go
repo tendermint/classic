@@ -5,12 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	amino "github.com/tendermint/go-amino-x"
-
 	abci "github.com/tendermint/classic/abci/types"
 	"github.com/tendermint/classic/crypto/merkle"
 	"github.com/tendermint/classic/crypto/tmhash"
-	cmn "github.com/tendermint/classic/libs/common"
 )
 
 // Tx is an arbitrary byte array.
@@ -83,7 +80,7 @@ func (txs Txs) Proof(i int) TxProof {
 
 // TxProof represents a Merkle proof of the presence of a transaction in the Merkle tree.
 type TxProof struct {
-	RootHash []byte       `json:"root_hash"`
+	RootHash []byte             `json:"root_hash"`
 	Data     Tx                 `json:"data"`
 	Proof    merkle.SimpleProof `json:"proof"`
 }
@@ -120,19 +117,4 @@ type TxResult struct {
 	Index  uint32                 `json:"index"`
 	Tx     Tx                     `json:"tx"`
 	Result abci.ResponseDeliverTx `json:"result"`
-}
-
-// ComputeAminoOverhead calculates the overhead for amino encoding a transaction.
-// The overhead consists of varint encoding the field number and the wire type
-// (= length-delimited = 2), and another varint encoding the length of the
-// transaction.
-// The field number can be the field number of the particular transaction, or
-// the field number of the parenting struct that contains the transactions []Tx
-// as a field (this field number is repeated for each contained Tx).
-// If some []Tx are encoded directly (without a parenting struct), the default
-// fieldNum is also 1 (see BinFieldNum in amino.Marshal).
-func ComputeAminoOverhead(tx Tx, fieldNum int) int64 {
-	fnum := uint64(fieldNum)
-	typ3AndFieldNum := (fnum << 3) | uint64(amino.Typ3_ByteLength)
-	return int64(amino.UvarintSize(typ3AndFieldNum)) + int64(amino.UvarintSize(uint64(len(tx))))
 }

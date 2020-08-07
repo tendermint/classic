@@ -18,17 +18,24 @@ func AddressHash(bz []byte) Address {
 	return Address(tmhash.SumTruncated(bz))
 }
 
+// All operations must be deterministic.
 type PubKey interface {
-	Address() Address // deterministic
-	Bytes() []byte    // deterministic
+	// Stable
+	Address() Address
+	Bytes() []byte
 	VerifyBytes(msg []byte, sig []byte) bool
 	Equals(PubKey) bool
+
+	// Unstable
+	String() string
 }
 
+// All operations must be deterministic.
 type PrivKey interface {
-	Bytes() []byte // determinstic
+	// Stable
+	Bytes() []byte
 	Sign(msg []byte) ([]byte, error)
-	PubKey() PubKey // deterministic
+	PubKey() PubKey
 	Equals(PrivKey) bool
 }
 

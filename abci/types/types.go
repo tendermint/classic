@@ -64,7 +64,7 @@ type RequestBeginBlock struct {
 	Hash           []byte
 	Header         Header
 	LastCommitInfo *LastCommitInfo
-	Evidences      []Evidence
+	Violations     []Violation
 }
 
 type CheckTxType int
@@ -136,7 +136,7 @@ type ResponseFlush struct {
 
 type ResponseInfo struct {
 	ResponseBase
-	Version          string
+	ABCIVersion      string
 	AppVersion       string
 	LastBlockHeight  int64
 	LastBlockAppHash []byte
@@ -225,14 +225,15 @@ func (err StringError) Error() string {
 // Misc
 
 type ConsensusParams struct {
-	Block     BlockParams
-	Evidence  EvidenceParams
-	Validator ValidatorParams
+	Block     *BlockParams
+	Evidence  *EvidenceParams
+	Validator *ValidatorParams
 }
 
 type BlockParams struct {
-	MaxBytes int64 // must be > 0
-	MaxGas   int64 // must be >= -1
+	MaxTxBytes int64 // must be > 0
+	MaxGas     int64 // must be >= -1
+	TimeIotaMS int64
 }
 
 type EvidenceParams struct {
@@ -240,7 +241,7 @@ type EvidenceParams struct {
 }
 
 type ValidatorParams struct {
-	PubKeyTypes []string
+	PubKeyTypeURLs []string
 }
 
 type ValidatorUpdate struct {
@@ -253,13 +254,24 @@ type LastCommitInfo struct {
 	Votes []*VoteInfo
 }
 
+// unstable
 type VoteInfo struct {
-	Validator       // TODO consider destructuring.
+	Address         []byte
+	Power           int64
 	SignedLastBlock bool
 }
 
 // unstable
 type Validator struct {
-	Address []byte
-	Power   int64
+	PubKey crypto.PubKey
+	Power  int64
+}
+
+// unstable
+type Violation struct {
+	Evidence
+	Validators       []Validator
+	Height           int64
+	Time             time.Time
+	TotalVotingPower int64
 }

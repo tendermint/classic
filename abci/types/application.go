@@ -1,5 +1,7 @@
 package abci
 
+import "fmt"
+
 // Application is an interface that enables any finite, deterministic state
 // machine to be driven by a blockchain-based replication engine via the ABCI.
 // All methods take a RequestXxx argument and return a ResponseXxx argument,
@@ -64,6 +66,7 @@ func (BaseApplication) InitChain(req RequestInitChain) ResponseInitChain {
 }
 
 func (BaseApplication) BeginBlock(req RequestBeginBlock) ResponseBeginBlock {
+	fmt.Println("XXXX")
 	return ResponseBeginBlock{}
 }
 

@@ -53,7 +53,7 @@ func (app *localClient) EchoAsync(msg string) *ReqRes {
 	app.mtx.Lock()
 	defer app.mtx.Unlock()
 
-	return app.callback(
+	return app.completeRequest(
 		abci.RequestEcho{Message: msg},
 		abci.ResponseEcho{Message: msg},
 	)
@@ -64,7 +64,7 @@ func (app *localClient) InfoAsync(req abci.RequestInfo) *ReqRes {
 	defer app.mtx.Unlock()
 
 	res := app.Application.Info(req)
-	return app.callback(req, res)
+	return app.completeRequest(req, res)
 }
 
 func (app *localClient) SetOptionAsync(req abci.RequestSetOption) *ReqRes {
@@ -72,7 +72,7 @@ func (app *localClient) SetOptionAsync(req abci.RequestSetOption) *ReqRes {
 	defer app.mtx.Unlock()
 
 	res := app.Application.SetOption(req)
-	return app.callback(req, res)
+	return app.completeRequest(req, res)
 }
 
 func (app *localClient) DeliverTxAsync(req abci.RequestDeliverTx) *ReqRes {
@@ -80,7 +80,7 @@ func (app *localClient) DeliverTxAsync(req abci.RequestDeliverTx) *ReqRes {
 	defer app.mtx.Unlock()
 
 	res := app.Application.DeliverTx(req)
-	return app.callback(req, res)
+	return app.completeRequest(req, res)
 }
 
 func (app *localClient) CheckTxAsync(req abci.RequestCheckTx) *ReqRes {
@@ -88,7 +88,7 @@ func (app *localClient) CheckTxAsync(req abci.RequestCheckTx) *ReqRes {
 	defer app.mtx.Unlock()
 
 	res := app.Application.CheckTx(req)
-	return app.callback(req, res)
+	return app.completeRequest(req, res)
 }
 
 func (app *localClient) QueryAsync(req abci.RequestQuery) *ReqRes {
@@ -96,7 +96,7 @@ func (app *localClient) QueryAsync(req abci.RequestQuery) *ReqRes {
 	defer app.mtx.Unlock()
 
 	res := app.Application.Query(req)
-	return app.callback(req, res)
+	return app.completeRequest(req, res)
 }
 
 func (app *localClient) CommitAsync() *ReqRes {
@@ -104,7 +104,7 @@ func (app *localClient) CommitAsync() *ReqRes {
 	defer app.mtx.Unlock()
 
 	res := app.Application.Commit()
-	return app.callback(abci.RequestCommit{}, res)
+	return app.completeRequest(abci.RequestCommit{}, res)
 }
 
 func (app *localClient) InitChainAsync(req abci.RequestInitChain) *ReqRes {
@@ -112,7 +112,7 @@ func (app *localClient) InitChainAsync(req abci.RequestInitChain) *ReqRes {
 	defer app.mtx.Unlock()
 
 	res := app.Application.InitChain(req)
-	return app.callback(req, res)
+	return app.completeRequest(req, res)
 }
 
 func (app *localClient) BeginBlockAsync(req abci.RequestBeginBlock) *ReqRes {
@@ -120,7 +120,7 @@ func (app *localClient) BeginBlockAsync(req abci.RequestBeginBlock) *ReqRes {
 	defer app.mtx.Unlock()
 
 	res := app.Application.BeginBlock(req)
-	return app.callback(req, res)
+	return app.completeRequest(req, res)
 }
 
 func (app *localClient) EndBlockAsync(req abci.RequestEndBlock) *ReqRes {
@@ -128,7 +128,7 @@ func (app *localClient) EndBlockAsync(req abci.RequestEndBlock) *ReqRes {
 	defer app.mtx.Unlock()
 
 	res := app.Application.EndBlock(req)
-	return app.callback(req, res)
+	return app.completeRequest(req, res)
 }
 
 //-------------------------------------------------------
@@ -215,7 +215,7 @@ func (app *localClient) EndBlockSync(req abci.RequestEndBlock) (abci.ResponseEnd
 
 //-------------------------------------------------------
 
-func (app *localClient) callback(req abci.Request, res abci.Response) *ReqRes {
+func (app *localClient) completeRequest(req abci.Request, res abci.Response) *ReqRes {
 	app.Callback(req, res)
 	return newLocalReqRes(req, res)
 }
@@ -223,6 +223,6 @@ func (app *localClient) callback(req abci.Request, res abci.Response) *ReqRes {
 func newLocalReqRes(req abci.Request, res abci.Response) *ReqRes {
 	reqRes := NewReqRes(req)
 	reqRes.Response = res
-	reqRes.SetDone()
+	reqRes.Done()
 	return reqRes
 }

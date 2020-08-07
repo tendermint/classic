@@ -10,6 +10,7 @@ import (
 
 	"github.com/tendermint/classic/crypto/merkle"
 	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/go-amino-x"
 )
 
 var (
@@ -286,7 +287,7 @@ func (ps *PartSet) MarshalJSON() ([]byte, error) {
 	ps.mtx.Lock()
 	defer ps.mtx.Unlock()
 
-	return cdc.MarshalJSON(struct {
+	return amino.MarshalJSON(struct {
 		CountTotal    string        `json:"count/total"`
 		PartsBitArray *cmn.BitArray `json:"parts_bit_array"`
 	}{

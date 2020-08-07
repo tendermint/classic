@@ -8,6 +8,7 @@ import (
 
 	"github.com/tendermint/classic/crypto"
 	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/go-amino-x"
 )
 
 const (
@@ -71,7 +72,7 @@ func (vote *Vote) CommitSig() *CommitSig {
 }
 
 func (vote *Vote) SignBytes(chainID string) []byte {
-	bz, err := cdc.MarshalLengthPrefixed(CanonicalizeVote(chainID, vote))
+	bz, err := amino.MarshalLengthPrefixed(CanonicalizeVote(chainID, vote))
 	if err != nil {
 		panic(err)
 	}

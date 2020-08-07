@@ -6,18 +6,15 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/tendermint/classic/abci/example/errors"
 	"github.com/tendermint/classic/abci/types"
+	abciver "github.com/tendermint/classic/abci/version"
 	dbm "github.com/tendermint/classic/db"
-	cmn "github.com/tendermint/classic/libs/common"
-	"github.com/tendermint/classic/version"
 )
 
 var (
 	stateKey        = []byte("stateKey")
 	kvPairPrefixKey = []byte("kvPairKey:")
-
-	ProtocolVersion version.Protocol = 0x1
+	appVersion      = "v0.0.0"
 )
 
 type State struct {
@@ -54,10 +51,10 @@ func prefixKey(key []byte) []byte {
 
 //---------------------------------------------------
 
-var _ types.Application = (*KVStoreApplication)(nil)
+var _ abci.Application = (*KVStoreApplication)(nil)
 
 type KVStoreApplication struct {
-	types.BaseApplication
+	abci.BaseApplication
 
 	state State
 }
@@ -67,16 +64,18 @@ func NewKVStoreApplication() *KVStoreApplication {
 	return &KVStoreApplication{state: state}
 }
 
-func (app *KVStoreApplication) Info(req types.RequestInfo) (resInfo types.ResponseInfo) {
-	return types.ResponseInfo{
-		Data:       fmt.Sprintf("{\"size\":%v}", app.state.Size),
-		Version:    version.ABCIVersion,
-		AppVersion: ProtocolVersion.Uint64(),
+func (app *KVStoreApplication) Info(req abci.RequestInfo) (resInfo abci.ResponseInfo) {
+	return abci.ResponseInfo{
+		ResponseBase: abci.ResponseBase{
+			Data: []byte(fmt.Sprintf("{\"size\":%v}", app.state.Size)),
+		},
+		ABCIVersion: abciver.Version,
+		AppVersion:  appVersion,
 	}
 }
 
 // tx is either "key=value" or just arbitrary bytes
-func (app *KVStoreApplication) DeliverTx(req types.RequestDeliverTx) types.ResponseDeliverTx {
+func (app *KVStoreApplication) DeliverTx(req abci.RequestDeliverTx) (res abci.ResponseDeliverTx) {
 	var key, value []byte
 	parts := bytes.Split(req.Tx, []byte("="))
 	if len(parts) == 2 {
@@ -88,38 +87,33 @@ func (app *KVStoreApplication) DeliverTx(req types.RequestDeliverTx) types.Respo
 	app.state.db.Set(prefixKey(key), value)
 	app.state.Size += 1
 
-	events := []types.Event{
-		{
-			Type: "app",
-			Attributes: []cmn.KVPair{
-				{Key: []byte("creator"), Value: []byte("Cosmoshi Netowoko")},
-				{Key: []byte("key"), Value: key},
-			},
-		},
-	}
+	events := []abci.Event{abci.SimpleEvent(`{"creator":"Cosmoshi Netowoko"}`)}
 
-	return types.ResponseDeliverTx{Events: events}
+	res.Events = events
+	return res
 }
 
-func (app *KVStoreApplication) CheckTx(req types.RequestCheckTx) types.ResponseCheckTx {
-	return types.ResponseCheckTx{GasWanted: 1}
+func (app *KVStoreApplication) CheckTx(req abci.RequestCheckTx) abci.ResponseCheckTx {
+	return abci.ResponseCheckTx{GasWanted: 1}
 }
 
-func (app *KVStoreApplication) Commit() types.ResponseCommit {
+func (app *KVStoreApplication) Commit() (res abci.ResponseCommit) {
 	// Using a memdb - just return the big endian size of the db
 	appHash := make([]byte, 8)
 	binary.PutVarint(appHash, app.state.Size)
 	app.state.AppHash = appHash
 	app.state.Height += 1
 	saveState(app.state)
-	return types.ResponseCommit{Data: appHash}
+
+	res.Data = appHash
+	return res
 }
 
 // Returns an associated value or nil if missing.
-func (app *KVStoreApplication) Query(reqQuery types.RequestQuery) (resQuery types.ResponseQuery) {
+func (app *KVStoreApplication) Query(reqQuery abci.RequestQuery) (resQuery abci.ResponseQuery) {
 	if reqQuery.Prove {
 		value := app.state.db.Get(prefixKey(reqQuery.Data))
-		resQuery.Index = -1 // TODO make Proof return index
+		// resQuery.Index = -1 // TODO make Proof return index
 		resQuery.Key = reqQuery.Data
 		resQuery.Value = value
 		if value != nil {

@@ -7,6 +7,7 @@ import (
 
 	cmn "github.com/tendermint/classic/libs/common"
 	tmtime "github.com/tendermint/classic/types/time"
+	"github.com/tendermint/go-amino-x"
 )
 
 var (
@@ -89,7 +90,7 @@ func (p *Proposal) String() string {
 
 // SignBytes returns the Proposal bytes for signing
 func (p *Proposal) SignBytes(chainID string) []byte {
-	bz, err := cdc.MarshalLengthPrefixed(CanonicalizeProposal(chainID, p))
+	bz, err := amino.MarshalLengthPrefixed(CanonicalizeProposal(chainID, p))
 	if err != nil {
 		panic(err)
 	}
