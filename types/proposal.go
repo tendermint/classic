@@ -90,7 +90,7 @@ func (p *Proposal) String() string {
 
 // SignBytes returns the Proposal bytes for signing
 func (p *Proposal) SignBytes(chainID string) []byte {
-	bz, err := amino.MarshalLengthPrefixed(CanonicalizeProposal(chainID, p))
+	bz, err := amino.MarshalSized(CanonicalizeProposal(chainID, p))
 	if err != nil {
 		panic(err)
 	}

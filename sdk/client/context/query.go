@@ -58,7 +58,7 @@ func (ctx CLIContext) QuerySubspace(subspace []byte, storeName string) (res []sd
 		return res, height, err
 	}
 
-	ctx.Codec.MustUnmarshalLengthPrefixed(resRaw, &res)
+	ctx.Codec.MustUnmarshalSized(resRaw, &res)
 	return
 }
 

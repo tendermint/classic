@@ -15,10 +15,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	amino "github.com/tendermint/go-amino-x"
 	cmn "github.com/tendermint/classic/libs/common"
 	flow "github.com/tendermint/classic/libs/flowrate"
 	"github.com/tendermint/classic/libs/log"
+	amino "github.com/tendermint/go-amino-x"
 )
 
 const (
@@ -421,7 +421,7 @@ FOR_LOOP:
 			}
 		case <-c.pingTimer.C:
 			c.Logger.Debug("Send Ping")
-			_n, err = cdc.MarshalLengthPrefixedWriter(c.bufConnWriter, PacketPing{})
+			_n, err = amino.MarshalSizedWriter(c.bufConnWriter, PacketPing{})
 			if err != nil {
 				break SELECTION
 			}
@@ -443,7 +443,7 @@ FOR_LOOP:
 			}
 		case <-c.pong:
 			c.Logger.Debug("Send Pong")
-			_n, err = cdc.MarshalLengthPrefixedWriter(c.bufConnWriter, PacketPong{})
+			_n, err = amino.MarshalSizedWriter(c.bufConnWriter, PacketPong{})
 			if err != nil {
 				break SELECTION
 			}
@@ -562,7 +562,7 @@ FOR_LOOP:
 		var packet Packet
 		var _n int64
 		var err error
-		_n, err = cdc.UnmarshalLengthPrefixedReader(c.bufConnReader, &packet, int64(c._maxPacketMsgSize))
+		_n, err = amino.UnmarshalSizedReader(c.bufConnReader, &packet, int64(c._maxPacketMsgSize))
 		c.recvMonitor.Update(int(_n))
 
 		if err != nil {
@@ -651,7 +651,7 @@ func (c *MConnection) stopPongTimer() {
 // maxPacketMsgSize returns a maximum size of PacketMsg, including the overhead
 // of amino encoding.
 func (c *MConnection) maxPacketMsgSize() int {
-	return len(cdc.MustMarshalLengthPrefixed(PacketMsg{
+	return len(amino.MustMarshalSized(PacketMsg{
 		ChannelID: 0x01,
 		EOF:       1,
 		Bytes:     make([]byte, c.config.MaxPacketMsgPayloadSize),
@@ -821,7 +821,7 @@ func (ch *Channel) nextPacketMsg() PacketMsg {
 // Not goroutine-safe
 func (ch *Channel) writePacketMsgTo(w io.Writer) (n int64, err error) {
 	var packet = ch.nextPacketMsg()
-	n, err = cdc.MarshalLengthPrefixedWriter(w, packet)
+	n, err = amino.MarshalSizedWriter(w, packet)
 	atomic.AddInt64(&ch.recentlySent, n)
 	return
 }

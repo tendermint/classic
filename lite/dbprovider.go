@@ -55,7 +55,7 @@ func (dbp *DBProvider) SaveFullCommit(fc FullCommit) error {
 	// We might be overwriting what we already have, but
 	// it makes the logic easier for now.
 	vsKey := validatorSetKey(fc.ChainID(), fc.Height())
-	vsBz, err := amino.MarshalLengthPrefixed(fc.Validators)
+	vsBz, err := amino.MarshalSized(fc.Validators)
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func (dbp *DBProvider) SaveFullCommit(fc FullCommit) error {
 
 	// Save the fc.NextValidators.
 	nvsKey := validatorSetKey(fc.ChainID(), fc.Height()+1)
-	nvsBz, err := amino.MarshalLengthPrefixed(fc.NextValidators)
+	nvsBz, err := amino.MarshalSized(fc.NextValidators)
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func (dbp *DBProvider) SaveFullCommit(fc FullCommit) error {
 
 	// Save the fc.SignedHeader
 	shKey := signedHeaderKey(fc.ChainID(), fc.Height())
-	shBz, err := amino.MarshalLengthPrefixed(fc.SignedHeader)
+	shBz, err := amino.MarshalSized(fc.SignedHeader)
 	if err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func (dbp *DBProvider) LatestFullCommit(chainID string, minHeight, maxHeight int
 			// Found the latest full commit signed header.
 			shBz := itr.Value()
 			sh := types.SignedHeader{}
-			err := amino.UnmarshalLengthPrefixed(shBz, &sh)
+			err := amino.UnmarshalSized(shBz, &sh)
 			if err != nil {
 				return FullCommit{}, err
 			} else {
@@ -149,7 +149,7 @@ func (dbp *DBProvider) getValidatorSet(chainID string, height int64) (valset *ty
 		err = lerr.ErrUnknownValidators(chainID, height)
 		return
 	}
-	err = amino.UnmarshalLengthPrefixed(vsBz, &valset)
+	err = amino.UnmarshalSized(vsBz, &valset)
 	if err != nil {
 		return
 	}

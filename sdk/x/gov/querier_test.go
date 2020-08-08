@@ -197,18 +197,18 @@ func TestQueries(t *testing.T) {
 	res := handler(ctx, NewMsgSubmitProposal(testProposal(), sdk.Coins{sdk.NewInt64Coin(sdk.DefaultBondDenom, 1)}, input.addrs[0]))
 	var proposalID1 uint64
 	require.True(t, res.IsOK())
-	amino.MustUnmarshalLengthPrefixed(res.Data, &proposalID1)
+	amino.MustUnmarshalSized(res.Data, &proposalID1)
 
 	res = handler(ctx, NewMsgSubmitProposal(testProposal(), sdk.Coins{sdk.NewInt64Coin(sdk.DefaultBondDenom, 10000000)}, input.addrs[0]))
 	var proposalID2 uint64
 	require.True(t, res.IsOK())
-	amino.MustUnmarshalLengthPrefixed(res.Data, &proposalID2)
+	amino.MustUnmarshalSized(res.Data, &proposalID2)
 
 	// input.addrs[1] proposes (and deposits) proposals #3
 	res = handler(ctx, NewMsgSubmitProposal(testProposal(), sdk.Coins{sdk.NewInt64Coin(sdk.DefaultBondDenom, 1)}, input.addrs[1]))
 	var proposalID3 uint64
 	require.True(t, res.IsOK())
-	amino.MustUnmarshalLengthPrefixed(res.Data, &proposalID3)
+	amino.MustUnmarshalSized(res.Data, &proposalID3)
 
 	// input.addrs[1] deposits on proposals #2 & #3
 	res = handler(ctx, NewMsgDeposit(input.addrs[1], proposalID2, depositParams.MinDeposit))

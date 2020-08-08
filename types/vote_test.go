@@ -62,7 +62,7 @@ func TestVoteSignable(t *testing.T) {
 	vote := examplePrecommit()
 	signBytes := vote.SignBytes("test_chain_id")
 
-	expected, err := cdc.MarshalLengthPrefixed(CanonicalizeVote("test_chain_id", vote))
+	expected, err := cdc.MarshalSized(CanonicalizeVote("test_chain_id", vote))
 	require.NoError(t, err)
 
 	require.Equal(t, expected, signBytes, "Got unexpected sign bytes for Vote.")
@@ -147,9 +147,9 @@ func TestVoteSignBytesTestVectors(t *testing.T) {
 func TestVoteProposalNotEq(t *testing.T) {
 	cv := CanonicalizeVote("", &Vote{Height: 1, Round: 1})
 	p := CanonicalizeProposal("", &Proposal{Height: 1, Round: 1})
-	vb, err := cdc.MarshalLengthPrefixed(cv)
+	vb, err := cdc.MarshalSized(cv)
 	require.NoError(t, err)
-	pb, err := cdc.MarshalLengthPrefixed(p)
+	pb, err := cdc.MarshalSized(p)
 	require.NoError(t, err)
 	require.NotEqual(t, vb, pb)
 }
@@ -171,9 +171,9 @@ func TestVoteVerifySignature(t *testing.T) {
 
 	// serialize, deserialize and verify again....
 	precommit := new(Vote)
-	bs, err := cdc.MarshalLengthPrefixed(vote)
+	bs, err := cdc.MarshalSized(vote)
 	require.NoError(t, err)
-	err = cdc.UnmarshalLengthPrefixed(bs, &precommit)
+	err = cdc.UnmarshalSized(bs, &precommit)
 	require.NoError(t, err)
 
 	// verify the transmitted vote
@@ -247,7 +247,7 @@ func TestMaxVoteBytes(t *testing.T) {
 	err := privVal.SignVote("test_chain_id", vote)
 	require.NoError(t, err)
 
-	bz, err := cdc.MarshalLengthPrefixed(vote)
+	bz, err := cdc.MarshalSized(vote)
 	require.NoError(t, err)
 
 	assert.EqualValues(t, MaxVoteBytes, len(bz))

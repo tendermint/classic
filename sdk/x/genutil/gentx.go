@@ -96,7 +96,7 @@ func DeliverGenTxs(ctx sdk.Context, genTxs []json.RawMessage,
 	for _, genTx := range genTxs {
 		var tx authtypes.StdTx
 		cdc.MustUnmarshalJSON(genTx, &tx)
-		bz := cdc.MustMarshalLengthPrefixed(tx)
+		bz := cdc.MustMarshalSized(tx)
 		res := deliverTx(abci.RequestDeliverTx{Tx: bz})
 		if !res.IsOK() {
 			panic(res.Log)

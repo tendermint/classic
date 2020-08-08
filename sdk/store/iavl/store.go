@@ -290,7 +290,7 @@ func (st *Store) Query(req abci.RequestQuery) (res abci.ResponseQuery) {
 		}
 
 		iterator.Close()
-		res.Value = cdc.MustMarshalLengthPrefixed(KVs)
+		res.Value = cdc.MustMarshalSized(KVs)
 
 	default:
 		msg := fmt.Sprintf("Unexpected Query path: %v", req.Path)

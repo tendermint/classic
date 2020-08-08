@@ -196,7 +196,7 @@ func testChangeNameHelper(name string) func(*BaseApp) {
 func TestTxDecoder(t *testing.T) {
 	app := newBaseApp(t.Name())
 	tx := newTxCounter(1, 0)
-	txBytes := amino.MustMarshalLengthPrefixed(tx)
+	txBytes := amino.MustMarshalSized(tx)
 
 	dTx, err := app.txDecoder(txBytes)
 	require.NoError(t, err)
@@ -430,7 +430,7 @@ func testTxDecoder() sdk.TxDecoder {
 		if len(txBytes) == 0 {
 			return nil, sdk.ErrTxDecode("txBytes are empty")
 		}
-		err := amino.UnmarshalLengthPrefixed(txBytes, &tx)
+		err := amino.UnmarshalSized(txBytes, &tx)
 		if err != nil {
 			return nil, sdk.ErrTxDecode("").TraceSDK(err.Error())
 		}
@@ -529,7 +529,7 @@ func TestCheckTx(t *testing.T) {
 
 	for i := int64(0); i < nTxs; i++ {
 		tx := newTxCounter(i, 0)
-		txBytes, err := amino.MarshalLengthPrefixed(tx)
+		txBytes, err := amino.MarshalSized(tx)
 		require.NoError(t, err)
 		r := app.CheckTx(abci.RequestCheckTx{Tx: txBytes})
 		assert.True(t, r.IsOK(), fmt.Sprintf("%v", r))
@@ -579,7 +579,7 @@ func TestDeliverTx(t *testing.T) {
 			counter := int64(blockN*txPerHeight + i)
 			tx := newTxCounter(counter, counter)
 
-			txBytes, err := amino.MarshalLengthPrefixed(tx)
+			txBytes, err := amino.MarshalSized(tx)
 			require.NoError(t, err)
 
 			res := app.DeliverTx(abci.RequestDeliverTx{Tx: txBytes})
@@ -619,7 +619,7 @@ func TestMultiMsgDeliverTx(t *testing.T) {
 	header := abci.Header{Height: 1}
 	app.BeginBlock(abci.RequestBeginBlock{Header: header})
 	tx := newTxCounter(0, 0, 1, 2)
-	txBytes, err := amino.MarshalLengthPrefixed(tx)
+	txBytes, err := amino.MarshalSized(tx)
 	require.NoError(t, err)
 	res := app.DeliverTx(abci.RequestDeliverTx{Tx: txBytes})
 	require.True(t, res.IsOK(), fmt.Sprintf("%v", res))
@@ -639,7 +639,7 @@ func TestMultiMsgDeliverTx(t *testing.T) {
 	tx = newTxCounter(1, 3)
 	tx.Msgs = append(tx.Msgs, msgCounter2{0})
 	tx.Msgs = append(tx.Msgs, msgCounter2{1})
-	txBytes, err = amino.MarshalLengthPrefixed(tx)
+	txBytes, err = amino.MarshalSized(tx)
 	require.NoError(t, err)
 	res = app.DeliverTx(abci.RequestDeliverTx{Tx: txBytes})
 	require.True(t, res.IsOK(), fmt.Sprintf("%v", res))
@@ -696,7 +696,7 @@ func TestSimulateTx(t *testing.T) {
 		app.BeginBlock(abci.RequestBeginBlock{Header: header})
 
 		tx := newTxCounter(count, count)
-		txBytes, err := amino.MarshalLengthPrefixed(tx)
+		txBytes, err := amino.MarshalSized(tx)
 		require.Nil(t, err)
 
 		// simulate a message, check gas reported
@@ -718,7 +718,7 @@ func TestSimulateTx(t *testing.T) {
 		require.True(t, queryResult.IsOK(), queryResult.Log)
 
 		var res sdk.Result
-		amino.MustUnmarshalLengthPrefixed(queryResult.Value, &res)
+		amino.MustUnmarshalSized(queryResult.Value, &res)
 		require.Nil(t, err, "Result unmarshalling failed")
 		require.True(t, res.IsOK(), res.Log)
 		require.Equal(t, gasConsumed, res.GasUsed, res.Log)
@@ -796,7 +796,7 @@ func TestRunInvalidTransaction(t *testing.T) {
 		tx := newTxCounter(0, 0)
 		tx.Msgs = append(tx.Msgs, msgNoDecode{})
 
-		txBytes, err := newCdc.MarshalLengthPrefixed(tx)
+		txBytes, err := newCdc.MarshalSized(tx)
 		require.NoError(t, err)
 		res := app.DeliverTx(abci.RequestDeliverTx{Tx: txBytes})
 		require.EqualValues(t, sdk.CodeTxDecode, res.Code)
@@ -1013,7 +1013,7 @@ func TestBaseAppAnteHandler(t *testing.T) {
 	// the next txs ante handler execution (anteHandlerTxTest).
 	tx := newTxCounter(0, 0)
 	tx.setFailOnAnte(true)
-	txBytes, err := amino.MarshalLengthPrefixed(tx)
+	txBytes, err := amino.MarshalSized(tx)
 	require.NoError(t, err)
 	res := app.DeliverTx(abci.RequestDeliverTx{Tx: txBytes})
 	require.False(t, res.IsOK(), fmt.Sprintf("%v", res))
@@ -1027,7 +1027,7 @@ func TestBaseAppAnteHandler(t *testing.T) {
 	tx = newTxCounter(0, 0)
 	tx.setFailOnHandler(true)
 
-	txBytes, err = amino.MarshalLengthPrefixed(tx)
+	txBytes, err = amino.MarshalSized(tx)
 	require.NoError(t, err)
 
 	res = app.DeliverTx(abci.RequestDeliverTx{Tx: txBytes})
@@ -1042,7 +1042,7 @@ func TestBaseAppAnteHandler(t *testing.T) {
 	// implicitly checked by previous tx executions
 	tx = newTxCounter(1, 0)
 
-	txBytes, err = amino.MarshalLengthPrefixed(tx)
+	txBytes, err = amino.MarshalSized(tx)
 	require.NoError(t, err)
 
 	res = app.DeliverTx(abci.RequestDeliverTx{Tx: txBytes})
@@ -1115,7 +1115,7 @@ func TestGasConsumptionBadTx(t *testing.T) {
 
 	tx := newTxCounter(5, 0)
 	tx.setFailOnAnte(true)
-	txBytes, err := amino.MarshalLengthPrefixed(tx)
+	txBytes, err := amino.MarshalSized(tx)
 	require.NoError(t, err)
 
 	res := app.DeliverTx(abci.RequestDeliverTx{Tx: txBytes})
@@ -1123,7 +1123,7 @@ func TestGasConsumptionBadTx(t *testing.T) {
 
 	// require next tx to fail due to black gas limit
 	tx = newTxCounter(5, 0)
-	txBytes, err = amino.MarshalLengthPrefixed(tx)
+	txBytes, err = amino.MarshalSized(tx)
 	require.NoError(t, err)
 
 	res = app.DeliverTx(abci.RequestDeliverTx{Tx: txBytes})

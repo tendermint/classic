@@ -78,7 +78,7 @@ func SignCheckDeliver(
 
 	tx := GenTx(msgs, accNums, seq, priv...)
 
-	txBytes, err := amino.MarshalLengthPrefixed(tx)
+	txBytes, err := amino.MarshalSized(tx)
 	require.Nil(t, err)
 
 	// Must simulate now as CheckTx doesn't run Msgs anymore

@@ -119,7 +119,7 @@ func (keeper Keeper) setTallyParams(ctx sdk.Context, tallyParams TallyParams) {
 // InsertActiveProposalQueue inserts a ProposalID into the active proposal queue at endTime
 func (keeper Keeper) InsertActiveProposalQueue(ctx sdk.Context, proposalID uint64, endTime time.Time) {
 	store := ctx.KVStore(keeper.storeKey)
-	bz := amino.MustMarshalLengthPrefixed(proposalID)
+	bz := amino.MustMarshalSized(proposalID)
 	store.Set(types.ActiveProposalQueueKey(proposalID, endTime), bz)
 }
 
@@ -132,7 +132,7 @@ func (keeper Keeper) RemoveFromActiveProposalQueue(ctx sdk.Context, proposalID u
 // InsertInactiveProposalQueue Inserts a ProposalID into the inactive proposal queue at endTime
 func (keeper Keeper) InsertInactiveProposalQueue(ctx sdk.Context, proposalID uint64, endTime time.Time) {
 	store := ctx.KVStore(keeper.storeKey)
-	bz := amino.MustMarshalLengthPrefixed(proposalID)
+	bz := amino.MustMarshalSized(proposalID)
 	store.Set(types.InactiveProposalQueueKey(proposalID, endTime), bz)
 }
 
@@ -152,7 +152,7 @@ func (keeper Keeper) IterateProposals(ctx sdk.Context, cb func(proposal types.Pr
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var proposal types.Proposal
-		amino.MustUnmarshalLengthPrefixed(iterator.Value(), &proposal)
+		amino.MustUnmarshalSized(iterator.Value(), &proposal)
 
 		if cb(proposal) {
 			break
@@ -206,7 +206,7 @@ func (keeper Keeper) IterateAllDeposits(ctx sdk.Context, cb func(deposit types.D
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var deposit types.Deposit
-		amino.MustUnmarshalLengthPrefixed(iterator.Value(), &deposit)
+		amino.MustUnmarshalSized(iterator.Value(), &deposit)
 
 		if cb(deposit) {
 			break
@@ -221,7 +221,7 @@ func (keeper Keeper) IterateDeposits(ctx sdk.Context, proposalID uint64, cb func
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var deposit types.Deposit
-		amino.MustUnmarshalLengthPrefixed(iterator.Value(), &deposit)
+		amino.MustUnmarshalSized(iterator.Value(), &deposit)
 
 		if cb(deposit) {
 			break
@@ -237,7 +237,7 @@ func (keeper Keeper) IterateAllVotes(ctx sdk.Context, cb func(vote types.Vote) (
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var vote types.Vote
-		amino.MustUnmarshalLengthPrefixed(iterator.Value(), &vote)
+		amino.MustUnmarshalSized(iterator.Value(), &vote)
 
 		if cb(vote) {
 			break
@@ -252,7 +252,7 @@ func (keeper Keeper) IterateVotes(ctx sdk.Context, proposalID uint64, cb func(vo
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var vote types.Vote
-		amino.MustUnmarshalLengthPrefixed(iterator.Value(), &vote)
+		amino.MustUnmarshalSized(iterator.Value(), &vote)
 
 		if cb(vote) {
 			break

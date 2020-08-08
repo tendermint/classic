@@ -24,7 +24,7 @@ func main() {
 		counter := 0
 		for {
 			var res abci.Response
-			_, err := amino.UnmarshalLengthPrefixedReader(conn, &res, maxSize)
+			_, err := amino.UnmarshalSizedReader(conn, &res, maxSize)
 			if err != nil {
 				log.Fatal(err.Error())
 			}
@@ -41,7 +41,7 @@ func main() {
 		var bufWriter = bufio.NewWriter(conn)
 		var req = abci.RequestEcho{Message: "foobar"}
 
-		_, err := amino.MarshalLengthPrefixedWriter(bufWriter, req)
+		_, err := amino.MarshalAnySizedWriter(bufWriter, req)
 		err = bufWriter.Flush()
 		if err != nil {
 			log.Fatal(err.Error())

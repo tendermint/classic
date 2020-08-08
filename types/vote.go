@@ -72,7 +72,7 @@ func (vote *Vote) CommitSig() *CommitSig {
 }
 
 func (vote *Vote) SignBytes(chainID string) []byte {
-	bz, err := amino.MarshalLengthPrefixed(CanonicalizeVote(chainID, vote))
+	bz, err := amino.MarshalSized(CanonicalizeVote(chainID, vote))
 	if err != nil {
 		panic(err)
 	}

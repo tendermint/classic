@@ -67,7 +67,7 @@ $ <appcli> query slashing signing-info cosmosvalconspub1zcjduepqfhvwcmt7p06fvdge
 			}
 
 			var signingInfo types.ValidatorSigningInfo
-			amino.MustUnmarshalLengthPrefixed(res, &signingInfo)
+			amino.MustUnmarshalSized(res, &signingInfo)
 			return cliCtx.PrintOutput(signingInfo)
 		},
 	}

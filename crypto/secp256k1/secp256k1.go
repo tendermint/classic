@@ -24,8 +24,7 @@ type PrivKeySecp256k1 [32]byte
 
 // Bytes marshalls the private key using amino encoding.
 func (privKey PrivKeySecp256k1) Bytes() []byte {
-	var privAny crypto.PrivKey = privKey
-	return amino.MustMarshal(&privAny)
+	return amino.MustMarshalAny(privKey)
 }
 
 // PubKey performs the point-scalar multiplication from the privKey on the
@@ -133,8 +132,7 @@ func (pubKey PubKeySecp256k1) Address() crypto.Address {
 
 // Bytes returns the pubkey marshalled with amino encoding.
 func (pubKey PubKeySecp256k1) Bytes() []byte {
-	var pubAny crypto.PubKey = pubKey
-	return amino.MustMarshal(&pubAny)
+	return amino.MustMarshalAny(pubKey)
 }
 
 func (pubKey PubKeySecp256k1) String() string {

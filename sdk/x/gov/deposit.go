@@ -15,13 +15,13 @@ func (keeper Keeper) GetDeposit(ctx sdk.Context, proposalID uint64, depositorAdd
 		return deposit, false
 	}
 
-	keeper.cdc.MustUnmarshalLengthPrefixed(bz, &deposit)
+	keeper.cdc.MustUnmarshalSized(bz, &deposit)
 	return deposit, true
 }
 
 func (keeper Keeper) setDeposit(ctx sdk.Context, proposalID uint64, depositorAddr sdk.AccAddress, deposit Deposit) {
 	store := ctx.KVStore(keeper.storeKey)
-	bz := keeper.cdc.MustMarshalLengthPrefixed(deposit)
+	bz := keeper.cdc.MustMarshalSized(deposit)
 	store.Set(types.DepositKey(proposalID, depositorAddr), bz)
 }
 

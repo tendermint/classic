@@ -69,8 +69,8 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 // Equal returns a boolean determining if two Param types are identical.
 // TODO: This is slower than comparing struct fields directly
 func (p Params) Equal(p2 Params) bool {
-	bz1 := amino.MustMarshalLengthPrefixed(&p)
-	bz2 := amino.MustMarshalLengthPrefixed(&p2)
+	bz1 := amino.MustMarshalSized(&p)
+	bz2 := amino.MustMarshalSized(&p2)
 	return bytes.Equal(bz1, bz2)
 }
 
@@ -100,7 +100,7 @@ func MustUnmarshalParams(value []byte) Params {
 
 // unmarshal the current staking params value from store key
 func UnmarshalParams(value []byte) (params Params, err error) {
-	err = amino.UnmarshalLengthPrefixed(value, &params)
+	err = amino.UnmarshalSized(value, &params)
 	if err != nil {
 		return
 	}

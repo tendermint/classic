@@ -30,7 +30,7 @@ func TestProposalSignable(t *testing.T) {
 	chainID := "test_chain_id"
 	signBytes := testProposal.SignBytes(chainID)
 
-	expected, err := cdc.MarshalLengthPrefixed(CanonicalizeProposal(chainID, testProposal))
+	expected, err := cdc.MarshalSized(CanonicalizeProposal(chainID, testProposal))
 	require.NoError(t, err)
 	require.Equal(t, expected, signBytes, "Got unexpected sign bytes for Proposal")
 }
@@ -62,9 +62,9 @@ func TestProposalVerifySignature(t *testing.T) {
 
 	// serialize, deserialize and verify again....
 	newProp := new(Proposal)
-	bs, err := cdc.MarshalLengthPrefixed(prop)
+	bs, err := cdc.MarshalSized(prop)
 	require.NoError(t, err)
-	err = cdc.UnmarshalLengthPrefixed(bs, &newProp)
+	err = cdc.UnmarshalSized(bs, &newProp)
 	require.NoError(t, err)
 
 	// verify the transmitted proposal

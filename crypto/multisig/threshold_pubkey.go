@@ -75,7 +75,7 @@ func (pk PubKeyMultisigThreshold) VerifyBytes(msg []byte, marshalledSig []byte) 
 // Bytes returns the amino encoded version of the PubKeyMultisigThreshold
 func (pk PubKeyMultisigThreshold) Bytes() []byte {
 	var pubAny crypto.PubKey = pk
-	return amino.MustMarshal(&pubAny)
+	return amino.MustMarshalAny(pubAny)
 }
 
 // Address returns tmhash(PubKeyMultisigThreshold.Bytes())

@@ -61,13 +61,13 @@ func (keeper Keeper) GetVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.A
 		return vote, false
 	}
 
-	keeper.cdc.MustUnmarshalLengthPrefixed(bz, &vote)
+	keeper.cdc.MustUnmarshalSized(bz, &vote)
 	return vote, true
 }
 
 func (keeper Keeper) setVote(ctx sdk.Context, proposalID uint64, voterAddr sdk.AccAddress, vote Vote) {
 	store := ctx.KVStore(keeper.storeKey)
-	bz := keeper.cdc.MustMarshalLengthPrefixed(vote)
+	bz := keeper.cdc.MustMarshalSized(vote)
 	store.Set(types.VoteKey(proposalID, voterAddr), bz)
 }
 

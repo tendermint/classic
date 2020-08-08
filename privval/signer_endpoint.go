@@ -97,7 +97,7 @@ func (se *signerEndpoint) ReadMessage() (msg SignerMessage, err error) {
 	}
 
 	const maxRemoteSignerMsgSize = 1024 * 10
-	_, err = cdc.UnmarshalLengthPrefixedReader(se.conn, &msg, maxRemoteSignerMsgSize)
+	_, err = cdc.UnmarshalSizedReader(se.conn, &msg, maxRemoteSignerMsgSize)
 	if _, ok := err.(timeoutError); ok {
 		if err != nil {
 			err = errors.Wrap(ErrReadTimeout, err.Error())
@@ -129,7 +129,7 @@ func (se *signerEndpoint) WriteMessage(msg SignerMessage) (err error) {
 		return
 	}
 
-	_, err = cdc.MarshalLengthPrefixedWriter(se.conn, msg)
+	_, err = cdc.MarshalSizedWriter(se.conn, msg)
 	if _, ok := err.(timeoutError); ok {
 		if err != nil {
 			err = errors.Wrap(ErrWriteTimeout, err.Error())

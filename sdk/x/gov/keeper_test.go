@@ -76,7 +76,7 @@ func TestActivateVotingPeriod(t *testing.T) {
 	activeIterator := input.keeper.ActiveProposalQueueIterator(ctx, proposal.VotingEndTime)
 	require.True(t, activeIterator.Valid())
 	var proposalID uint64
-	amino.UnmarshalLengthPrefixed(activeIterator.Value(), &proposalID)
+	amino.UnmarshalSized(activeIterator.Value(), &proposalID)
 	require.Equal(t, proposalID, proposal.ProposalID)
 	activeIterator.Close()
 }
@@ -160,11 +160,11 @@ func TestDeposits(t *testing.T) {
 	// Test deposit iterator
 	depositsIterator := input.keeper.GetDepositsIterator(ctx, proposalID)
 	require.True(t, depositsIterator.Valid())
-	amino.MustUnmarshalLengthPrefixed(depositsIterator.Value(), &deposit)
+	amino.MustUnmarshalSized(depositsIterator.Value(), &deposit)
 	require.Equal(t, input.addrs[0], deposit.Depositor)
 	require.Equal(t, fourStake.Add(fiveStake), deposit.Amount)
 	depositsIterator.Next()
-	amino.MustUnmarshalLengthPrefixed(depositsIterator.Value(), &deposit)
+	amino.MustUnmarshalSized(depositsIterator.Value(), &deposit)
 	require.Equal(t, input.addrs[1], deposit.Depositor)
 	require.Equal(t, fourStake, deposit.Amount)
 	depositsIterator.Next()
@@ -227,14 +227,14 @@ func TestVotes(t *testing.T) {
 	// Test vote iterator
 	votesIterator := input.keeper.GetVotesIterator(ctx, proposalID)
 	require.True(t, votesIterator.Valid())
-	amino.MustUnmarshalLengthPrefixed(votesIterator.Value(), &vote)
+	amino.MustUnmarshalSized(votesIterator.Value(), &vote)
 	require.True(t, votesIterator.Valid())
 	require.Equal(t, input.addrs[0], vote.Voter)
 	require.Equal(t, proposalID, vote.ProposalID)
 	require.Equal(t, OptionYes, vote.Option)
 	votesIterator.Next()
 	require.True(t, votesIterator.Valid())
-	amino.MustUnmarshalLengthPrefixed(votesIterator.Value(), &vote)
+	amino.MustUnmarshalSized(votesIterator.Value(), &vote)
 	require.True(t, votesIterator.Valid())
 	require.Equal(t, input.addrs[1], vote.Voter)
 	require.Equal(t, proposalID, vote.ProposalID)
@@ -261,7 +261,7 @@ func TestProposalQueues(t *testing.T) {
 	inactiveIterator := input.keeper.InactiveProposalQueueIterator(ctx, proposal.DepositEndTime)
 	require.True(t, inactiveIterator.Valid())
 	var proposalID uint64
-	amino.UnmarshalLengthPrefixed(inactiveIterator.Value(), &proposalID)
+	amino.UnmarshalSized(inactiveIterator.Value(), &proposalID)
 	require.Equal(t, proposalID, proposal.ProposalID)
 	inactiveIterator.Close()
 
@@ -272,7 +272,7 @@ func TestProposalQueues(t *testing.T) {
 
 	activeIterator := input.keeper.ActiveProposalQueueIterator(ctx, proposal.VotingEndTime)
 	require.True(t, activeIterator.Valid())
-	amino.UnmarshalLengthPrefixed(activeIterator.Value(), &proposalID)
+	amino.UnmarshalSized(activeIterator.Value(), &proposalID)
 	require.Equal(t, proposalID, proposal.ProposalID)
 	activeIterator.Close()
 }

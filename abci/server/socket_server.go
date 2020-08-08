@@ -161,7 +161,7 @@ func (s *SocketServer) handleRequests(closeConn chan error, conn net.Conn, respo
 	for {
 
 		var req abci.Request
-		_, err := amino.UnmarshalLengthPrefixedReader(bufReader, &req, 0)
+		_, err := amino.UnmarshalSizedReader(bufReader, &req, 0)
 		if err != nil {
 			if err == io.EOF {
 				closeConn <- err
@@ -225,7 +225,7 @@ func (s *SocketServer) handleResponses(closeConn chan error, conn net.Conn, resp
 	var bufWriter = bufio.NewWriter(conn)
 	for {
 		var res abci.Response = <-responses
-		_, err := amino.MarshalLengthPrefixedWriter(bufWriter, &res) // &res for Any.
+		_, err := amino.MarshalAnySizedWriter(bufWriter, res)
 		if err != nil {
 			closeConn <- fmt.Errorf("Error writing message: %v", err.Error())
 			return

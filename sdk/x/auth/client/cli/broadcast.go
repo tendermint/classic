@@ -31,7 +31,7 @@ $ <appcli> tx broadcast ./mytxn.json
 				return
 			}
 
-			txBytes, err := cliCtx.Codec.MarshalLengthPrefixed(stdTx)
+			txBytes, err := cliCtx.Codec.MarshalSized(stdTx)
 			if err != nil {
 				return
 			}

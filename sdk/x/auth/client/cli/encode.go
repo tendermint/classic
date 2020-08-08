@@ -37,7 +37,7 @@ If you supply a dash (-) argument in place of an input filename, the command rea
 			}
 
 			// re-encode it via the Amino wire protocol
-			txBytes, err := cliCtx.Codec.MarshalLengthPrefixed(stdTx)
+			txBytes, err := cliCtx.Codec.MarshalSized(stdTx)
 			if err != nil {
 				return err
 			}

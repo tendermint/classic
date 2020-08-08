@@ -217,14 +217,14 @@ func (k Keeper) GetUBDQueueTimeSlice(ctx sdk.Context, timestamp time.Time) (dvPa
 	if bz == nil {
 		return []types.DVPair{}
 	}
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &dvPairs)
+	k.cdc.MustUnmarshalSized(bz, &dvPairs)
 	return dvPairs
 }
 
 // Sets a specific unbonding queue timeslice.
 func (k Keeper) SetUBDQueueTimeSlice(ctx sdk.Context, timestamp time.Time, keys []types.DVPair) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(keys)
+	bz := k.cdc.MustMarshalSized(keys)
 	store.Set(types.GetUnbondingDelegationTimeKey(timestamp), bz)
 }
 
@@ -260,7 +260,7 @@ func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context,
 	for ; unbondingTimesliceIterator.Valid(); unbondingTimesliceIterator.Next() {
 		timeslice := []types.DVPair{}
 		value := unbondingTimesliceIterator.Value()
-		k.cdc.MustUnmarshalLengthPrefixed(value, &timeslice)
+		k.cdc.MustUnmarshalSized(value, &timeslice)
 		matureUnbonds = append(matureUnbonds, timeslice...)
 		store.Delete(unbondingTimesliceIterator.Key())
 	}
@@ -403,14 +403,14 @@ func (k Keeper) GetRedelegationQueueTimeSlice(ctx sdk.Context, timestamp time.Ti
 	if bz == nil {
 		return []types.DVVTriplet{}
 	}
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &dvvTriplets)
+	k.cdc.MustUnmarshalSized(bz, &dvvTriplets)
 	return dvvTriplets
 }
 
 // Sets a specific redelegation queue timeslice.
 func (k Keeper) SetRedelegationQueueTimeSlice(ctx sdk.Context, timestamp time.Time, keys []types.DVVTriplet) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(keys)
+	bz := k.cdc.MustMarshalSized(keys)
 	store.Set(types.GetRedelegationTimeKey(timestamp), bz)
 }
 
@@ -447,7 +447,7 @@ func (k Keeper) DequeueAllMatureRedelegationQueue(ctx sdk.Context, currTime time
 	for ; redelegationTimesliceIterator.Valid(); redelegationTimesliceIterator.Next() {
 		timeslice := []types.DVVTriplet{}
 		value := redelegationTimesliceIterator.Value()
-		k.cdc.MustUnmarshalLengthPrefixed(value, &timeslice)
+		k.cdc.MustUnmarshalSized(value, &timeslice)
 		matureRedelegations = append(matureRedelegations, timeslice...)
 		store.Delete(redelegationTimesliceIterator.Key())
 	}

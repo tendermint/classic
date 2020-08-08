@@ -32,7 +32,7 @@ func DominoOpDecoder(pop ProofOp) (ProofOperator, error) {
 		panic("unexpected proof op type")
 	}
 	var op DominoOp // a bit strange as we'll discard this, but it works.
-	err := amino.UnmarshalLengthPrefixed(pop.Data, &op)
+	err := amino.UnmarshalSized(pop.Data, &op)
 	if err != nil {
 		return nil, errors.Wrap(err, "decoding ProofOp.Data into SimpleValueOp")
 	}
@@ -40,7 +40,7 @@ func DominoOpDecoder(pop ProofOp) (ProofOperator, error) {
 }
 
 func (dop DominoOp) ProofOp() ProofOp {
-	bz := amino.MustMarshalLengthPrefixed(dop)
+	bz := amino.MustMarshalSized(dop)
 	return ProofOp{
 		Type: ProofOpDomino,
 		Key:  []byte(dop.key),

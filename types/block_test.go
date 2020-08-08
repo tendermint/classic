@@ -273,7 +273,7 @@ func TestMaxHeaderBytes(t *testing.T) {
 		ProposerAddress:    crypto.AddressHash([]byte("proposer_address")),
 	}
 
-	bz, err := cdc.MarshalLengthPrefixed(h)
+	bz, err := cdc.MarshalSized(h)
 	require.NoError(t, err)
 
 	assert.EqualValues(t, MaxHeaderBytes, len(bz))

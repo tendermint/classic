@@ -280,11 +280,11 @@ func (i multiInfo) GetPath() (*hd.BIP44Params, error) {
 
 // encoding info
 func writeInfo(i Info) []byte {
-	return cdc.MustMarshalLengthPrefixed(i)
+	return cdc.MustMarshalSized(i)
 }
 
 // decoding info
 func readInfo(bz []byte) (info Info, err error) {
-	err = cdc.UnmarshalLengthPrefixed(bz, &info)
+	err = cdc.UnmarshalSized(bz, &info)
 	return
 }

@@ -272,7 +272,7 @@ func (kb dbKeybase) Sign(name, passphrase string, msg []byte) (sig []byte, pub t
 			return nil, nil, err
 		}
 
-		if err := cdc.UnmarshalLengthPrefixed([]byte(signed), sig); err != nil {
+		if err := cdc.UnmarshalSized([]byte(signed), sig); err != nil {
 			return nil, nil, errors.Wrap(err, "failed to decode signature")
 		}
 

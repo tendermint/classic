@@ -171,7 +171,7 @@ func formatTxResult(resTx *ctypes.ResultTx, resBlock *ctypes.ResultBlock) (sdk.T
 func parseTx(txBytes []byte) (sdk.Tx, error) {
 	var tx types.StdTx
 
-	err := amino.UnmarshalLengthPrefixed(txBytes, &tx)
+	err := amino.UnmarshalSized(txBytes, &tx)
 	if err != nil {
 		return nil, err
 	}

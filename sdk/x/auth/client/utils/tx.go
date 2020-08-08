@@ -289,7 +289,7 @@ func adjustGasEstimate(estimate uint64, adjustment float64) uint64 {
 
 func parseQueryResponse(rawRes []byte) (uint64, error) {
 	var simulationResult sdk.Result
-	if err := amino.UnmarshalLengthPrefixed(rawRes, &simulationResult); err != nil {
+	if err := amino.UnmarshalSized(rawRes, &simulationResult); err != nil {
 		return 0, err
 	}
 

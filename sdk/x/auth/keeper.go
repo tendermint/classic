@@ -153,13 +153,13 @@ func (ak AccountKeeper) GetNextAccountNumber(ctx sdk.Context) uint64 {
 	if bz == nil {
 		accNumber = 0
 	} else {
-		err := amino.UnmarshalLengthPrefixed(bz, &accNumber)
+		err := amino.UnmarshalSized(bz, &accNumber)
 		if err != nil {
 			panic(err)
 		}
 	}
 
-	bz = amino.MustMarshalLengthPrefixed(accNumber + 1)
+	bz = amino.MustMarshalSized(accNumber + 1)
 	store.Set(types.GlobalAccountNumberKey, bz)
 
 	return accNumber

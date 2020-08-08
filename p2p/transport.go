@@ -518,11 +518,11 @@ func handshake(
 	)
 
 	go func(errc chan<- error, c net.Conn) {
-		_, err := cdc.MarshalLengthPrefixedWriter(c, ourNodeInfo)
+		_, err := cdc.MarshalSizedWriter(c, ourNodeInfo)
 		errc <- err
 	}(errc, c)
 	go func(errc chan<- error, c net.Conn) {
-		_, err := cdc.UnmarshalLengthPrefixedReader(
+		_, err := cdc.UnmarshalSizedReader(
 			c,
 			&peerNodeInfo,
 			int64(MaxNodeInfoSize()),

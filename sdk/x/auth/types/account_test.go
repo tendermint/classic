@@ -86,17 +86,17 @@ func TestBaseAccountMarshal(t *testing.T) {
 	err = acc.SetCoins(someCoins)
 	require.Nil(t, err)
 
-	b, err := amino.MarshalLengthPrefixed(acc)
+	b, err := amino.MarshalSized(acc)
 	require.Nil(t, err)
 
 	acc2 := BaseAccount{}
-	err = amino.UnmarshalLengthPrefixed(b, &acc2)
+	err = amino.UnmarshalSized(b, &acc2)
 	require.Nil(t, err)
 	require.Equal(t, acc, acc2)
 
 	// error on bad bytes
 	acc2 = BaseAccount{}
-	err = amino.UnmarshalLengthPrefixed(b[:len(b)/2], &acc2)
+	err = amino.UnmarshalSized(b[:len(b)/2], &acc2)
 	require.NotNil(t, err)
 }
 

@@ -106,7 +106,7 @@ func TestMaxEvidenceBytes(t *testing.T) {
 		VoteB:  makeVote(val, chainID, math.MaxInt64, math.MaxInt64, math.MaxInt64, math.MaxInt64, blockID2),
 	}
 
-	bz, err := cdc.MarshalLengthPrefixed(ev)
+	bz, err := cdc.MarshalSized(ev)
 	require.NoError(t, err)
 
 	assert.EqualValues(t, MaxEvidenceBytes, len(bz))

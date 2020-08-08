@@ -293,7 +293,7 @@ func randValidatorSet(numValidators int) *ValidatorSet {
 }
 
 func (valSet *ValidatorSet) toBytes() []byte {
-	bz, err := cdc.MarshalLengthPrefixed(valSet)
+	bz, err := cdc.MarshalSized(valSet)
 	if err != nil {
 		panic(err)
 	}
@@ -301,7 +301,7 @@ func (valSet *ValidatorSet) toBytes() []byte {
 }
 
 func (valSet *ValidatorSet) fromBytes(b []byte) {
-	err := cdc.UnmarshalLengthPrefixed(b, &valSet)
+	err := cdc.UnmarshalSized(b, &valSet)
 	if err != nil {
 		// DATA HAS BEEN CORRUPTED OR THE SPEC HAS CHANGED
 		panic(err)

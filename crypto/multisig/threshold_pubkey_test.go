@@ -146,12 +146,12 @@ func TestPubKeyMultisigThresholdAminoToIface(t *testing.T) {
 	pubkeys, _ := generatePubKeysAndSignatures(5, msg)
 	multisigKey := NewPubKeyMultisigThreshold(2, pubkeys)
 
-	ab, err := amino.MarshalAnyLengthPrefixed(multisigKey)
+	ab, err := amino.MarshalAnySized(multisigKey)
 	require.NoError(t, err)
 	// like other crypto.Pubkey implementations (e.g. ed25519.PubKeyEd25519),
 	// PubKeyMultisigThreshold should be deserializable into a crypto.PubKey:
 	var pubKey crypto.PubKey
-	err = amino.UnmarshalLengthPrefixed(ab, &pubKey)
+	err = amino.UnmarshalSized(ab, &pubKey)
 	require.NoError(t, err)
 
 	require.Equal(t, multisigKey, pubKey)

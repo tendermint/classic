@@ -55,7 +55,7 @@ func NewDelegation(delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress,
 
 // return the delegation
 func MustMarshalDelegation(delegation Delegation) []byte {
-	return amino.MustMarshalLengthPrefixed(delegation)
+	return amino.MustMarshalSized(delegation)
 }
 
 // return the delegation
@@ -69,7 +69,7 @@ func MustUnmarshalDelegation(value []byte) Delegation {
 
 // return the delegation
 func UnmarshalDelegation(value []byte) (delegation Delegation, err error) {
-	err = amino.UnmarshalLengthPrefixed(value, &delegation)
+	err = amino.UnmarshalSized(value, &delegation)
 	return delegation, err
 }
 
@@ -165,7 +165,7 @@ func (d *UnbondingDelegation) RemoveEntry(i int64) {
 
 // return the unbonding delegation
 func MustMarshalUBD(ubd UnbondingDelegation) []byte {
-	return amino.MustMarshalLengthPrefixed(ubd)
+	return amino.MustMarshalSized(ubd)
 }
 
 // unmarshal a unbonding delegation from a store value
@@ -179,15 +179,15 @@ func MustUnmarshalUBD(value []byte) UnbondingDelegation {
 
 // unmarshal a unbonding delegation from a store value
 func UnmarshalUBD(value []byte) (ubd UnbondingDelegation, err error) {
-	err = amino.UnmarshalLengthPrefixed(value, &ubd)
+	err = amino.UnmarshalSized(value, &ubd)
 	return ubd, err
 }
 
 // nolint
 // inefficient but only used in testing
 func (d UnbondingDelegation) Equal(d2 UnbondingDelegation) bool {
-	bz1 := amino.MustMarshalLengthPrefixed(&d)
-	bz2 := amino.MustMarshalLengthPrefixed(&d2)
+	bz1 := amino.MustMarshalSized(&d)
+	bz2 := amino.MustMarshalSized(&d2)
 	return bytes.Equal(bz1, bz2)
 }
 
@@ -286,7 +286,7 @@ func (d *Redelegation) RemoveEntry(i int64) {
 
 // return the redelegation
 func MustMarshalRED(red Redelegation) []byte {
-	return amino.MustMarshalLengthPrefixed(red)
+	return amino.MustMarshalSized(red)
 }
 
 // unmarshal a redelegation from a store value
@@ -300,15 +300,15 @@ func MustUnmarshalRED(value []byte) Redelegation {
 
 // unmarshal a redelegation from a store value
 func UnmarshalRED(value []byte) (red Redelegation, err error) {
-	err = amino.UnmarshalLengthPrefixed(value, &red)
+	err = amino.UnmarshalSized(value, &red)
 	return red, err
 }
 
 // nolint
 // inefficient but only used in tests
 func (d Redelegation) Equal(d2 Redelegation) bool {
-	bz1 := amino.MustMarshalLengthPrefixed(&d)
-	bz2 := amino.MustMarshalLengthPrefixed(&d2)
+	bz1 := amino.MustMarshalSized(&d)
+	bz2 := amino.MustMarshalSized(&d2)
 	return bytes.Equal(bz1, bz2)
 }
 

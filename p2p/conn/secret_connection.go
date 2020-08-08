@@ -273,7 +273,7 @@ func shareEphPubKey(conn io.ReadWriteCloser, locEphPub *[32]byte) (remEphPub *[3
 	// Send our pubkey and receive theirs in tandem.
 	var trs, _ = cmn.Parallel(
 		func(_ int) (val interface{}, err error, abort bool) {
-			var _, err1 = cdc.MarshalLengthPrefixedWriter(conn, locEphPub)
+			var _, err1 = cdc.MarshalSizedWriter(conn, locEphPub)
 			if err1 != nil {
 				return nil, err1, true // abort
 			}
@@ -281,7 +281,7 @@ func shareEphPubKey(conn io.ReadWriteCloser, locEphPub *[32]byte) (remEphPub *[3
 		},
 		func(_ int) (val interface{}, err error, abort bool) {
 			var _remEphPub [32]byte
-			var _, err2 = cdc.UnmarshalLengthPrefixedReader(conn, &_remEphPub, 1024*1024) // TODO
+			var _, err2 = cdc.UnmarshalSizedReader(conn, &_remEphPub, 1024*1024) // TODO
 			if err2 != nil {
 				return nil, err2, true // abort
 			}
@@ -427,7 +427,7 @@ func shareAuthSignature(sc *SecretConnection, pubKey crypto.PubKey, signature []
 	// Send our info and receive theirs in tandem.
 	var trs, _ = cmn.Parallel(
 		func(_ int) (val interface{}, err error, abort bool) {
-			var _, err1 = cdc.MarshalLengthPrefixedWriter(sc, authSigMessage{pubKey, signature})
+			var _, err1 = cdc.MarshalSizedWriter(sc, authSigMessage{pubKey, signature})
 			if err1 != nil {
 				return nil, err1, true // abort
 			}
@@ -435,7 +435,7 @@ func shareAuthSignature(sc *SecretConnection, pubKey crypto.PubKey, signature []
 		},
 		func(_ int) (val interface{}, err error, abort bool) {
 			var _recvMsg authSigMessage
-			var _, err2 = cdc.UnmarshalLengthPrefixedReader(sc, &_recvMsg, 1024*1024) // TODO
+			var _, err2 = cdc.UnmarshalSizedReader(sc, &_recvMsg, 1024*1024) // TODO
 			if err2 != nil {
 				return nil, err2, true // abort
 			}

@@ -38,11 +38,11 @@ func makeRequest(conn net.Conn, req abci.Request) (abci.Response, error) {
 	var bufWriter = bufio.NewWriter(conn)
 
 	// Write desired request
-	_, err := amino.MarshalLengthPrefixedWriter(bufWriter, &req)
+	_, err := amino.MarshalAnySizedWriter(bufWriter, req)
 	if err != nil {
 		return nil, err
 	}
-	_, err = amino.MarshalLengthPrefixedWriter(bufWriter, &abci.RequestFlush{})
+	_, err = amino.MarshalAnySizedWriter(bufWriter, abci.RequestFlush{})
 	if err != nil {
 		return nil, err
 	}
@@ -53,12 +53,12 @@ func makeRequest(conn net.Conn, req abci.Request) (abci.Response, error) {
 
 	// Read desired response
 	var res abci.Response
-	_, err = amino.UnmarshalLengthPrefixedReader(conn, &res, 0)
+	_, err = amino.UnmarshalSizedReader(conn, &res, 0)
 	if err != nil {
 		return nil, err
 	}
 	var resFlush abci.Response
-	_, err = amino.UnmarshalLengthPrefixedReader(conn, &res, 0)
+	_, err = amino.UnmarshalSizedReader(conn, &res, 0)
 	if err != nil {
 		return nil, err
 	}

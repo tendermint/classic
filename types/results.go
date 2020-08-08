@@ -45,7 +45,7 @@ func NewResultFromResponse(response *abci.ResponseDeliverTx) ABCIResult {
 
 // Bytes serializes the ABCIResponse using amino
 func (a ABCIResults) Bytes() []byte {
-	bz, err := amino.MarshalLengthPrefixed(a) // XXX: not length-prefixed
+	bz, err := amino.MarshalSized(a) // XXX: not length-prefixed
 	if err != nil {
 		panic(err)
 	}

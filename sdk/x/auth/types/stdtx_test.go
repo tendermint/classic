@@ -122,7 +122,7 @@ func TestDefaultTxEncoder(t *testing.T) {
 
 	tx := NewStdTx(msgs, fee, sigs, "")
 
-	bz, err := amino.MarshalLengthPrefixed(tx)
+	bz, err := amino.MarshalSized(tx)
 
 	require.NoError(t, err)
 	encoderBytes, err := encoder(tx)

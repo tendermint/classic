@@ -22,7 +22,7 @@ var (
 )
 
 func TestParseQueryResponse(t *testing.T) {
-	sdkResBytes := amino.MustMarshalLengthPrefixed(sdk.Result{GasUsed: 10})
+	sdkResBytes := amino.MustMarshalSized(sdk.Result{GasUsed: 10})
 	gas, err := parseQueryResponse(sdkResBytes)
 	assert.Equal(t, gas, uint64(10))
 	assert.Nil(t, err)
@@ -37,7 +37,7 @@ func TestCalculateGas(t *testing.T) {
 			if wantErr {
 				return nil, 0, errors.New("")
 			}
-			return amino.MustMarshalLengthPrefixed(sdk.Result{GasUsed: gasUsed}), 0, nil
+			return amino.MustMarshalSized(sdk.Result{GasUsed: gasUsed}), 0, nil
 		}
 	}
 	type args struct {

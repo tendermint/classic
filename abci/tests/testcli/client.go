@@ -77,7 +77,7 @@ func DeliverTx(client abcicli.Client, txBytes []byte, errExp abci.Error, dataExp
 		if err == nil {
 			return errors.New("DeliverTx error -- expected error")
 		} else {
-			if bytes.Equal(amino.MustMarshal(&err), amino.MustMarshal(&errExp)) {
+			if bytes.Equal(amino.MustMarshalAny(err), amino.MustMarshalAny(errExp)) {
 				return nil
 			} else {
 				errors.New("DeliverTx error -- error mismatch")
@@ -103,7 +103,7 @@ func CheckTx(client abcicli.Client, txBytes []byte, errExp abci.Error, dataExp [
 		if err == nil {
 			return errors.New("CheckTx error -- expected error")
 		} else {
-			if bytes.Equal(amino.MustMarshal(&err), amino.MustMarshal(&errExp)) {
+			if bytes.Equal(amino.MustMarshalAny(err), amino.MustMarshalAny(errExp)) {
 				return nil
 			} else {
 				errors.New("CheckTx error -- error mismatch")
