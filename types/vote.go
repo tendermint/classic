@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"time"
@@ -100,7 +99,7 @@ func (vote *Vote) String() string {
 
 	return fmt.Sprintf("Vote{%v:%X %v/%02d/%v(%v) %X %X @ %s}",
 		vote.ValidatorIndex,
-		cmn.Fingerprint(vote.ValidatorAddress),
+		cmn.Fingerprint(vote.ValidatorAddress[:]),
 		vote.Height,
 		vote.Round,
 		vote.Type,
@@ -112,7 +111,7 @@ func (vote *Vote) String() string {
 }
 
 func (vote *Vote) Verify(chainID string, pubKey crypto.PubKey) error {
-	if !bytes.Equal(pubKey.Address(), vote.ValidatorAddress) {
+	if pubKey.Address() != vote.ValidatorAddress {
 		return ErrVoteInvalidValidatorAddress
 	}
 

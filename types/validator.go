@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"fmt"
 	"strings"
 
@@ -47,7 +46,7 @@ func (v *Validator) CompareProposerPriority(other *Validator) *Validator {
 	case v.ProposerPriority < other.ProposerPriority:
 		return other
 	default:
-		result := bytes.Compare(v.Address, other.Address)
+		result := v.Address.Compare(other.Address)
 		switch {
 		case result < 0:
 			return v

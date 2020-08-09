@@ -1,6 +1,7 @@
 package crypto
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/tendermint/classic/crypto/tmhash"
@@ -41,6 +42,12 @@ func AddressFromBytes(bz []byte) (ret Address) {
 	}
 	copy(ret[:], bz)
 	return
+}
+
+func (addr Address) Compare(other Address) int {
+	bz1 := make([]byte, len(addr))
+	bz2 := make([]byte, len(other))
+	return bytes.Compare(bz1, bz2)
 }
 
 func (addr Address) IsZero() bool {

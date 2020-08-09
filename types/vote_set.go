@@ -8,6 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/tendermint/classic/crypto"
 	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/go-amino-x"
 )
@@ -178,7 +179,7 @@ func (voteSet *VoteSet) addVote(vote *Vote) (added bool, err error) {
 	}
 
 	// Ensure that the signer has the right address.
-	if !bytes.Equal(valAddr, lookupAddr) {
+	if valAddr != lookupAddr {
 		return false, errors.Wrapf(ErrVoteInvalidValidatorAddress,
 			"vote.ValidatorAddress (%X) does not match address (%X) for vote.ValidatorIndex (%d)\nEnsure the genesis file is correct across all validators.",
 			valAddr, lookupAddr, valIndex)
@@ -362,7 +363,7 @@ func (voteSet *VoteSet) GetByIndex(valIndex int) *Vote {
 	return voteSet.votes[valIndex]
 }
 
-func (voteSet *VoteSet) GetByAddress(address []byte) *Vote {
+func (voteSet *VoteSet) GetByAddress(address crypto.Address) *Vote {
 	if voteSet == nil {
 		return nil
 	}

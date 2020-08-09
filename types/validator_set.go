@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"fmt"
 	"math"
 	"math/big"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/tendermint/classic/crypto"
 	"github.com/tendermint/classic/crypto/merkle"
 )
 
@@ -220,20 +220,20 @@ func (vals *ValidatorSet) Copy() *ValidatorSet {
 
 // HasAddress returns true if address given is in the validator set, false -
 // otherwise.
-func (vals *ValidatorSet) HasAddress(address []byte) bool {
+func (vals *ValidatorSet) HasAddress(address crypto.Address) bool {
 	idx := sort.Search(len(vals.Validators), func(i int) bool {
-		return bytes.Compare(address, vals.Validators[i].Address) <= 0
+		return address.Compare(vals.Validators[i].Address) <= 0
 	})
-	return idx < len(vals.Validators) && bytes.Equal(vals.Validators[idx].Address, address)
+	return idx < len(vals.Validators) && vals.Validators[idx].Address == address
 }
 
 // GetByAddress returns an index of the validator with address and validator
 // itself if found. Otherwise, -1 and nil are returned.
-func (vals *ValidatorSet) GetByAddress(address []byte) (index int, val *Validator) {
+func (vals *ValidatorSet) GetByAddress(address crypto.Address) (index int, val *Validator) {
 	idx := sort.Search(len(vals.Validators), func(i int) bool {
-		return bytes.Compare(address, vals.Validators[i].Address) <= 0
+		return address.Compare(vals.Validators[i].Address) <= 0
 	})
-	if idx < len(vals.Validators) && bytes.Equal(vals.Validators[idx].Address, address) {
+	if idx < len(vals.Validators) && vals.Validators[idx].Address == address {
 		return idx, vals.Validators[idx].Copy()
 	}
 	return -1, nil
@@ -242,9 +242,9 @@ func (vals *ValidatorSet) GetByAddress(address []byte) (index int, val *Validato
 // GetByIndex returns the validator's address and validator itself by index.
 // It returns nil values if index is less than 0 or greater or equal to
 // len(ValidatorSet.Validators).
-func (vals *ValidatorSet) GetByIndex(index int) (address []byte, val *Validator) {
+func (vals *ValidatorSet) GetByIndex(index int) (address crypto.Address, val *Validator) {
 	if index < 0 || index >= len(vals.Validators) {
-		return nil, nil
+		return
 	}
 	val = vals.Validators[index]
 	return val.Address, val.Copy()
@@ -297,7 +297,7 @@ func (vals *ValidatorSet) GetProposer() (proposer *Validator) {
 func (vals *ValidatorSet) findProposer() *Validator {
 	var proposer *Validator
 	for _, val := range vals.Validators {
-		if proposer == nil || !bytes.Equal(val.Address, proposer.Address) {
+		if proposer == nil || val.Address != proposer.Address {
 			proposer = proposer.CompareProposerPriority(val)
 		}
 	}
@@ -345,7 +345,7 @@ func processChanges(origChanges []*Validator) (updates, removals []*Validator, e
 
 	// Scan changes by address and append valid validators to updates or removals lists.
 	for _, valUpdate := range changes {
-		if bytes.Equal(valUpdate.Address, prevAddr) {
+		if valUpdate.Address == prevAddr {
 			err = fmt.Errorf("duplicate entry %v in %v", valUpdate, changes)
 			return nil, nil, err
 		}
@@ -444,13 +444,13 @@ func (vals *ValidatorSet) applyUpdates(updates []*Validator) {
 	i := 0
 
 	for len(existing) > 0 && len(updates) > 0 {
-		if bytes.Compare(existing[0].Address, updates[0].Address) < 0 { // unchanged validator
+		if existing[0].Address.Compare(updates[0].Address) < 0 { // unchanged validator
 			merged[i] = existing[0]
 			existing = existing[1:]
 		} else {
 			// Apply add or update.
 			merged[i] = updates[0]
-			if bytes.Equal(existing[0].Address, updates[0].Address) {
+			if existing[0].Address == updates[0].Address {
 				// Validator is present in both, advance existing.
 				existing = existing[1:]
 			}
@@ -501,7 +501,7 @@ func (vals *ValidatorSet) applyRemovals(deletes []*Validator) {
 
 	// Loop over deletes until we removed all of them.
 	for len(deletes) > 0 {
-		if bytes.Equal(existing[0].Address, deletes[0].Address) {
+		if existing[0].Address == deletes[0].Address {
 			deletes = deletes[1:]
 		} else { // Leave it in the resulting slice.
 			merged[i] = existing[0]
@@ -773,7 +773,7 @@ func (valz ValidatorsByAddress) Len() int {
 }
 
 func (valz ValidatorsByAddress) Less(i, j int) bool {
-	return bytes.Compare(valz[i].Address, valz[j].Address) == -1
+	return valz[i].Address.Compare(valz[j].Address) == -1
 }
 
 func (valz ValidatorsByAddress) Swap(i, j int) {
