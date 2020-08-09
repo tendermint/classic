@@ -69,7 +69,7 @@ func newPeerConn(
 // ID only exists for SecretConnection.
 // NOTE: Will panic if conn is not *SecretConnection.
 func (pc peerConn) ID() ID {
-	return PubKeyToID(pc.conn.(*tmconn.SecretConnection).RemotePubKey())
+	return (pc.conn.(*tmconn.SecretConnection).RemotePubKey()).Address()
 }
 
 // Return the IP from the connection RemoteAddr

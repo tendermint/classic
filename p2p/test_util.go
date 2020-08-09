@@ -258,10 +258,10 @@ func testNodeInfoWithNetwork(id ID, name, network string) NodeInfo {
 	}
 }
 
-func getFreePort() int {
+func getFreePort() uint16 {
 	port, err := cmn.GetFreePort()
 	if err != nil {
 		panic(err)
 	}
-	return port
+	return uint16(port)
 }

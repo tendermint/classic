@@ -5,7 +5,6 @@
 package p2p
 
 import (
-	"encoding/hex"
 	"flag"
 	"fmt"
 	"net"
@@ -14,10 +13,13 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/tendermint/classic/crypto"
 )
 
+type ID = crypto.Address
+
 // NetAddress defines information about a peer on the network
-// including its ID, IP address, and port.
+// including its Address, IP address, and port.
 // NOTE: NetAddress is not meant to be mutated due to memoization.
 // @amino2: immutable XXX
 type NetAddress struct {
@@ -50,19 +52,19 @@ func NewNetAddress(id ID, addr net.Addr) *NetAddress {
 		if flag.Lookup("test.v") == nil { // normal run
 			panic(fmt.Sprintf("Only TCPAddrs are supported. Got: %v", addr))
 		} else { // in testing
-			netAddr := NewNetAddressFromIPPort("", net.IP("0.0.0.0"), 0)
+			netAddr := NewNetAddressFromIPPort(nil, net.IP("0.0.0.0"), 0)
 			netAddr.ID = id
 			return netAddr
 		}
 	}
 
-	if err := validateID(id); err != nil {
+	if err := id.Validate(); err != nil {
 		panic(fmt.Sprintf("Invalid ID %v: %v (addr: %v)", id, err, addr))
 	}
 
 	ip := tcpAddr.IP
 	port := uint16(tcpAddr.Port)
-	na := NewNetAddressFromIPPort(ip, port)
+	na := NewNetAddressFromIPPort(nil, ip, port)
 	na.ID = id
 	return na
 }
@@ -79,7 +81,7 @@ func NewNetAddressFromString(idaddr string) (*NetAddress, error) {
 	}
 
 	// get ID
-	if err := validateID(ID(spl[0])); err != nil {
+	if err := (ID(spl[0])).Validate(); err != nil {
 		return nil, ErrNetAddressInvalid{idaddr, err}
 	}
 	var id ID
@@ -111,7 +113,7 @@ func NewNetAddressFromString(idaddr string) (*NetAddress, error) {
 		return nil, ErrNetAddressInvalid{portStr, err}
 	}
 
-	na := NewNetAddressFromIPPort(ip, uint16(port))
+	na := NewNetAddressFromIPPort(nil, ip, uint16(port))
 	na.ID = id
 	return na, nil
 }
@@ -157,7 +159,7 @@ func (na *NetAddress) Same(other interface{}) bool {
 		if na.DialString() == o.DialString() {
 			return true
 		}
-		if na.ID != "" && na.ID == o.ID {
+		if na.ID.String() != "" && na.ID.String() == o.ID.String() {
 			return true
 		}
 	}
@@ -184,7 +186,7 @@ func (na *NetAddress) String() string {
 func (na NetAddress) MarshalAmino() (string, error) {
 	if na.str == "" {
 		addrStr := na.DialString()
-		if na.ID != "" {
+		if na.ID.String() != "" {
 			addrStr = NetAddressString(na.ID, addrStr)
 		}
 		na.str = addrStr
@@ -242,7 +244,7 @@ func (na *NetAddress) Routable() bool {
 // For IPv4 these are either a 0 or all bits set address. For IPv6 a zero
 // address or one that matches the RFC3849 documentation address format.
 func (na *NetAddress) Validate() error {
-	if err := validateID(na.ID); err != nil {
+	if err := na.ID.Validate(); err != nil {
 		return errors.Wrap(err, "invalid ID")
 	}
 
@@ -258,7 +260,7 @@ func (na *NetAddress) Validate() error {
 // HasID returns true if the address has an ID.
 // NOTE: It does not check whether the ID is valid or not.
 func (na *NetAddress) HasID() bool {
-	return string(na.ID) != ""
+	return na.ID.String() != ""
 }
 
 // Local returns true if it is a local address.
@@ -361,18 +363,4 @@ func removeProtocolIfDefined(addr string) string {
 	}
 	return addr
 
-}
-
-func validateID(id ID) error {
-	if len(id) == 0 {
-		return errors.New("no ID")
-	}
-	idBytes, err := hex.DecodeString(string(id))
-	if err != nil {
-		return err
-	}
-	if len(idBytes) != IDByteLength {
-		return fmt.Errorf("invalid hex length - got %d, expected %d", len(idBytes), IDByteLength)
-	}
-	return nil
 }

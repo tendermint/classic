@@ -2,7 +2,6 @@ package p2p
 
 import (
 	"bytes"
-	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 
@@ -20,6 +19,10 @@ import (
 // It contains the nodes private key for authentication.
 type NodeKey struct {
 	crypto.PrivKey `json:"priv_key"` // our priv key
+}
+
+func (nk NodeKey) ID() ID {
+	return nk.PubKey().Address()
 }
 
 // LoadOrGenNodeKey attempts to load the NodeKey from the given filePath.

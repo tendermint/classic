@@ -44,7 +44,7 @@ func (e ErrRejected) Error() string {
 				e.conn.RemoteAddr().String(),
 			)
 		}
-		if e.id != "" {
+		if e.id != nil {
 			return fmt.Sprintf("duplicate ID<%v>", e.id)
 		}
 	}
@@ -58,7 +58,7 @@ func (e ErrRejected) Error() string {
 			)
 		}
 
-		if e.id != "" {
+		if e.id != nil {
 			return fmt.Sprintf("filtered ID<%v>: %s", e.id, e.err)
 		}
 	}
