@@ -9,14 +9,8 @@ import (
 	"github.com/tendermint/classic/crypto"
 	"github.com/tendermint/classic/crypto/ed25519"
 	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/go-amino-x"
 )
-
-// ID is a hex-encoded crypto.Address
-type ID string
-
-// IDByteLength is the length of a crypto.Address. Currently only 20.
-// TODO: support other length addresses ?
-const IDByteLength = crypto.AddressSize
 
 //------------------------------------------------------------------------------
 // Persistent peer ID
@@ -25,23 +19,7 @@ const IDByteLength = crypto.AddressSize
 // NodeKey is the persistent peer key.
 // It contains the nodes private key for authentication.
 type NodeKey struct {
-	PrivKey crypto.PrivKey `json:"priv_key"` // our priv key
-}
-
-// ID returns the peer's canonical ID - the hash of its public key.
-func (nodeKey *NodeKey) ID() ID {
-	return PubKeyToID(nodeKey.PubKey())
-}
-
-// PubKey returns the peer's PubKey
-func (nodeKey *NodeKey) PubKey() crypto.PubKey {
-	return nodeKey.PrivKey.PubKey()
-}
-
-// PubKeyToID returns the ID corresponding to the given PubKey.
-// It's the hex-encoding of the pubKey.Address().
-func PubKeyToID(pubKey crypto.PubKey) ID {
-	return ID(hex.EncodeToString(pubKey.Address()))
+	crypto.PrivKey `json:"priv_key"` // our priv key
 }
 
 // LoadOrGenNodeKey attempts to load the NodeKey from the given filePath.
@@ -63,7 +41,7 @@ func LoadNodeKey(filePath string) (*NodeKey, error) {
 		return nil, err
 	}
 	nodeKey := new(NodeKey)
-	err = cdc.UnmarshalJSON(jsonBytes, nodeKey)
+	err = amino.UnmarshalJSON(jsonBytes, nodeKey)
 	if err != nil {
 		return nil, fmt.Errorf("Error reading NodeKey from %v: %v", filePath, err)
 	}
@@ -76,7 +54,7 @@ func genNodeKey(filePath string) (*NodeKey, error) {
 		PrivKey: privKey,
 	}
 
-	jsonBytes, err := cdc.MarshalJSON(nodeKey)
+	jsonBytes, err := amino.MarshalJSON(nodeKey)
 	if err != nil {
 		return nil, err
 	}

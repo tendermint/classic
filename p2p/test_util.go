@@ -11,6 +11,7 @@ import (
 	"github.com/tendermint/classic/crypto/ed25519"
 	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/classic/libs/log"
+	"github.com/tendermint/classic/libs/version"
 
 	"github.com/tendermint/classic/config"
 	"github.com/tendermint/classic/p2p/conn"
@@ -19,15 +20,6 @@ import (
 const testCh = 0x01
 
 //------------------------------------------------
-
-type mockNodeInfo struct {
-	addr *NetAddress
-}
-
-func (ni mockNodeInfo) ID() ID                              { return ni.addr.ID }
-func (ni mockNodeInfo) NetAddress() (*NetAddress, error)    { return ni.addr, nil }
-func (ni mockNodeInfo) Validate() error                     { return nil }
-func (ni mockNodeInfo) CompatibleWith(other NodeInfo) error { return nil }
 
 func AddPeerToSwitchPeerSet(sw *Switch, peer Peer) {
 	sw.peers.Add(peer)
@@ -40,7 +32,7 @@ func CreateRandomPeer(outbound bool) *peer {
 			outbound:   outbound,
 			socketAddr: netAddr,
 		},
-		nodeInfo: mockNodeInfo{netAddr},
+		nodeInfo: NodeInfo{NetAddress: netAddr},
 		mconn:    &conn.MConnection{},
 		metrics:  NopMetrics(),
 	}
@@ -52,7 +44,7 @@ func CreateRoutableAddr() (addr string, netAddr *NetAddress) {
 	for {
 		var err error
 		addr = fmt.Sprintf("%X@%v.%v.%v.%v:26656", cmn.RandBytes(20), cmn.RandInt()%256, cmn.RandInt()%256, cmn.RandInt()%256, cmn.RandInt()%256)
-		netAddr, err = NewNetAddressString(addr)
+		netAddr, err = NewNetAddressFromString(addr)
 		if err != nil {
 			panic(err)
 		}
@@ -177,16 +169,10 @@ func MakeSwitch(
 		PrivKey: ed25519.GenPrivKey(),
 	}
 	nodeInfo := testNodeInfo(nodeKey.ID(), fmt.Sprintf("node%d", i))
-	addr, err := NewNetAddressString(
-		IDAddressString(nodeKey.ID(), nodeInfo.(DefaultNodeInfo).ListenAddr),
-	)
-	if err != nil {
-		panic(err)
-	}
 
 	t := NewMultiplexTransport(nodeInfo, nodeKey, MConnConfig(cfg))
 
-	if err := t.Listen(*addr); err != nil {
+	if err := t.Listen(*nodeInfo.NetAddress); err != nil {
 		panic(err)
 	}
 
@@ -195,11 +181,9 @@ func MakeSwitch(
 	sw.SetLogger(log.TestingLogger().With("switch", i))
 	sw.SetNodeKey(&nodeKey)
 
-	ni := nodeInfo.(DefaultNodeInfo)
 	for ch := range sw.reactorsByCh {
-		ni.Channels = append(ni.Channels, ch)
+		nodeInfo.Channels = append(nodeInfo.Channels, ch)
 	}
-	nodeInfo = ni
 
 	// TODO: We need to setup reactors ahead of time so the NodeInfo is properly
 	// populated and we don't have to do those awkward overrides and setters.
@@ -249,16 +233,25 @@ func testNodeInfo(id ID, name string) NodeInfo {
 	return testNodeInfoWithNetwork(id, name, "testing")
 }
 
+func testProtocolVersionSet() version.ProtocolVersionSet {
+	return version.ProtocolVersionSet{
+		version.ProtocolVersion{
+			Name:    "p2p",
+			Version: "v0.0.0", // dontcare
+		},
+	}
+}
+
 func testNodeInfoWithNetwork(id ID, name, network string) NodeInfo {
-	return DefaultNodeInfo{
-		ProtocolVersion: defaultProtocolVersion,
-		ID_:             id,
-		ListenAddr:      fmt.Sprintf("127.0.0.1:%d", getFreePort()),
-		Network:         network,
-		Version:         "1.2.3-rc0-deadbeef",
-		Channels:        []byte{testCh},
-		Moniker:         name,
-		Other: DefaultNodeInfoOther{
+	return NodeInfo{
+		ProtocolVersionSet: testProtocolVersionSet(),
+		NetAddress:         NewNetAddressFromIPPort(id, net.ParseIP("127.0.0.1"), getFreePort()),
+		Network:            network,
+		Software:           "p2ptest",
+		Version:            "v1.2.3-rc.0-deadbeef",
+		Channels:           []byte{testCh},
+		Moniker:            name,
+		Other: NodeInfoOther{
 			TxIndex:    "on",
 			RPCAddress: fmt.Sprintf("127.0.0.1:%d", getFreePort()),
 		},

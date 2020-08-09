@@ -315,13 +315,7 @@ func (sw *Switch) StopPeerForError(peer Peer, reason interface{}) {
 		if peer.IsOutbound() { // socket address for outbound peers
 			addr = peer.SocketAddr()
 		} else { // self-reported address for inbound peers
-			var err error
-			addr, err = peer.NodeInfo().NetAddress()
-			if err != nil {
-				sw.Logger.Error("Wanted to reconnect to inbound peer, but self-reported address is wrong",
-					"peer", peer, "err", err)
-				return
-			}
+			addr = peer.NodeInfo().NetAddress
 		}
 		go sw.reconnectToPeer(addr)
 	}
@@ -439,7 +433,7 @@ func isPrivateAddr(err error) bool {
 // encounter is returned.
 // Nop if there are no peers.
 func (sw *Switch) DialPeersAsync(peers []string) error {
-	netAddrs, errs := NewNetAddressStrings(peers)
+	netAddrs, errs := NewNetAddressFromStrings(peers)
 	// report all the errors
 	for _, err := range errs {
 		sw.Logger.Error("Error in peer's address", "err", err)
@@ -542,7 +536,7 @@ func (sw *Switch) IsDialingOrExistingAddress(addr *NetAddress) bool {
 // returned.
 func (sw *Switch) AddPersistentPeers(addrs []string) error {
 	sw.Logger.Info("Adding persistent peers", "addrs", addrs)
-	netAddrs, errs := NewNetAddressStrings(addrs)
+	netAddrs, errs := NewNetAddressFromStrings(addrs)
 	// report all the errors
 	for _, err := range errs {
 		sw.Logger.Error("Error in peer's address", "err", err)

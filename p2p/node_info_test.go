@@ -11,7 +11,7 @@ import (
 func TestNodeInfoValidate(t *testing.T) {
 
 	// empty fails
-	ni := DefaultNodeInfo{}
+	ni := NodeInfo{}
 	assert.Error(t, ni.Validate())
 
 	channels := make([]byte, maxNumChannels)
@@ -28,50 +28,50 @@ func TestNodeInfoValidate(t *testing.T) {
 
 	testCases := []struct {
 		testName         string
-		malleateNodeInfo func(*DefaultNodeInfo)
+		malleateNodeInfo func(*NodeInfo)
 		expectErr        bool
 	}{
-		{"Too Many Channels", func(ni *DefaultNodeInfo) { ni.Channels = append(channels, byte(maxNumChannels)) }, true}, // nolint: gocritic
-		{"Duplicate Channel", func(ni *DefaultNodeInfo) { ni.Channels = dupChannels }, true},
-		{"Good Channels", func(ni *DefaultNodeInfo) { ni.Channels = ni.Channels[:5] }, false},
+		{"Too Many Channels", func(ni *NodeInfo) { ni.Channels = append(channels, byte(maxNumChannels)) }, true}, // nolint: gocritic
+		{"Duplicate Channel", func(ni *NodeInfo) { ni.Channels = dupChannels }, true},
+		{"Good Channels", func(ni *NodeInfo) { ni.Channels = ni.Channels[:5] }, false},
 
-		{"Invalid NetAddress", func(ni *DefaultNodeInfo) { ni.ListenAddr = "not-an-address" }, true},
-		{"Good NetAddress", func(ni *DefaultNodeInfo) { ni.ListenAddr = "0.0.0.0:26656" }, false},
+		{"Invalid NetAddress", func(ni *NodeInfo) { ni.ListenAddr = "not-an-address" }, true},
+		{"Good NetAddress", func(ni *NodeInfo) { ni.ListenAddr = "0.0.0.0:26656" }, false},
 
-		{"Non-ASCII Version", func(ni *DefaultNodeInfo) { ni.Version = nonAscii }, true},
-		{"Empty tab Version", func(ni *DefaultNodeInfo) { ni.Version = emptyTab }, true},
-		{"Empty space Version", func(ni *DefaultNodeInfo) { ni.Version = emptySpace }, true},
-		{"Empty Version", func(ni *DefaultNodeInfo) { ni.Version = "" }, false},
+		{"Non-ASCII Version", func(ni *NodeInfo) { ni.Version = nonAscii }, true},
+		{"Empty tab Version", func(ni *NodeInfo) { ni.Version = emptyTab }, true},
+		{"Empty space Version", func(ni *NodeInfo) { ni.Version = emptySpace }, true},
+		{"Empty Version", func(ni *NodeInfo) { ni.Version = "" }, false},
 
-		{"Non-ASCII Moniker", func(ni *DefaultNodeInfo) { ni.Moniker = nonAscii }, true},
-		{"Empty tab Moniker", func(ni *DefaultNodeInfo) { ni.Moniker = emptyTab }, true},
-		{"Empty space Moniker", func(ni *DefaultNodeInfo) { ni.Moniker = emptySpace }, true},
-		{"Empty Moniker", func(ni *DefaultNodeInfo) { ni.Moniker = "" }, true},
-		{"Good Moniker", func(ni *DefaultNodeInfo) { ni.Moniker = "hey its me" }, false},
+		{"Non-ASCII Moniker", func(ni *NodeInfo) { ni.Moniker = nonAscii }, true},
+		{"Empty tab Moniker", func(ni *NodeInfo) { ni.Moniker = emptyTab }, true},
+		{"Empty space Moniker", func(ni *NodeInfo) { ni.Moniker = emptySpace }, true},
+		{"Empty Moniker", func(ni *NodeInfo) { ni.Moniker = "" }, true},
+		{"Good Moniker", func(ni *NodeInfo) { ni.Moniker = "hey its me" }, false},
 
-		{"Non-ASCII TxIndex", func(ni *DefaultNodeInfo) { ni.Other.TxIndex = nonAscii }, true},
-		{"Empty tab TxIndex", func(ni *DefaultNodeInfo) { ni.Other.TxIndex = emptyTab }, true},
-		{"Empty space TxIndex", func(ni *DefaultNodeInfo) { ni.Other.TxIndex = emptySpace }, true},
-		{"Empty TxIndex", func(ni *DefaultNodeInfo) { ni.Other.TxIndex = "" }, false},
-		{"Off TxIndex", func(ni *DefaultNodeInfo) { ni.Other.TxIndex = "off" }, false},
+		{"Non-ASCII TxIndex", func(ni *NodeInfo) { ni.Other.TxIndex = nonAscii }, true},
+		{"Empty tab TxIndex", func(ni *NodeInfo) { ni.Other.TxIndex = emptyTab }, true},
+		{"Empty space TxIndex", func(ni *NodeInfo) { ni.Other.TxIndex = emptySpace }, true},
+		{"Empty TxIndex", func(ni *NodeInfo) { ni.Other.TxIndex = "" }, false},
+		{"Off TxIndex", func(ni *NodeInfo) { ni.Other.TxIndex = "off" }, false},
 
-		{"Non-ASCII RPCAddress", func(ni *DefaultNodeInfo) { ni.Other.RPCAddress = nonAscii }, true},
-		{"Empty tab RPCAddress", func(ni *DefaultNodeInfo) { ni.Other.RPCAddress = emptyTab }, true},
-		{"Empty space RPCAddress", func(ni *DefaultNodeInfo) { ni.Other.RPCAddress = emptySpace }, true},
-		{"Empty RPCAddress", func(ni *DefaultNodeInfo) { ni.Other.RPCAddress = "" }, false},
-		{"Good RPCAddress", func(ni *DefaultNodeInfo) { ni.Other.RPCAddress = "0.0.0.0:26657" }, false},
+		{"Non-ASCII RPCAddress", func(ni *NodeInfo) { ni.Other.RPCAddress = nonAscii }, true},
+		{"Empty tab RPCAddress", func(ni *NodeInfo) { ni.Other.RPCAddress = emptyTab }, true},
+		{"Empty space RPCAddress", func(ni *NodeInfo) { ni.Other.RPCAddress = emptySpace }, true},
+		{"Empty RPCAddress", func(ni *NodeInfo) { ni.Other.RPCAddress = "" }, false},
+		{"Good RPCAddress", func(ni *NodeInfo) { ni.Other.RPCAddress = "0.0.0.0:26657" }, false},
 	}
 
 	nodeKey := NodeKey{PrivKey: ed25519.GenPrivKey()}
 	name := "testing"
 
 	// test case passes
-	ni = testNodeInfo(nodeKey.ID(), name).(DefaultNodeInfo)
+	ni = testNodeInfo(nodeKey.ID(), name).(NodeInfo)
 	ni.Channels = channels
 	assert.NoError(t, ni.Validate())
 
 	for _, tc := range testCases {
-		ni := testNodeInfo(nodeKey.ID(), name).(DefaultNodeInfo)
+		ni := testNodeInfo(nodeKey.ID(), name).(NodeInfo)
 		ni.Channels = channels
 		tc.malleateNodeInfo(&ni)
 		err := ni.Validate()
@@ -93,8 +93,8 @@ func TestNodeInfoCompatible(t *testing.T) {
 	var newTestChannel byte = 0x2
 
 	// test NodeInfo is compatible
-	ni1 := testNodeInfo(nodeKey1.ID(), name).(DefaultNodeInfo)
-	ni2 := testNodeInfo(nodeKey2.ID(), name).(DefaultNodeInfo)
+	ni1 := testNodeInfo(nodeKey1.ID(), name).(NodeInfo)
+	ni2 := testNodeInfo(nodeKey2.ID(), name).(NodeInfo)
 	assert.NoError(t, ni1.CompatibleWith(ni2))
 
 	// add another channel; still compatible
@@ -108,15 +108,15 @@ func TestNodeInfoCompatible(t *testing.T) {
 
 	testCases := []struct {
 		testName         string
-		malleateNodeInfo func(*DefaultNodeInfo)
+		malleateNodeInfo func(*NodeInfo)
 	}{
-		{"Wrong block version", func(ni *DefaultNodeInfo) { ni.ProtocolVersion.Block += 1 }},
-		{"Wrong network", func(ni *DefaultNodeInfo) { ni.Network += "-wrong" }},
-		{"No common channels", func(ni *DefaultNodeInfo) { ni.Channels = []byte{newTestChannel} }},
+		{"Wrong block version", func(ni *NodeInfo) { ni.ProtocolVersion.Block += 1 }},
+		{"Wrong network", func(ni *NodeInfo) { ni.Network += "-wrong" }},
+		{"No common channels", func(ni *NodeInfo) { ni.Channels = []byte{newTestChannel} }},
 	}
 
 	for _, tc := range testCases {
-		ni := testNodeInfo(nodeKey2.ID(), name).(DefaultNodeInfo)
+		ni := testNodeInfo(nodeKey2.ID(), name).(NodeInfo)
 		tc.malleateNodeInfo(&ni)
 		assert.Error(t, ni1.CompatibleWith(ni))
 	}

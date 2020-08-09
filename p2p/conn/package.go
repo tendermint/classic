@@ -1,28 +1,33 @@
 package conn
 
 import (
+	"reflect"
+
 	"github.com/tendermint/go-amino-x"
+	"github.com/tendermint/go-amino-x/pkg"
 )
 
 var Package = amino.RegisterPackage(amino.NewPackage(
 	"github.com/tendermint/classic/p2p/conn",
-	"conn",
+	"p2p", // keep short, do not change.
 	amino.GetCallersDirname(),
 ).
 	WithDependencies(
-	// na
+	// NA
 	).
 	WithTypes(
 
-		/*
-			pkg.Type{ // example of overriding type name.
-				Type:             reflect.TypeOf(EmbeddedSt5{}),
-				Name:             "EmbeddedSt5NameOverride",
-				PointerPreferred: false,
-			},
-		*/
-
-		PackatPing{},
-		PacketPong{},
-		PacketMsg{},
+		// NOTE: Keep the names short.
+		pkg.Type{
+			Type: reflect.TypeOf(PacketPing{}),
+			Name: "Ping",
+		},
+		pkg.Type{
+			Type: reflect.TypeOf(PacketPong{}),
+			Name: "Pong",
+		},
+		pkg.Type{
+			Type: reflect.TypeOf(PacketMsg{}),
+			Name: "Msg",
+		},
 	))

@@ -18,10 +18,12 @@ import (
 
 // NetAddress defines information about a peer on the network
 // including its ID, IP address, and port.
+// NOTE: NetAddress is not meant to be mutated due to memoization.
+// @amino2: immutable XXX
 type NetAddress struct {
-	ID   ID     `json:"id"`
-	IP   net.IP `json:"ip"`
-	Port uint16 `json:"port"`
+	ID   ID     `json:"id"`   // authenticated identifier (TODO)
+	IP   net.IP `json:"ip"`   // part of "addr"
+	Port uint16 `json:"port"` // part of "addr"
 
 	// TODO:
 	// Name string `json:"name"` // optional DNS name
@@ -30,11 +32,11 @@ type NetAddress struct {
 	str string
 }
 
-// IDAddressString returns id@hostPort. It strips the leading
+// NetAddressString returns id@addr. It strips the leading
 // protocol from protocolHostPort if it exists.
-func IDAddressString(id ID, protocolHostPort string) string {
-	hostPort := removeProtocolIfDefined(protocolHostPort)
-	return fmt.Sprintf("%s@%s", id, hostPort)
+func NetAddressString(id ID, protocolHostPort string) string {
+	addr := removeProtocolIfDefined(protocolHostPort)
+	return fmt.Sprintf("%s@%s", id, addr)
 }
 
 // NewNetAddress returns a new NetAddress using the provided TCP
@@ -48,7 +50,7 @@ func NewNetAddress(id ID, addr net.Addr) *NetAddress {
 		if flag.Lookup("test.v") == nil { // normal run
 			panic(fmt.Sprintf("Only TCPAddrs are supported. Got: %v", addr))
 		} else { // in testing
-			netAddr := NewNetAddressIPPort(net.IP("0.0.0.0"), 0)
+			netAddr := NewNetAddressFromIPPort("", net.IP("0.0.0.0"), 0)
 			netAddr.ID = id
 			return netAddr
 		}
@@ -60,37 +62,38 @@ func NewNetAddress(id ID, addr net.Addr) *NetAddress {
 
 	ip := tcpAddr.IP
 	port := uint16(tcpAddr.Port)
-	na := NewNetAddressIPPort(ip, port)
+	na := NewNetAddressFromIPPort(ip, port)
 	na.ID = id
 	return na
 }
 
-// NewNetAddressString returns a new NetAddress using the provided address in
+// NewNetAddressFromString returns a new NetAddress using the provided address in
 // the form of "ID@IP:Port".
 // Also resolves the host if host is not an IP.
 // Errors are of type ErrNetAddressXxx where Xxx is in (NoID, Invalid, Lookup)
-func NewNetAddressString(addr string) (*NetAddress, error) {
-	addrWithoutProtocol := removeProtocolIfDefined(addr)
-	spl := strings.Split(addrWithoutProtocol, "@")
+func NewNetAddressFromString(idaddr string) (*NetAddress, error) {
+	idaddr = removeProtocolIfDefined(idaddr)
+	spl := strings.Split(idaddr, "@")
 	if len(spl) != 2 {
-		return nil, ErrNetAddressNoID{addr}
+		return nil, ErrNetAddressNoID{idaddr}
 	}
 
 	// get ID
 	if err := validateID(ID(spl[0])); err != nil {
-		return nil, ErrNetAddressInvalid{addrWithoutProtocol, err}
+		return nil, ErrNetAddressInvalid{idaddr, err}
 	}
 	var id ID
-	id, addrWithoutProtocol = ID(spl[0]), spl[1]
+	var addr string
+	id, addr = ID(spl[0]), spl[1]
 
 	// get host and port
-	host, portStr, err := net.SplitHostPort(addrWithoutProtocol)
+	host, portStr, err := net.SplitHostPort(addr)
 	if err != nil {
-		return nil, ErrNetAddressInvalid{addrWithoutProtocol, err}
+		return nil, ErrNetAddressInvalid{addr, err}
 	}
 	if len(host) == 0 {
 		return nil, ErrNetAddressInvalid{
-			addrWithoutProtocol,
+			addr,
 			errors.New("host is empty")}
 	}
 
@@ -108,18 +111,18 @@ func NewNetAddressString(addr string) (*NetAddress, error) {
 		return nil, ErrNetAddressInvalid{portStr, err}
 	}
 
-	na := NewNetAddressIPPort(ip, uint16(port))
+	na := NewNetAddressFromIPPort(ip, uint16(port))
 	na.ID = id
 	return na, nil
 }
 
-// NewNetAddressStrings returns an array of NetAddress'es build using
+// NewNetAddressFromStrings returns an array of NetAddress'es build using
 // the provided strings.
-func NewNetAddressStrings(addrs []string) ([]*NetAddress, []error) {
+func NewNetAddressFromStrings(idaddrs []string) ([]*NetAddress, []error) {
 	netAddrs := make([]*NetAddress, 0)
 	errs := make([]error, 0)
-	for _, addr := range addrs {
-		netAddr, err := NewNetAddressString(addr)
+	for _, addr := range idaddrs {
+		netAddr, err := NewNetAddressFromString(addr)
 		if err != nil {
 			errs = append(errs, err)
 		} else {
@@ -131,8 +134,9 @@ func NewNetAddressStrings(addrs []string) ([]*NetAddress, []error) {
 
 // NewNetAddressIPPort returns a new NetAddress using the provided IP
 // and port number.
-func NewNetAddressIPPort(ip net.IP, port uint16) *NetAddress {
+func NewNetAddressFromIPPort(id ID, ip net.IP, port uint16) *NetAddress {
 	return &NetAddress{
+		ID:   id,
 		IP:   ip,
 		Port: port,
 	}
@@ -165,14 +169,36 @@ func (na *NetAddress) String() string {
 	if na == nil {
 		return "<nil-NetAddress>"
 	}
+	if na.str != "" {
+		return na.str
+	}
+	str, err := na.MarshalAmino()
+	if err != nil {
+		return "<bad-NetAddress>"
+	}
+	return str
+}
+
+// Needed because (a) IP doesn't encode, and (b) the intend of this type is to
+// serialize to a string anyways.
+func (na NetAddress) MarshalAmino() (string, error) {
 	if na.str == "" {
 		addrStr := na.DialString()
 		if na.ID != "" {
-			addrStr = IDAddressString(na.ID, addrStr)
+			addrStr = NetAddressString(na.ID, addrStr)
 		}
 		na.str = addrStr
 	}
-	return na.str
+	return na.str, nil
+}
+
+func (na *NetAddress) UnmarshalAmino(str string) (err error) {
+	na2, err := NewNetAddressFromString(str)
+	if err != nil {
+		return err
+	}
+	*na = *na2
+	return nil
 }
 
 func (na *NetAddress) DialString() string {
@@ -205,7 +231,7 @@ func (na *NetAddress) DialTimeout(timeout time.Duration) (net.Conn, error) {
 
 // Routable returns true if the address is routable.
 func (na *NetAddress) Routable() bool {
-	if err := na.Valid(); err != nil {
+	if err := na.Validate(); err != nil {
 		return false
 	}
 	// TODO(oga) bitcoind doesn't include RFC3849 here, but should we?
@@ -215,7 +241,7 @@ func (na *NetAddress) Routable() bool {
 
 // For IPv4 these are either a 0 or all bits set address. For IPv6 a zero
 // address or one that matches the RFC3849 documentation address format.
-func (na *NetAddress) Valid() error {
+func (na *NetAddress) Validate() error {
 	if err := validateID(na.ID); err != nil {
 		return errors.Wrap(err, "invalid ID")
 	}

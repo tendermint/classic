@@ -421,7 +421,7 @@ FOR_LOOP:
 			}
 		case <-c.pingTimer.C:
 			c.Logger.Debug("Send Ping")
-			_n, err = amino.MarshalSizedWriter(c.bufConnWriter, PacketPing{})
+			_n, err = amino.MarshalAnySizedWriter(c.bufConnWriter, PacketPing{})
 			if err != nil {
 				break SELECTION
 			}
@@ -443,7 +443,7 @@ FOR_LOOP:
 			}
 		case <-c.pong:
 			c.Logger.Debug("Send Pong")
-			_n, err = amino.MarshalSizedWriter(c.bufConnWriter, PacketPong{})
+			_n, err = amino.MarshalAnySizedWriter(c.bufConnWriter, PacketPong{})
 			if err != nil {
 				break SELECTION
 			}
@@ -651,7 +651,7 @@ func (c *MConnection) stopPongTimer() {
 // maxPacketMsgSize returns a maximum size of PacketMsg, including the overhead
 // of amino encoding.
 func (c *MConnection) maxPacketMsgSize() int {
-	return len(amino.MustMarshalSized(PacketMsg{
+	return len(amino.MustMarshalAnySized(PacketMsg{
 		ChannelID: 0x01,
 		EOF:       1,
 		Bytes:     make([]byte, c.config.MaxPacketMsgPayloadSize),
@@ -821,7 +821,7 @@ func (ch *Channel) nextPacketMsg() PacketMsg {
 // Not goroutine-safe
 func (ch *Channel) writePacketMsgTo(w io.Writer) (n int64, err error) {
 	var packet = ch.nextPacketMsg()
-	n, err = amino.MarshalSizedWriter(w, packet)
+	n, err = amino.MarshalAnySizedWriter(w, packet)
 	atomic.AddInt64(&ch.recentlySent, n)
 	return
 }
@@ -861,19 +861,12 @@ func (ch *Channel) updateStats() {
 // Packet
 
 type Packet interface {
-	AssertIsPacket()
+	AssertPacket()
 }
 
-func RegisterPacket(cdc *amino.Codec) {
-	cdc.RegisterInterface((*Packet)(nil), nil)
-	cdc.RegisterConcrete(PacketPing{}, "tendermint/p2p/PacketPing", nil)
-	cdc.RegisterConcrete(PacketPong{}, "tendermint/p2p/PacketPong", nil)
-	cdc.RegisterConcrete(PacketMsg{}, "tendermint/p2p/PacketMsg", nil)
-}
-
-func (_ PacketPing) AssertIsPacket() {}
-func (_ PacketPong) AssertIsPacket() {}
-func (_ PacketMsg) AssertIsPacket()  {}
+func (_ PacketPing) AssertPacket() {}
+func (_ PacketPong) AssertPacket() {}
+func (_ PacketMsg) AssertPacket()  {}
 
 type PacketPing struct {
 }
