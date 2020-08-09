@@ -15,17 +15,16 @@ const (
 	AddressSize = tmhash.TruncatedSize
 )
 
-// An address is a []byte, but hex-encoded even in JSON.
-// []byte leaves us the option to change the address length.
+// (truncated) hash of some preimage (typically of a pubkey).
 type Address [AddressSize]byte
 
 func AddressFromString(str string) (addr Address, err error) {
-	err = addr.UnmarshalAmino(str)
+	err = addr.DecodeString(str)
 	return
 }
 
 func MustAddressFromString(str string) (addr Address) {
-	err := addr.UnmarshalAmino(str)
+	err := addr.DecodeString(str)
 	if err != nil {
 		panic(fmt.Errorf("invalid address string representation: %v, error: %v", str, err))
 	}
@@ -49,25 +48,17 @@ func (addr Address) IsZero() bool {
 }
 
 func (addr Address) String() string {
-	str, err := addr.MarshalAmino()
-	if err != nil {
-		panic(err)
-	}
-	return str
-}
-
-func (addr Address) MarshalAmino() (string, error) {
 	// The "c" bech32 is intended to be constant,
 	// and enforced upon all users of the tendermint/classic repo
 	// and derivations of tendermint/classic.
 	bech32Addr, err := bech32.Encode("c", addr[:])
 	if err != nil {
-		return "", err
+		panic(err)
 	}
-	return bech32Addr, nil
+	return bech32Addr
 }
 
-func (addr *Address) UnmarshalAmino(str string) error {
+func (addr *Address) DecodeString(str string) error {
 	pre, bz, err := bech32.Decode(str)
 	if err != nil {
 		return err
@@ -80,6 +71,25 @@ func (addr *Address) UnmarshalAmino(str string) error {
 	}
 	copy((*addr)[:], bz)
 	return nil
+}
+
+//----------------------------------------
+// ID
+
+// The bech32 representation w/ prefix "c".
+type ID string
+
+func AddressFromID(id ID) (addr Address, err error) {
+	err = addr.DecodeString(string(id))
+	return
+}
+
+func (addr Address) ID() ID {
+	return ID(addr.String())
+}
+
+func (addr *Address) DecodeID(id ID) error {
+	return addr.DecodeString(string(id))
 }
 
 //----------------------------------------
