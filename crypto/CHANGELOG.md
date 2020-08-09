@@ -2,7 +2,7 @@
 
 ## Tendermint/Classic
 
-- Address is a typedef with MarshalAmino to a bech32 string with prefix "c".
+- Address is a typedef of [20]byte with MarshalAmino to a bech32 string with prefix "c".
 
 ## 0.9.0
 

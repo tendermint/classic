@@ -17,10 +17,18 @@ const (
 
 // An address is a []byte, but hex-encoded even in JSON.
 // []byte leaves us the option to change the address length.
-type Address []byte
+type Address [AddressSize]byte
 
-func AddressHash(bz []byte) Address {
-	return Address(tmhash.SumTruncated(bz))
+func AddressFromPreimage(bz []byte) Address {
+	return AddressFromBytes(tmhash.SumTruncated(bz))
+}
+
+func AddressFromBytes(bz []byte) (ret Address) {
+	if len(bz) != AddressSize {
+		panic(fmt.Errorf("unexpected address byte length. expected %v, got %v", AddressSize, len(bz)))
+	}
+	copy(ret[:], bz)
+	return
 }
 
 func (addr Address) String() string {
@@ -35,7 +43,7 @@ func (addr Address) MarshalAmino() (string, error) {
 	// The "c" bech32 is intended to be constant,
 	// and enforced upon all users of the tendermint/classic repo
 	// and derivations of tendermint/classic.
-	bech32Addr, err := bech32.Encode("c", addr)
+	bech32Addr, err := bech32.Encode("c", addr[:])
 	if err != nil {
 		return "", err
 	}
@@ -50,7 +58,10 @@ func (addr *Address) UnmarshalAmino(str string) error {
 	if pre != "c" {
 		return fmt.Errorf("unexpected bech32 prefix for address. expected \"c\", got %v", pre)
 	}
-	*addr = cp(bz)
+	if len(bz) != AddressSize {
+		return fmt.Errorf("unexpected address byte length. expected %v, got %v", AddressSize, len(bz))
+	}
+	copy((*addr)[:], bz)
 	return nil
 }
 

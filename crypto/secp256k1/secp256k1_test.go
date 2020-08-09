@@ -34,7 +34,7 @@ func TestPubKeySecp256k1Address(t *testing.T) {
 		privB, _ := hex.DecodeString(d.priv)
 		pubB, _ := hex.DecodeString(d.pub)
 		addrBbz, _, _ := base58.CheckDecode(d.addr)
-		addrB := crypto.Address(addrBbz)
+		addrB := crypto.AddressFromBytes(addrBbz)
 
 		var priv secp256k1.PrivKeySecp256k1
 		copy(priv[:], privB)
