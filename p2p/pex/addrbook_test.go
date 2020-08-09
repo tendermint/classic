@@ -1,7 +1,6 @@
 package pex
 
 import (
-	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -11,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/tendermint/classic/crypto/ed25519"
 	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/classic/libs/log"
 	"github.com/tendermint/classic/p2p"
@@ -190,9 +190,9 @@ func randIPv4Address(t *testing.T) *p2p.NetAddress {
 			cmn.RandIntn(255),
 		)
 		port := cmn.RandIntn(65535-1) + 1
-		id := p2p.ID(hex.EncodeToString(cmn.RandBytes(p2p.IDByteLength)))
-		idAddr := p2p.IDAddressString(id, fmt.Sprintf("%v:%v", ip, port))
-		addr, err := p2p.NewNetAddressString(idAddr)
+		id := ed25519.GenPrivKey().PubKey().Address()
+		idAddr := p2p.NetAddressString(id, fmt.Sprintf("%v:%v", ip, port))
+		addr, err := p2p.NewNetAddressFromString(idAddr)
 		assert.Nil(t, err, "error generating rand network address")
 		if addr.Routable() {
 			return addr
@@ -380,7 +380,7 @@ func testCreatePrivateAddrs(t *testing.T, numAddrs int) ([]*p2p.NetAddress, []st
 
 	private := make([]string, numAddrs)
 	for i, addr := range addrs {
-		private[i] = string(addr.ID)
+		private[i] = addr.ID.String()
 	}
 	return addrs, private
 }

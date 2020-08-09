@@ -2,10 +2,13 @@ package p2p
 
 import (
 	"fmt"
+	"net"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/tendermint/classic/crypto"
 	"github.com/tendermint/classic/crypto/ed25519"
+	"github.com/tendermint/classic/libs/version"
 )
 
 func TestNodeInfoValidate(t *testing.T) {
@@ -35,8 +38,9 @@ func TestNodeInfoValidate(t *testing.T) {
 		{"Duplicate Channel", func(ni *NodeInfo) { ni.Channels = dupChannels }, true},
 		{"Good Channels", func(ni *NodeInfo) { ni.Channels = ni.Channels[:5] }, false},
 
-		{"Invalid NetAddress", func(ni *NodeInfo) { ni.ListenAddr = "not-an-address" }, true},
-		{"Good NetAddress", func(ni *NodeInfo) { ni.ListenAddr = "0.0.0.0:26656" }, false},
+		{"Nil NetAddress", func(ni *NodeInfo) { ni.NetAddress = nil }, true},
+		{"Zero NetAddress ID", func(ni *NodeInfo) { ni.NetAddress.ID = crypto.Address{} }, true},
+		{"Invalid NetAddress IP", func(ni *NodeInfo) { ni.NetAddress.IP = net.IP([]byte{0x00}) }, true},
 
 		{"Non-ASCII Version", func(ni *NodeInfo) { ni.Version = nonAscii }, true},
 		{"Empty tab Version", func(ni *NodeInfo) { ni.Version = emptyTab }, true},
@@ -66,12 +70,12 @@ func TestNodeInfoValidate(t *testing.T) {
 	name := "testing"
 
 	// test case passes
-	ni = testNodeInfo(nodeKey.ID(), name).(NodeInfo)
+	ni = testNodeInfo(nodeKey.ID(), name)
 	ni.Channels = channels
 	assert.NoError(t, ni.Validate())
 
 	for _, tc := range testCases {
-		ni := testNodeInfo(nodeKey.ID(), name).(NodeInfo)
+		ni := testNodeInfo(nodeKey.ID(), name)
 		ni.Channels = channels
 		tc.malleateNodeInfo(&ni)
 		err := ni.Validate()
@@ -93,8 +97,8 @@ func TestNodeInfoCompatible(t *testing.T) {
 	var newTestChannel byte = 0x2
 
 	// test NodeInfo is compatible
-	ni1 := testNodeInfo(nodeKey1.ID(), name).(NodeInfo)
-	ni2 := testNodeInfo(nodeKey2.ID(), name).(NodeInfo)
+	ni1 := testNodeInfo(nodeKey1.ID(), name)
+	ni2 := testNodeInfo(nodeKey2.ID(), name)
 	assert.NoError(t, ni1.CompatibleWith(ni2))
 
 	// add another channel; still compatible
@@ -103,20 +107,25 @@ func TestNodeInfoCompatible(t *testing.T) {
 
 	// wrong NodeInfo type is not compatible
 	_, netAddr := CreateRoutableAddr()
-	ni3 := mockNodeInfo{netAddr}
+	ni3 := NodeInfo{NetAddress: netAddr}
 	assert.Error(t, ni1.CompatibleWith(ni3))
 
 	testCases := []struct {
 		testName         string
 		malleateNodeInfo func(*NodeInfo)
 	}{
-		{"Wrong block version", func(ni *NodeInfo) { ni.ProtocolVersion.Block += 1 }},
+		{"Bad block version", func(ni *NodeInfo) {
+			ni.ProtocolVersionSet.Set(version.ProtocolVersion{Name: "Block", Version: "badversion"})
+		}},
+		{"Wrong block version", func(ni *NodeInfo) {
+			ni.ProtocolVersionSet.Set(version.ProtocolVersion{Name: "Block", Version: "v999.999.999-wrong"})
+		}},
 		{"Wrong network", func(ni *NodeInfo) { ni.Network += "-wrong" }},
 		{"No common channels", func(ni *NodeInfo) { ni.Channels = []byte{newTestChannel} }},
 	}
 
 	for _, tc := range testCases {
-		ni := testNodeInfo(nodeKey2.ID(), name).(NodeInfo)
+		ni := testNodeInfo(nodeKey2.ID(), name)
 		tc.malleateNodeInfo(&ni)
 		assert.Error(t, ni1.CompatibleWith(ni))
 	}

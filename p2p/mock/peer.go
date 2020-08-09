@@ -3,6 +3,7 @@ package mock
 import (
 	"net"
 
+	"github.com/tendermint/classic/crypto"
 	"github.com/tendermint/classic/crypto/ed25519"
 	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/classic/p2p"
@@ -25,7 +26,7 @@ func NewPeer(ip net.IP) *Peer {
 	if ip == nil {
 		_, netAddr = p2p.CreateRoutableAddr()
 	} else {
-		netAddr = p2p.NewNetAddressIPPort(ip, 26656)
+		netAddr = p2p.NewNetAddressFromIPPort(crypto.Address{}, ip, 26656)
 	}
 	nodeKey := p2p.NodeKey{PrivKey: ed25519.GenPrivKey()}
 	netAddr.ID = nodeKey.ID()
@@ -44,9 +45,8 @@ func (mp *Peer) FlushStop()                              { mp.Stop() }
 func (mp *Peer) TrySend(chID byte, msgBytes []byte) bool { return true }
 func (mp *Peer) Send(chID byte, msgBytes []byte) bool    { return true }
 func (mp *Peer) NodeInfo() p2p.NodeInfo {
-	return p2p.DefaultNodeInfo{
-		ID_:        mp.addr.ID,
-		ListenAddr: mp.addr.DialString(),
+	return p2p.NodeInfo{
+		NetAddress: mp.addr,
 	}
 }
 func (mp *Peer) Status() conn.ConnectionStatus { return conn.ConnectionStatus{} }

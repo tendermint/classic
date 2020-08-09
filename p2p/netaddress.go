@@ -52,19 +52,15 @@ func NewNetAddress(id ID, addr net.Addr) *NetAddress {
 		if flag.Lookup("test.v") == nil { // normal run
 			panic(fmt.Sprintf("Only TCPAddrs are supported. Got: %v", addr))
 		} else { // in testing
-			netAddr := NewNetAddressFromIPPort(nil, net.IP("0.0.0.0"), 0)
+			netAddr := NewNetAddressFromIPPort(crypto.Address{}, net.IP("0.0.0.0"), 0)
 			netAddr.ID = id
 			return netAddr
 		}
 	}
 
-	if err := id.Validate(); err != nil {
-		panic(fmt.Sprintf("Invalid ID %v: %v (addr: %v)", id, err, addr))
-	}
-
 	ip := tcpAddr.IP
 	port := uint16(tcpAddr.Port)
-	na := NewNetAddressFromIPPort(nil, ip, port)
+	na := NewNetAddressFromIPPort(crypto.Address{}, ip, port)
 	na.ID = id
 	return na
 }
@@ -81,12 +77,14 @@ func NewNetAddressFromString(idaddr string) (*NetAddress, error) {
 	}
 
 	// get ID
-	if err := (ID(spl[0])).Validate(); err != nil {
-		return nil, ErrNetAddressInvalid{idaddr, err}
-	}
 	var id ID
+	var err error
 	var addr string
-	id, addr = ID(spl[0]), spl[1]
+	id, err = crypto.AddressFromString(spl[0])
+	if err != nil {
+		return nil, err
+	}
+	addr = spl[1]
 
 	// get host and port
 	host, portStr, err := net.SplitHostPort(addr)
@@ -113,7 +111,7 @@ func NewNetAddressFromString(idaddr string) (*NetAddress, error) {
 		return nil, ErrNetAddressInvalid{portStr, err}
 	}
 
-	na := NewNetAddressFromIPPort(nil, ip, uint16(port))
+	na := NewNetAddressFromIPPort(crypto.Address{}, ip, uint16(port))
 	na.ID = id
 	return na, nil
 }
@@ -244,10 +242,6 @@ func (na *NetAddress) Routable() bool {
 // For IPv4 these are either a 0 or all bits set address. For IPv6 a zero
 // address or one that matches the RFC3849 documentation address format.
 func (na *NetAddress) Validate() error {
-	if err := na.ID.Validate(); err != nil {
-		return errors.Wrap(err, "invalid ID")
-	}
-
 	if na.IP == nil {
 		return errors.New("no IP")
 	}
@@ -260,7 +254,7 @@ func (na *NetAddress) Validate() error {
 // HasID returns true if the address has an ID.
 // NOTE: It does not check whether the ID is valid or not.
 func (na *NetAddress) HasID() bool {
-	return na.ID.String() != ""
+	return !na.ID.IsZero()
 }
 
 // Local returns true if it is a local address.

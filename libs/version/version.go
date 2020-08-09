@@ -29,7 +29,16 @@ func (pvs ProtocolVersionSet) Sort() {
 	})
 }
 
-func (pvs ProtocolVersionSet) GetProtocol(name string) (pv ProtocolVersion, ok bool) {
+func (pvs *ProtocolVersionSet) Set(pv ProtocolVersion) {
+	for i, pv2 := range *pvs {
+		if pv2.Name == pv.Name {
+			(*pvs)[i] = pv
+		}
+	}
+	return
+}
+
+func (pvs ProtocolVersionSet) Get(name string) (pv ProtocolVersion, ok bool) {
 	for _, pv := range pvs {
 		if pv.Name == name {
 			return pv, true

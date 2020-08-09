@@ -15,6 +15,7 @@ import (
 	"github.com/tendermint/classic/libs/log"
 	"github.com/tendermint/classic/p2p"
 	"github.com/tendermint/classic/p2p/mock"
+	"github.com/tendermint/go-amino-x"
 )
 
 var (
@@ -128,11 +129,11 @@ func TestPEXReactorReceive(t *testing.T) {
 
 	size := book.Size()
 	addrs := []*p2p.NetAddress{peer.SocketAddr()}
-	msg := cdc.MustMarshal(&pexAddrsMessage{Addrs: addrs})
+	msg := amino.MustMarshalAny(&pexAddrsMessage{Addrs: addrs})
 	r.Receive(PexChannel, peer, msg)
 	assert.Equal(t, size+1, book.Size())
 
-	msg = cdc.MustMarshal(&pexRequestMessage{})
+	msg = amino.MustMarshalAny(&pexRequestMessage{})
 	r.Receive(PexChannel, peer, msg) // should not panic.
 }
 
@@ -147,8 +148,8 @@ func TestPEXReactorRequestMessageAbuse(t *testing.T) {
 	p2p.AddPeerToSwitchPeerSet(sw, peer)
 	assert.True(t, sw.Peers().Has(peer.ID()))
 
-	id := string(peer.ID())
-	msg := cdc.MustMarshal(&pexRequestMessage{})
+	id := peer.ID().String()
+	msg := amino.MustMarshalAny(&pexRequestMessage{})
 
 	// first time creates the entry
 	r.Receive(PexChannel, peer, msg)
@@ -177,7 +178,7 @@ func TestPEXReactorAddrsMessageAbuse(t *testing.T) {
 	p2p.AddPeerToSwitchPeerSet(sw, peer)
 	assert.True(t, sw.Peers().Has(peer.ID()))
 
-	id := string(peer.ID())
+	id := peer.ID().String()
 
 	// request addrs from the peer
 	r.RequestAddrs(peer)
@@ -185,7 +186,7 @@ func TestPEXReactorAddrsMessageAbuse(t *testing.T) {
 	assert.True(t, sw.Peers().Has(peer.ID()))
 
 	addrs := []*p2p.NetAddress{peer.SocketAddr()}
-	msg := cdc.MustMarshal(&pexAddrsMessage{Addrs: addrs})
+	msg := amino.MustMarshalAny(&pexAddrsMessage{Addrs: addrs})
 
 	// receive some addrs. should clear the request
 	r.Receive(PexChannel, peer, msg)
@@ -445,7 +446,7 @@ func TestPEXReactorSeedModeFlushStop(t *testing.T) {
 	// this isn't perfect since it's possible the peer sends us a msg and we FlushStop
 	// before this loop catches it. but non-deterministically it works pretty well.
 	for i := 0; i < 1000; i++ {
-		v := reactor.lastReceivedRequests.Get(string(peerID))
+		v := reactor.lastReceivedRequests.Get(peerID.String())
 		if v != nil {
 			break
 		}
@@ -469,7 +470,7 @@ func TestPEXReactorDoesNotAddPrivatePeersToAddrBook(t *testing.T) {
 	peer := p2p.CreateRandomPeer(false)
 
 	pexR, book := createReactor(&PEXReactorConfig{})
-	book.AddPrivateIDs([]string{string(peer.NodeInfo().ID())})
+	book.AddPrivateIDs([]string{peer.NodeInfo().ID().String()})
 	defer teardownReactor(book)
 
 	// we have to send a request to receive responses
@@ -477,7 +478,7 @@ func TestPEXReactorDoesNotAddPrivatePeersToAddrBook(t *testing.T) {
 
 	size := book.Size()
 	addrs := []*p2p.NetAddress{peer.SocketAddr()}
-	msg := cdc.MustMarshal(&pexAddrsMessage{Addrs: addrs})
+	msg := amino.MustMarshalAny(&pexAddrsMessage{Addrs: addrs})
 	pexR.Receive(PexChannel, peer, msg)
 	assert.Equal(t, size, book.Size())
 

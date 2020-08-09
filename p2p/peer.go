@@ -249,7 +249,7 @@ func (p *peer) Send(chID byte, msgBytes []byte) bool {
 	res := p.mconn.Send(chID, msgBytes)
 	if res {
 		labels := []string{
-			"peer_id", string(p.ID()),
+			"peer_id", p.ID().String(),
 			"chID", fmt.Sprintf("%#x", chID),
 		}
 		p.metrics.PeerSendBytesTotal.With(labels...).Add(float64(len(msgBytes)))
@@ -268,7 +268,7 @@ func (p *peer) TrySend(chID byte, msgBytes []byte) bool {
 	res := p.mconn.TrySend(chID, msgBytes)
 	if res {
 		labels := []string{
-			"peer_id", string(p.ID()),
+			"peer_id", string(p.ID().String()),
 			"chID", fmt.Sprintf("%#x", chID),
 		}
 		p.metrics.PeerSendBytesTotal.With(labels...).Add(float64(len(msgBytes)))
@@ -351,7 +351,7 @@ func (p *peer) metricsReporter() {
 				sendQueueSize += float64(chStatus.SendQueueSize)
 			}
 
-			p.metrics.PeerPendingSendBytes.With("peer_id", string(p.ID())).Set(sendQueueSize)
+			p.metrics.PeerPendingSendBytes.With("peer_id", (p.ID().String())).Set(sendQueueSize)
 		case <-p.Quit():
 			return
 		}
@@ -378,7 +378,7 @@ func createMConnection(
 			panic(fmt.Sprintf("Unknown channel %X", chID))
 		}
 		labels := []string{
-			"peer_id", string(p.ID()),
+			"peer_id", p.ID().String(),
 			"chID", fmt.Sprintf("%#x", chID),
 		}
 		p.metrics.PeerReceiveBytesTotal.With(labels...).Add(float64(len(msgBytes)))

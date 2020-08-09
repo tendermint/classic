@@ -115,6 +115,10 @@ func (info NodeInfo) Validate() error {
 	return nil
 }
 
+func (info NodeInfo) ID() ID {
+	return info.NetAddress.ID
+}
+
 // CompatibleWith checks if two NodeInfo are compatible with eachother.
 // CONTRACT: two nodes are compatible if the Block version and network match
 // and they have at least one channel in common.

@@ -13,7 +13,6 @@ import (
 
 	"github.com/tendermint/classic/crypto"
 	"github.com/tendermint/classic/crypto/ed25519"
-	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/classic/libs/log"
 
 	"github.com/tendermint/classic/config"
@@ -150,7 +149,7 @@ func (rp *remotePeer) Addr() *NetAddress {
 }
 
 func (rp *remotePeer) ID() ID {
-	return PubKeyToID(rp.PrivKey.PubKey())
+	return rp.PrivKey.PubKey().Address()
 }
 
 func (rp *remotePeer) Start() {
@@ -163,7 +162,7 @@ func (rp *remotePeer) Start() {
 		golog.Fatalf("net.Listen tcp :0: %+v", e)
 	}
 	rp.listener = l
-	rp.addr = NewNetAddress(PubKeyToID(rp.PrivKey.PubKey()), l.Addr())
+	rp.addr = NewNetAddress(rp.PrivKey.PubKey().Address(), l.Addr())
 	if rp.channels == nil {
 		rp.channels = []byte{testCh}
 	}
@@ -218,13 +217,12 @@ func (rp *remotePeer) accept() {
 }
 
 func (rp *remotePeer) nodeInfo() NodeInfo {
-	return DefaultNodeInfo{
-		ProtocolVersion: defaultProtocolVersion,
-		ID_:             rp.Addr().ID,
-		ListenAddr:      rp.listener.Addr().String(),
-		Network:         "testing",
-		Version:         "1.2.3-rc0-deadbeef",
-		Channels:        rp.channels,
-		Moniker:         "remote_peer",
+	return NodeInfo{
+		ProtocolVersionSet: testProtocolVersionSet(),
+		NetAddress:         rp.Addr(),
+		Network:            "testing",
+		Version:            "1.2.3-rc0-deadbeef",
+		Channels:           rp.channels,
+		Moniker:            "remote_peer",
 	}
 }

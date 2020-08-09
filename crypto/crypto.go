@@ -19,6 +19,19 @@ const (
 // []byte leaves us the option to change the address length.
 type Address [AddressSize]byte
 
+func AddressFromString(str string) (addr Address, err error) {
+	err = addr.UnmarshalAmino(str)
+	return
+}
+
+func MustAddressFromString(str string) (addr Address) {
+	err := addr.UnmarshalAmino(str)
+	if err != nil {
+		panic(fmt.Errorf("invalid address string representation: %v, error: %v", str, err))
+	}
+	return
+}
+
 func AddressFromPreimage(bz []byte) Address {
 	return AddressFromBytes(tmhash.SumTruncated(bz))
 }
@@ -29,6 +42,10 @@ func AddressFromBytes(bz []byte) (ret Address) {
 	}
 	copy(ret[:], bz)
 	return
+}
+
+func (addr Address) IsZero() bool {
+	return addr == Address{}
 }
 
 func (addr Address) String() string {

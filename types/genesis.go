@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -9,7 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/tendermint/classic/abci/types"
+	abci "github.com/tendermint/classic/abci/types"
 	"github.com/tendermint/classic/crypto"
 	cmn "github.com/tendermint/classic/libs/common"
 	tmtime "github.com/tendermint/classic/types/time"
@@ -84,10 +83,10 @@ func (genDoc *GenesisDoc) ValidateAndComplete() error {
 		if v.Power == 0 {
 			return errors.Errorf("The genesis file cannot contain validators with no voting power: %v", v)
 		}
-		if len(v.Address) > 0 && !bytes.Equal(v.PubKey.Address(), v.Address) {
+		if v.PubKey.Address() != v.Address {
 			return errors.Errorf("Incorrect address for validator %v in the genesis file, should be %v", v, v.PubKey.Address())
 		}
-		if len(v.Address) == 0 {
+		if v.Address.IsZero() {
 			genDoc.Validators[i].Address = v.PubKey.Address()
 		}
 	}

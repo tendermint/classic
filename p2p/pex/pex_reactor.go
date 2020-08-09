@@ -8,10 +8,10 @@ import (
 
 	"github.com/pkg/errors"
 
-	amino "github.com/tendermint/go-amino-x"
 	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/classic/p2p"
 	"github.com/tendermint/classic/p2p/conn"
+	"github.com/tendermint/go-amino-x"
 )
 
 type Peer = p2p.Peer
@@ -188,25 +188,21 @@ func (r *PEXReactor) AddPeer(p Peer) {
 		}
 	} else {
 		// inbound peer is its own source
-		addr, err := p.NodeInfo().NetAddress()
-		if err != nil {
-			r.Logger.Error("Failed to get peer NetAddress", "err", err, "peer", p)
-			return
-		}
+		addr := p.NodeInfo().NetAddress
 
 		// Make it explicit that addr and src are the same for an inbound peer.
 		src := addr
 
 		// add to book. dont RequestAddrs right away because
 		// we don't trust inbound as much - let ensurePeersRoutine handle it.
-		err = r.book.AddAddress(addr, src)
+		err := r.book.AddAddress(addr, src)
 		r.logErrAddrBook(err)
 	}
 }
 
 // RemovePeer implements Reactor by resetting peer's requests info.
 func (r *PEXReactor) RemovePeer(p Peer, reason interface{}) {
-	id := string(p.ID())
+	id := p.ID().String()
 	r.requestsSent.Delete(id)
 	r.lastReceivedRequests.Delete(id)
 }
@@ -244,7 +240,7 @@ func (r *PEXReactor) Receive(chID byte, src Peer, msgBytes []byte) {
 		// If we're a seed and this is an inbound peer,
 		// respond once and disconnect.
 		if r.config.SeedMode && !src.IsOutbound() {
-			id := string(src.ID())
+			id := src.ID().String()
 			v := r.lastReceivedRequests.Get(id)
 			if v != nil {
 				// FlushStop/StopPeer are already
@@ -283,7 +279,7 @@ func (r *PEXReactor) Receive(chID byte, src Peer, msgBytes []byte) {
 
 // enforces a minimum amount of time between requests
 func (r *PEXReactor) receiveRequest(src Peer) error {
-	id := string(src.ID())
+	id := src.ID().String()
 	v := r.lastReceivedRequests.Get(id)
 	if v == nil {
 		// initialize with empty time
@@ -317,29 +313,26 @@ func (r *PEXReactor) receiveRequest(src Peer) error {
 // RequestAddrs asks peer for more addresses if we do not already have a
 // request out for this peer.
 func (r *PEXReactor) RequestAddrs(p Peer) {
-	id := string(p.ID())
+	id := p.ID().String()
 	if r.requestsSent.Has(id) {
 		return
 	}
 	r.Logger.Debug("Request addrs", "from", p)
 	r.requestsSent.Set(id, struct{}{})
-	p.Send(PexChannel, cdc.MustMarshal(&pexRequestMessage{}))
+	p.Send(PexChannel, amino.MustMarshalAny(&pexRequestMessage{}))
 }
 
 // ReceiveAddrs adds the given addrs to the addrbook if theres an open
 // request for this peer and deletes the open request.
 // If there's no open request for the src peer, it returns an error.
 func (r *PEXReactor) ReceiveAddrs(addrs []*p2p.NetAddress, src Peer) error {
-	id := string(src.ID())
+	id := src.ID().String()
 	if !r.requestsSent.Has(id) {
 		return errors.New("unsolicited pexAddrsMessage")
 	}
 	r.requestsSent.Delete(id)
 
-	srcAddr, err := src.NodeInfo().NetAddress()
-	if err != nil {
-		return err
-	}
+	srcAddr := src.NodeInfo().NetAddress
 
 	srcIsSeed := false
 	for _, seedAddr := range r.seedAddrs {
@@ -351,7 +344,7 @@ func (r *PEXReactor) ReceiveAddrs(addrs []*p2p.NetAddress, src Peer) error {
 
 	for _, netAddr := range addrs {
 		// NOTE: we check netAddr validity and routability in book#AddAddress.
-		err = r.book.AddAddress(netAddr, srcAddr)
+		err := r.book.AddAddress(netAddr, srcAddr)
 		if err != nil {
 			r.logErrAddrBook(err)
 			// XXX: should we be strict about incoming data and disconnect from a
@@ -382,7 +375,7 @@ func (r *PEXReactor) ReceiveAddrs(addrs []*p2p.NetAddress, src Peer) error {
 
 // SendAddrs sends addrs to the peer.
 func (r *PEXReactor) SendAddrs(p Peer, netAddrs []*p2p.NetAddress) {
-	p.Send(PexChannel, cdc.MustMarshal(&pexAddrsMessage{Addrs: netAddrs}))
+	p.Send(PexChannel, amino.MustMarshalAny(&pexAddrsMessage{Addrs: netAddrs}))
 }
 
 // SetEnsurePeersPeriod sets period to ensure peers connected.
@@ -568,7 +561,7 @@ func (r *PEXReactor) checkSeeds() (numOnline int, netAddrs []*p2p.NetAddress, er
 	if lSeeds == 0 {
 		return -1, nil, nil
 	}
-	netAddrs, errs := p2p.NewNetAddressStrings(r.config.Seeds)
+	netAddrs, errs := p2p.NewNetAddressFromStrings(r.config.Seeds)
 	numOnline = lSeeds - len(errs)
 	for _, err := range errs {
 		switch e := err.(type) {
@@ -734,17 +727,11 @@ func markAddrInBookBasedOnErr(addr *p2p.NetAddress, book AddrBook, err error) {
 // either pexRequestMessage, or pexAddrsMessage messages.
 type PexMessage interface{}
 
-func RegisterPexMessage(cdc *amino.Codec) {
-	cdc.RegisterInterface((*PexMessage)(nil), nil)
-	cdc.RegisterConcrete(&pexRequestMessage{}, "tendermint/p2p/PexRequestMessage", nil)
-	cdc.RegisterConcrete(&pexAddrsMessage{}, "tendermint/p2p/PexAddrsMessage", nil)
-}
-
 func decodeMsg(bz []byte) (msg PexMessage, err error) {
 	if len(bz) > maxMsgSize {
 		return msg, fmt.Errorf("Msg exceeds max size (%d > %d)", len(bz), maxMsgSize)
 	}
-	err = cdc.Unmarshal(bz, &msg)
+	err = amino.Unmarshal(bz, &msg)
 	return
 }
 

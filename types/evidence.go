@@ -55,7 +55,7 @@ func (err *ErrEvidenceOverflow) Error() string {
 type Evidence interface {
 	abci.Evidence
 	Height() int64                                     // height of the equivocation
-	Address() []byte                                   // address of the equivocating validator
+	Address() crypto.Address                           // address of the equivocating validator
 	Bytes() []byte                                     // bytes which compromise the evidence
 	Hash() []byte                                      // hash of the evidence
 	Verify(chainID string, pubKey crypto.PubKey) error // verify the evidence
@@ -106,7 +106,7 @@ func (dve *DuplicateVoteEvidence) Height() int64 {
 }
 
 // Address returns the address of the validator.
-func (dve *DuplicateVoteEvidence) Address() []byte {
+func (dve *DuplicateVoteEvidence) Address() crypto.Address {
 	return dve.PubKey.Address()
 }
 
@@ -131,7 +131,7 @@ func (dve *DuplicateVoteEvidence) Verify(chainID string, pubKey crypto.PubKey) e
 	}
 
 	// Address must be the same
-	if !bytes.Equal(dve.VoteA.ValidatorAddress, dve.VoteB.ValidatorAddress) {
+	if dve.VoteA.ValidatorAddress != dve.VoteB.ValidatorAddress {
 		return fmt.Errorf("DuplicateVoteEvidence Error: Validator addresses do not match. Got %X and %X", dve.VoteA.ValidatorAddress, dve.VoteB.ValidatorAddress)
 	}
 
@@ -147,7 +147,7 @@ func (dve *DuplicateVoteEvidence) Verify(chainID string, pubKey crypto.PubKey) e
 
 	// pubkey must match address (this should already be true, sanity check)
 	addr := dve.VoteA.ValidatorAddress
-	if !bytes.Equal(pubKey.Address(), addr) {
+	if pubKey.Address() != addr {
 		return fmt.Errorf("DuplicateVoteEvidence FAILED SANITY CHECK - address (%X) doesn't match pubkey (%v - %X)",
 			addr, pubKey, pubKey.Address())
 	}
@@ -228,9 +228,9 @@ func NewMockGoodEvidence(height int64, idx int, address []byte) MockGoodEvidence
 	return MockGoodEvidence{height, address}
 }
 
-func (e MockGoodEvidence) AssertABCIEvidence() {}
-func (e MockGoodEvidence) Height() int64       { return e.Height_ }
-func (e MockGoodEvidence) Address() []byte     { return e.Address_ }
+func (e MockGoodEvidence) AssertABCIEvidence()     {}
+func (e MockGoodEvidence) Height() int64           { return e.Height_ }
+func (e MockGoodEvidence) Address() crypto.Address { return crypto.AddressFromBytes(e.Address_) }
 func (e MockGoodEvidence) Hash() []byte {
 	return []byte(fmt.Sprintf("%d-%x", e.Height_, e.Address_))
 }

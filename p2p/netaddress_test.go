@@ -1,11 +1,13 @@
 package p2p
 
 import (
+	"encoding/hex"
 	"net"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tendermint/classic/crypto"
 )
 
 func TestNewNetAddress(t *testing.T) {
@@ -13,18 +15,21 @@ func TestNewNetAddress(t *testing.T) {
 	require.Nil(t, err)
 
 	assert.Panics(t, func() {
-		NewNetAddress("", tcpAddr)
+		NewNetAddress(crypto.Address{}, tcpAddr)
 	})
 
-	addr := NewNetAddress("deadbeefdeadbeefdeadbeefdeadbeefdeadbeef", tcpAddr)
+	idbz, _ := hex.DecodeString("deadbeefdeadbeefdeadbeefdeadbeefdeadbeef")
+	id := crypto.AddressFromBytes(idbz)
+
+	addr := NewNetAddress(id, tcpAddr)
 	assert.Equal(t, "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef@127.0.0.1:8080", addr.String())
 
 	assert.NotPanics(t, func() {
-		NewNetAddress("", &net.UDPAddr{IP: net.ParseIP("127.0.0.1"), Port: 8000})
+		NewNetAddress(crypto.Address{}, &net.UDPAddr{IP: net.ParseIP("127.0.0.1"), Port: 8000})
 	}, "Calling NewNetAddress with UDPAddr should not panic in testing")
 }
 
-func TestNewNetAddressString(t *testing.T) {
+func TestNewNetAddressFromString(t *testing.T) {
 	testCases := []struct {
 		name     string
 		addr     string
@@ -69,7 +74,7 @@ func TestNewNetAddressString(t *testing.T) {
 	for _, tc := range testCases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			addr, err := NewNetAddressString(tc.addr)
+			addr, err := NewNetAddressFromString(tc.addr)
 			if tc.correct {
 				if assert.Nil(t, err, tc.addr) {
 					assert.Equal(t, tc.expected, addr.String())
@@ -81,8 +86,8 @@ func TestNewNetAddressString(t *testing.T) {
 	}
 }
 
-func TestNewNetAddressStrings(t *testing.T) {
-	addrs, errs := NewNetAddressStrings([]string{
+func TestNewNetAddressFromStrings(t *testing.T) {
+	addrs, errs := NewNetAddressFromStrings([]string{
 		"127.0.0.1:8080",
 		"deadbeefdeadbeefdeadbeefdeadbeefdeadbeef@127.0.0.1:8080",
 		"deadbeefdeadbeefdeadbeefdeadbeefdeadbeed@127.0.0.2:8080"})
@@ -90,8 +95,8 @@ func TestNewNetAddressStrings(t *testing.T) {
 	assert.Equal(t, 2, len(addrs))
 }
 
-func TestNewNetAddressIPPort(t *testing.T) {
-	addr := NewNetAddressIPPort(net.ParseIP("127.0.0.1"), 8080)
+func TestNewNetAddressFromIPPort(t *testing.T) {
+	addr := NewNetAddressFromIPPort(crypto.Address{}, net.ParseIP("127.0.0.1"), 8080)
 	assert.Equal(t, "127.0.0.1:8080", addr.String())
 }
 
@@ -108,10 +113,10 @@ func TestNetAddressProperties(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		addr, err := NewNetAddressString(tc.addr)
+		addr, err := NewNetAddressFromString(tc.addr)
 		require.Nil(t, err)
 
-		err = addr.Valid()
+		err = addr.Validate()
 		if tc.valid {
 			assert.NoError(t, err)
 		} else {
@@ -134,10 +139,10 @@ func TestNetAddressReachabilityTo(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		addr, err := NewNetAddressString(tc.addr)
+		addr, err := NewNetAddressFromString(tc.addr)
 		require.Nil(t, err)
 
-		other, err := NewNetAddressString(tc.other)
+		other, err := NewNetAddressFromString(tc.other)
 		require.Nil(t, err)
 
 		assert.Equal(t, tc.reachability, addr.ReachabilityTo(other))

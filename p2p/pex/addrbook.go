@@ -183,7 +183,7 @@ func (a *addrBook) AddPrivateIDs(ids []string) {
 	defer a.mtx.Unlock()
 
 	for _, id := range ids {
-		a.privateIDs[p2p.ID(id)] = struct{}{}
+		a.privateIDs[crypto.MustAddressFromString(id)] = struct{}{}
 	}
 }
 
@@ -586,7 +586,7 @@ func (a *addrBook) addAddress(addr, src *p2p.NetAddress) error {
 		return ErrAddrBookNilAddr{addr, src}
 	}
 
-	if err := addr.Valid(); err != nil {
+	if err := addr.Validate(); err != nil {
 		return ErrAddrBookInvalidAddr{Addr: addr, AddrErr: err}
 	}
 

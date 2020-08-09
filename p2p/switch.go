@@ -354,11 +354,11 @@ func (sw *Switch) stopAndRemovePeer(peer Peer, reason interface{}) {
 //  - ie. if we're getting ErrDuplicatePeer we can stop
 //  	because the addrbook got us the peer back already
 func (sw *Switch) reconnectToPeer(addr *NetAddress) {
-	if sw.reconnecting.Has(string(addr.ID)) {
+	if sw.reconnecting.Has(addr.ID.String()) {
 		return
 	}
-	sw.reconnecting.Set(string(addr.ID), addr)
-	defer sw.reconnecting.Delete(string(addr.ID))
+	sw.reconnecting.Set(addr.ID.String(), addr)
+	defer sw.reconnecting.Delete(addr.ID.String())
 
 	start := time.Now()
 	sw.Logger.Info("Reconnecting to peer", "addr", addr)
@@ -511,8 +511,8 @@ func (sw *Switch) DialPeerWithAddress(addr *NetAddress) error {
 		return ErrCurrentlyDialingOrExistingAddress{addr.String()}
 	}
 
-	sw.dialing.Set(string(addr.ID), addr)
-	defer sw.dialing.Delete(string(addr.ID))
+	sw.dialing.Set(addr.ID.String(), addr)
+	defer sw.dialing.Delete(addr.ID.String())
 
 	return sw.addOutboundPeerWithConfig(addr, sw.config)
 }
@@ -526,7 +526,7 @@ func (sw *Switch) randomSleep(interval time.Duration) {
 // IsDialingOrExistingAddress returns true if switch has a peer with the given
 // address or dialing it at the moment.
 func (sw *Switch) IsDialingOrExistingAddress(addr *NetAddress) bool {
-	return sw.dialing.Has(string(addr.ID)) ||
+	return sw.dialing.Has(addr.ID.String()) ||
 		sw.peers.Has(addr.ID) ||
 		(!sw.config.AllowDuplicateIP && sw.peers.HasIP(addr.IP))
 }

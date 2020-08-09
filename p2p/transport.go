@@ -10,6 +10,7 @@ import (
 
 	"github.com/tendermint/classic/crypto"
 	"github.com/tendermint/classic/p2p/conn"
+	"github.com/tendermint/go-amino-x"
 )
 
 const (
@@ -474,10 +475,8 @@ func (mt *MultiplexTransport) wrapPeer(
 		if cfg.outbound {
 			persistent = cfg.isPersistent(socketAddr)
 		} else {
-			selfReportedAddr, err := ni.NetAddress()
-			if err == nil {
-				persistent = cfg.isPersistent(selfReportedAddr)
-			}
+			selfReportedAddr := ni.NetAddress
+			persistent = cfg.isPersistent(selfReportedAddr)
 		}
 	}
 
@@ -507,22 +506,22 @@ func handshake(
 	nodeInfo NodeInfo,
 ) (NodeInfo, error) {
 	if err := c.SetDeadline(time.Now().Add(timeout)); err != nil {
-		return nil, err
+		return NodeInfo{}, err
 	}
 
 	var (
 		errc = make(chan error, 2)
 
-		peerNodeInfo DefaultNodeInfo
-		ourNodeInfo  = nodeInfo.(DefaultNodeInfo)
+		peerNodeInfo NodeInfo
+		ourNodeInfo  = nodeInfo
 	)
 
 	go func(errc chan<- error, c net.Conn) {
-		_, err := cdc.MarshalSizedWriter(c, ourNodeInfo)
+		_, err := amino.MarshalSizedWriter(c, ourNodeInfo)
 		errc <- err
 	}(errc, c)
 	go func(errc chan<- error, c net.Conn) {
-		_, err := cdc.UnmarshalSizedReader(
+		_, err := amino.UnmarshalSizedReader(
 			c,
 			&peerNodeInfo,
 			int64(MaxNodeInfoSize()),
@@ -533,7 +532,7 @@ func handshake(
 	for i := 0; i < cap(errc); i++ {
 		err := <-errc
 		if err != nil {
-			return nil, err
+			return NodeInfo{}, err
 		}
 	}
 
