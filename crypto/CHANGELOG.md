@@ -1,5 +1,9 @@
 # Changelog
 
+## Tendermint/Classic
+
+- Address is a typedef with MarshalAmino to a bech32 string with prefix "c".
+
 ## 0.9.0
 
 BREAKING CHANGES

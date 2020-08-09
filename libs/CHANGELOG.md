@@ -6,6 +6,9 @@ BREAKING:
 
  - Remove HexBytes
 
+NEW FEATURES:
+ - Add libs.version.ProtocolVersionSet
+
 ## 0.9.0
 
 *June 24th, 2018*

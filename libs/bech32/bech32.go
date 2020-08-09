@@ -5,7 +5,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-//ConvertAndEncode converts from a base64 encoded byte string to base32 encoded byte string and then to bech32
+// ConvertAndEncode encodes []byte to bech32.
+// DEPRECATED use Encode
 func ConvertAndEncode(hrp string, data []byte) (string, error) {
 	converted, err := bech32.ConvertBits(data, 8, 5, true)
 	if err != nil {
@@ -15,7 +16,12 @@ func ConvertAndEncode(hrp string, data []byte) (string, error) {
 
 }
 
-//DecodeAndConvert decodes a bech32 encoded string and converts to base64 encoded bytes
+func Encode(hrp string, data []byte) (string, error) {
+	return ConvertAndEncode(hrp, data)
+}
+
+//DecodeAndConvert decodes bech32 to []byte.
+// DEPRECATED use Decode
 func DecodeAndConvert(bech string) (string, []byte, error) {
 	hrp, data, err := bech32.Decode(bech)
 	if err != nil {
@@ -26,4 +32,8 @@ func DecodeAndConvert(bech string) (string, []byte, error) {
 		return "", nil, errors.Wrap(err, "decoding bech32 failed")
 	}
 	return hrp, converted, nil
+}
+
+func Decode(bech string) (string, []byte, error) {
+	return DecodeAndConvert(bech)
 }
