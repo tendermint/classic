@@ -301,7 +301,7 @@ func (mt *MultiplexTransport) acceptPeers() {
 				secretConn, nodeInfo, err = mt.upgrade(c, nil)
 				if err == nil {
 					addr := c.RemoteAddr()
-					id := secretConn.RemotePubKey().Address()
+					id := secretConn.RemotePubKey().Address().ID()
 					netAddr = NewNetAddress(id, addr)
 				}
 			}
@@ -394,7 +394,7 @@ func (mt *MultiplexTransport) upgrade(
 	}
 
 	// For outgoing conns, ensure connection key matches dialed key.
-	connID := secretConn.RemotePubKey().Address()
+	connID := secretConn.RemotePubKey().Address().ID()
 	if dialedAddr != nil {
 		if dialedID := dialedAddr.ID; connID.String() != dialedID.String() {
 			return nil, NodeInfo{}, ErrRejected{

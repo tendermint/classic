@@ -16,7 +16,7 @@ import (
 	"github.com/tendermint/classic/crypto"
 )
 
-type ID = crypto.Address
+type ID = crypto.ID
 
 // NetAddress defines information about a peer on the network
 // including its Address, IP address, and port.
@@ -52,15 +52,19 @@ func NewNetAddress(id ID, addr net.Addr) *NetAddress {
 		if flag.Lookup("test.v") == nil { // normal run
 			panic(fmt.Sprintf("Only TCPAddrs are supported. Got: %v", addr))
 		} else { // in testing
-			netAddr := NewNetAddressFromIPPort(crypto.Address{}, net.IP("0.0.0.0"), 0)
+			netAddr := NewNetAddressFromIPPort("", net.IP("0.0.0.0"), 0)
 			netAddr.ID = id
 			return netAddr
 		}
 	}
 
+	if err := id.Validate(); err != nil {
+		panic(fmt.Sprintf("Invalid ID %v: %v (addr: %v)", id, err, addr))
+	}
+
 	ip := tcpAddr.IP
 	port := uint16(tcpAddr.Port)
-	na := NewNetAddressFromIPPort(crypto.Address{}, ip, port)
+	na := NewNetAddressFromIPPort("", ip, port)
 	na.ID = id
 	return na
 }
@@ -77,14 +81,11 @@ func NewNetAddressFromString(idaddr string) (*NetAddress, error) {
 	}
 
 	// get ID
-	var id ID
-	var err error
-	var addr string
-	id, err = crypto.AddressFromString(spl[0])
-	if err != nil {
-		return nil, err
+	var id ID = crypto.ID(spl[0])
+	if err := id.Validate(); err != nil {
+		return nil, ErrNetAddressInvalid{idaddr, err}
 	}
-	addr = spl[1]
+	var addr string = spl[1]
 
 	// get host and port
 	host, portStr, err := net.SplitHostPort(addr)
@@ -111,7 +112,7 @@ func NewNetAddressFromString(idaddr string) (*NetAddress, error) {
 		return nil, ErrNetAddressInvalid{portStr, err}
 	}
 
-	na := NewNetAddressFromIPPort(crypto.Address{}, ip, uint16(port))
+	na := NewNetAddressFromIPPort("", ip, uint16(port))
 	na.ID = id
 	return na, nil
 }
@@ -157,7 +158,7 @@ func (na *NetAddress) Same(other interface{}) bool {
 		if na.DialString() == o.DialString() {
 			return true
 		}
-		if na.ID.String() != "" && na.ID.String() == o.ID.String() {
+		if na.ID != "" && na.ID == o.ID {
 			return true
 		}
 	}
@@ -184,7 +185,7 @@ func (na *NetAddress) String() string {
 func (na NetAddress) MarshalAmino() (string, error) {
 	if na.str == "" {
 		addrStr := na.DialString()
-		if na.ID.String() != "" {
+		if na.ID != "" {
 			addrStr = NetAddressString(na.ID, addrStr)
 		}
 		na.str = addrStr
@@ -242,8 +243,14 @@ func (na *NetAddress) Routable() bool {
 // For IPv4 these are either a 0 or all bits set address. For IPv6 a zero
 // address or one that matches the RFC3849 documentation address format.
 func (na *NetAddress) Validate() error {
+	if err := na.ID.Validate(); err != nil {
+		return err
+	}
 	if na.IP == nil {
 		return errors.New("no IP")
+	}
+	if len(na.IP) != 4 && len(na.IP) != 16 {
+		return fmt.Errorf("invalid IP bytes: %v", len(na.IP))
 	}
 	if na.IP.IsUnspecified() || na.RFC3849() || na.IP.Equal(net.IPv4bcast) {
 		return errors.New("invalid IP")

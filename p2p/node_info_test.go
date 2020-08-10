@@ -6,9 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tendermint/classic/crypto"
 	"github.com/tendermint/classic/crypto/ed25519"
-	"github.com/tendermint/classic/libs/version"
+	"github.com/tendermint/classic/libs/versionset"
 )
 
 func TestNodeInfoValidate(t *testing.T) {
@@ -39,7 +38,7 @@ func TestNodeInfoValidate(t *testing.T) {
 		{"Good Channels", func(ni *NodeInfo) { ni.Channels = ni.Channels[:5] }, false},
 
 		{"Nil NetAddress", func(ni *NodeInfo) { ni.NetAddress = nil }, true},
-		{"Zero NetAddress ID", func(ni *NodeInfo) { ni.NetAddress.ID = crypto.Address{} }, true},
+		{"Zero NetAddress ID", func(ni *NodeInfo) { ni.NetAddress.ID = "" }, true},
 		{"Invalid NetAddress IP", func(ni *NodeInfo) { ni.NetAddress.IP = net.IP([]byte{0x00}) }, true},
 
 		{"Non-ASCII Version", func(ni *NodeInfo) { ni.Version = nonAscii }, true},
@@ -115,18 +114,20 @@ func TestNodeInfoCompatible(t *testing.T) {
 		malleateNodeInfo func(*NodeInfo)
 	}{
 		{"Bad block version", func(ni *NodeInfo) {
-			ni.ProtocolVersionSet.Set(version.ProtocolVersion{Name: "Block", Version: "badversion"})
+			ni.VersionSet.Set(versionset.VersionInfo{Name: "Block", Version: "badversion"})
 		}},
 		{"Wrong block version", func(ni *NodeInfo) {
-			ni.ProtocolVersionSet.Set(version.ProtocolVersion{Name: "Block", Version: "v999.999.999-wrong"})
+			ni.VersionSet.Set(versionset.VersionInfo{Name: "Block", Version: "v999.999.999-wrong"})
 		}},
 		{"Wrong network", func(ni *NodeInfo) { ni.Network += "-wrong" }},
 		{"No common channels", func(ni *NodeInfo) { ni.Channels = []byte{newTestChannel} }},
 	}
 
-	for _, tc := range testCases {
+	for i, tc := range testCases {
+		t.Logf("case #%v", i)
 		ni := testNodeInfo(nodeKey2.ID(), name)
 		tc.malleateNodeInfo(&ni)
+		fmt.Printf("case #%v\n", i)
 		assert.Error(t, ni1.CompatibleWith(ni))
 	}
 }

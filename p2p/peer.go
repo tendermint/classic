@@ -69,7 +69,7 @@ func newPeerConn(
 // ID only exists for SecretConnection.
 // NOTE: Will panic if conn is not *SecretConnection.
 func (pc peerConn) ID() ID {
-	return (pc.conn.(*tmconn.SecretConnection).RemotePubKey()).Address()
+	return (pc.conn.(*tmconn.SecretConnection).RemotePubKey()).Address().ID()
 }
 
 // Return the IP from the connection RemoteAddr
@@ -268,7 +268,7 @@ func (p *peer) TrySend(chID byte, msgBytes []byte) bool {
 	res := p.mconn.TrySend(chID, msgBytes)
 	if res {
 		labels := []string{
-			"peer_id", string(p.ID().String()),
+			"peer_id", (p.ID().String()),
 			"chID", fmt.Sprintf("%#x", chID),
 		}
 		p.metrics.PeerSendBytesTotal.With(labels...).Add(float64(len(msgBytes)))

@@ -86,6 +86,23 @@ func (addr *Address) DecodeString(str string) error {
 // The bech32 representation w/ prefix "c".
 type ID string
 
+func (id ID) IsZero() bool {
+	return id == ""
+}
+
+func (id ID) String() string {
+	return string(id)
+}
+
+func (id ID) Validate() error {
+	if id.IsZero() {
+		return fmt.Errorf("zero ID is invalid")
+	}
+	var addr Address
+	err := addr.DecodeID(id)
+	return err
+}
+
 func AddressFromID(id ID) (addr Address, err error) {
 	err = addr.DecodeString(string(id))
 	return

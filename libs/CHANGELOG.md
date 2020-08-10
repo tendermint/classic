@@ -7,7 +7,7 @@ BREAKING:
  - Remove HexBytes
 
 NEW FEATURES:
- - Add libs.version.ProtocolVersionSet
+ - Add libs.versionset.VersionSet
 
 ## 0.9.0
 

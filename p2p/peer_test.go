@@ -149,7 +149,7 @@ func (rp *remotePeer) Addr() *NetAddress {
 }
 
 func (rp *remotePeer) ID() ID {
-	return rp.PrivKey.PubKey().Address()
+	return rp.PrivKey.PubKey().Address().ID()
 }
 
 func (rp *remotePeer) Start() {
@@ -162,7 +162,7 @@ func (rp *remotePeer) Start() {
 		golog.Fatalf("net.Listen tcp :0: %+v", e)
 	}
 	rp.listener = l
-	rp.addr = NewNetAddress(rp.PrivKey.PubKey().Address(), l.Addr())
+	rp.addr = NewNetAddress(rp.PrivKey.PubKey().Address().ID(), l.Addr())
 	if rp.channels == nil {
 		rp.channels = []byte{testCh}
 	}
@@ -218,11 +218,11 @@ func (rp *remotePeer) accept() {
 
 func (rp *remotePeer) nodeInfo() NodeInfo {
 	return NodeInfo{
-		ProtocolVersionSet: testProtocolVersionSet(),
-		NetAddress:         rp.Addr(),
-		Network:            "testing",
-		Version:            "1.2.3-rc0-deadbeef",
-		Channels:           rp.channels,
-		Moniker:            "remote_peer",
+		VersionSet: testVersionSet(),
+		NetAddress: rp.Addr(),
+		Network:    "testing",
+		Version:    "1.2.3-rc0-deadbeef",
+		Channels:   rp.channels,
+		Moniker:    "remote_peer",
 	}
 }

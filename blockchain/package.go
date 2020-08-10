@@ -11,29 +11,9 @@ var Package = pkg.NewPackage(
 	"tm",
 	pkg.GetCallersDirName(),
 ).WithDependencies().WithTypes(
-	pkg.Type{
-		Type:             reflect.TypeOf(bcBlockRequestMessage{}),
-		Name:             "BlockRequest",
-		PointerPreferred: true,
-	},
-	pkg.Type{
-		Type:             reflect.TypeOf(bcBlockResponseMessage{}),
-		Name:             "BlockResponse",
-		PointerPreferred: true,
-	},
-	pkg.Type{
-		Type:             reflect.TypeOf(bcNoBlockResponseMessage{}),
-		Name:             "NoBlockResponse",
-		PointerPreferred: true,
-	},
-	pkg.Type{
-		Type:             reflect.TypeOf(bcStausRequestMessage{}),
-		Name:             "StatusRequest",
-		PointerPreferred: true,
-	},
-	pkg.Type{
-		Type:             reflect.TypeOf(bcStausResponseMessage{}),
-		Name:             "StatusResponse",
-		PointerPreferred: true,
-	},
+	&bcBlockRequestMessage{}, "BlockRequest",
+	&bcBlockResponseMessage{}, "BlockResponse",
+	&bcNoBlockResponseMessage{}, "NoBlockResponse",
+	&bcStausRequestMessage{}, "StatusRequest",
+	&bcStausResponseMessage{}, "StatusResponse",
 )

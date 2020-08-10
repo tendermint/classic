@@ -1,7 +1,7 @@
 package bcver
 
 import (
-	"github.com/tendermint/classic/types"
+	types "github.com/tendermint/classic/types/version"
 )
 
 const Version = "v1.0.0-rc.0"

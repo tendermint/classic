@@ -73,8 +73,8 @@ func (e errTooEarlyToDial) Error() string {
 //
 // ## Preventing abuse
 //
-// Only accept pexAddrsMsg from peers we sent a corresponding pexRequestMsg too.
-// Only accept one pexRequestMsg every ~defaultEnsurePeersPeriod.
+// Only accept PexAddrsMsg from peers we sent a corresponding PexRequestMsg too.
+// Only accept one PexRequestMsg every ~defaultEnsurePeersPeriod.
 type PEXReactor struct {
 	p2p.BaseReactor
 
@@ -230,7 +230,7 @@ func (r *PEXReactor) Receive(chID byte, src Peer, msgBytes []byte) {
 	r.Logger.Debug("Received message", "src", src, "chId", chID, "msg", msg)
 
 	switch msg := msg.(type) {
-	case *pexRequestMessage:
+	case *PexRequestMessage:
 
 		// NOTE: this is a prime candidate for amplification attacks,
 		// so it's important we
@@ -266,7 +266,7 @@ func (r *PEXReactor) Receive(chID byte, src Peer, msgBytes []byte) {
 			r.SendAddrs(src, r.book.GetSelection())
 		}
 
-	case *pexAddrsMessage:
+	case *PexAddrsMessage:
 		// If we asked for addresses, add them to the book
 		if err := r.ReceiveAddrs(msg.Addrs, src); err != nil {
 			r.Switch.StopPeerForError(src, err)
@@ -319,7 +319,7 @@ func (r *PEXReactor) RequestAddrs(p Peer) {
 	}
 	r.Logger.Debug("Request addrs", "from", p)
 	r.requestsSent.Set(id, struct{}{})
-	p.Send(PexChannel, amino.MustMarshalAny(&pexRequestMessage{}))
+	p.Send(PexChannel, amino.MustMarshalAny(&PexRequestMessage{}))
 }
 
 // ReceiveAddrs adds the given addrs to the addrbook if theres an open
@@ -328,7 +328,7 @@ func (r *PEXReactor) RequestAddrs(p Peer) {
 func (r *PEXReactor) ReceiveAddrs(addrs []*p2p.NetAddress, src Peer) error {
 	id := src.ID().String()
 	if !r.requestsSent.Has(id) {
-		return errors.New("unsolicited pexAddrsMessage")
+		return errors.New("unsolicited PexAddrsMessage")
 	}
 	r.requestsSent.Delete(id)
 
@@ -375,7 +375,7 @@ func (r *PEXReactor) ReceiveAddrs(addrs []*p2p.NetAddress, src Peer) error {
 
 // SendAddrs sends addrs to the peer.
 func (r *PEXReactor) SendAddrs(p Peer, netAddrs []*p2p.NetAddress) {
-	p.Send(PexChannel, amino.MustMarshalAny(&pexAddrsMessage{Addrs: netAddrs}))
+	p.Send(PexChannel, amino.MustMarshalAny(&PexAddrsMessage{Addrs: netAddrs}))
 }
 
 // SetEnsurePeersPeriod sets period to ensure peers connected.
@@ -484,7 +484,7 @@ func (r *PEXReactor) ensurePeers() {
 		peersCount := len(peers)
 		if peersCount > 0 {
 			peer := peers[cmn.RandInt()%peersCount] // nolint: gas
-			r.Logger.Info("We need more addresses. Sending pexRequest to random peer", "peer", peer)
+			r.Logger.Info("We need more addresses. Sending PexRequest to random peer", "peer", peer)
 			r.RequestAddrs(peer)
 		}
 
@@ -724,7 +724,7 @@ func markAddrInBookBasedOnErr(addr *p2p.NetAddress, book AddrBook, err error) {
 // Messages
 
 // PexMessage is a primary type for PEX messages. Underneath, it could contain
-// either pexRequestMessage, or pexAddrsMessage messages.
+// either PexRequestMessage, or PexAddrsMessage messages.
 type PexMessage interface{}
 
 func decodeMsg(bz []byte) (msg PexMessage, err error) {
@@ -736,22 +736,22 @@ func decodeMsg(bz []byte) (msg PexMessage, err error) {
 }
 
 /*
-A pexRequestMessage requests additional peer addresses.
+A PexRequestMessage requests additional peer addresses.
 */
-type pexRequestMessage struct {
+type PexRequestMessage struct {
 }
 
-func (m *pexRequestMessage) String() string {
-	return "[pexRequest]"
+func (m *PexRequestMessage) String() string {
+	return "[PexRequest]"
 }
 
 /*
 A message with announced peer addresses.
 */
-type pexAddrsMessage struct {
+type PexAddrsMessage struct {
 	Addrs []*p2p.NetAddress
 }
 
-func (m *pexAddrsMessage) String() string {
-	return fmt.Sprintf("[pexAddrs %v]", m.Addrs)
+func (m *PexAddrsMessage) String() string {
+	return fmt.Sprintf("[PexAddrs %v]", m.Addrs)
 }

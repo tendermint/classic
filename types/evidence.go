@@ -54,8 +54,6 @@ func (err *ErrEvidenceOverflow) Error() string {
 // Evidence represents any provable malicious activity by a validator
 type Evidence interface {
 	abci.Evidence
-	Height() int64                                     // height of the equivocation
-	Address() crypto.Address                           // address of the equivocating validator
 	Bytes() []byte                                     // bytes which compromise the evidence
 	Hash() []byte                                      // hash of the evidence
 	Verify(chainID string, pubKey crypto.PubKey) error // verify the evidence
@@ -98,16 +96,6 @@ func (dve *DuplicateVoteEvidence) AssertABCIEvidence() {}
 func (dve *DuplicateVoteEvidence) String() string {
 	return fmt.Sprintf("VoteA: %v; VoteB: %v", dve.VoteA, dve.VoteB)
 
-}
-
-// Height returns the height this evidence refers to.
-func (dve *DuplicateVoteEvidence) Height() int64 {
-	return dve.VoteA.Height
-}
-
-// Address returns the address of the validator.
-func (dve *DuplicateVoteEvidence) Address() crypto.Address {
-	return dve.PubKey.Address()
 }
 
 // Hash returns the hash of the evidence.
@@ -203,7 +191,7 @@ type MockRandomGoodEvidence struct {
 var _ Evidence = &MockRandomGoodEvidence{}
 
 // UNSTABLE
-func NewMockRandomGoodEvidence(height int64, address []byte, randBytes []byte) MockRandomGoodEvidence {
+func NewMockRandomGoodEvidence(height int64, address crypto.Address, randBytes []byte) MockRandomGoodEvidence {
 	return MockRandomGoodEvidence{
 		MockGoodEvidence{height, address}, randBytes,
 	}
@@ -212,40 +200,37 @@ func NewMockRandomGoodEvidence(height int64, address []byte, randBytes []byte) M
 func (e MockRandomGoodEvidence) AssertABCIEvidence() {}
 
 func (e MockRandomGoodEvidence) Hash() []byte {
-	return []byte(fmt.Sprintf("%d-%x", e.Height_, e.randBytes))
+	return []byte(fmt.Sprintf("%d-%x", e.Height, e.randBytes))
 }
 
 // UNSTABLE
 type MockGoodEvidence struct {
-	Height_  int64
-	Address_ []byte
+	Height  int64
+	Address crypto.Address
 }
 
 var _ Evidence = &MockGoodEvidence{}
 
 // UNSTABLE
-func NewMockGoodEvidence(height int64, idx int, address []byte) MockGoodEvidence {
+func NewMockGoodEvidence(height int64, idx int, address crypto.Address) MockGoodEvidence {
 	return MockGoodEvidence{height, address}
 }
 
-func (e MockGoodEvidence) AssertABCIEvidence()     {}
-func (e MockGoodEvidence) Height() int64           { return e.Height_ }
-func (e MockGoodEvidence) Address() crypto.Address { return crypto.AddressFromBytes(e.Address_) }
+func (e MockGoodEvidence) AssertABCIEvidence() {}
 func (e MockGoodEvidence) Hash() []byte {
-	return []byte(fmt.Sprintf("%d-%x", e.Height_, e.Address_))
+	return []byte(fmt.Sprintf("%d-%x", e.Height, e.Address))
 }
 func (e MockGoodEvidence) Bytes() []byte {
-	return []byte(fmt.Sprintf("%d-%x", e.Height_, e.Address_))
+	return []byte(fmt.Sprintf("%d-%x", e.Height, e.Address))
 }
 func (e MockGoodEvidence) Verify(chainID string, pubKey crypto.PubKey) error { return nil }
 func (e MockGoodEvidence) Equal(ev Evidence) bool {
 	e2 := ev.(MockGoodEvidence)
-	return e.Height_ == e2.Height_ &&
-		bytes.Equal(e.Address_, e2.Address_)
+	return e.Height == e2.Height && e.Address == e2.Address
 }
 func (e MockGoodEvidence) ValidateBasic() error { return nil }
 func (e MockGoodEvidence) String() string {
-	return fmt.Sprintf("GoodEvidence: %d/%s", e.Height_, e.Address_)
+	return fmt.Sprintf("GoodEvidence: %d/%s", e.Height, e.Address)
 }
 
 // UNSTABLE
@@ -260,12 +245,11 @@ func (e MockBadEvidence) Verify(chainID string, pubKey crypto.PubKey) error {
 }
 func (e MockBadEvidence) Equal(ev Evidence) bool {
 	e2 := ev.(MockBadEvidence)
-	return e.Height_ == e2.Height_ &&
-		bytes.Equal(e.Address_, e2.Address_)
+	return e.Height == e2.Height && e.Address == e2.Address
 }
 func (e MockBadEvidence) ValidateBasic() error { return nil }
 func (e MockBadEvidence) String() string {
-	return fmt.Sprintf("BadEvidence: %d/%s", e.Height_, e.Address_)
+	return fmt.Sprintf("BadEvidence: %d/%s", e.Height, e.Address)
 }
 
 //-------------------------------------------

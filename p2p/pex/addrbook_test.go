@@ -190,7 +190,7 @@ func randIPv4Address(t *testing.T) *p2p.NetAddress {
 			cmn.RandIntn(255),
 		)
 		port := cmn.RandIntn(65535-1) + 1
-		id := ed25519.GenPrivKey().PubKey().Address()
+		id := ed25519.GenPrivKey().PubKey().Address().ID()
 		idAddr := p2p.NetAddressString(id, fmt.Sprintf("%v:%v", ip, port))
 		addr, err := p2p.NewNetAddressFromString(idAddr)
 		assert.Nil(t, err, "error generating rand network address")

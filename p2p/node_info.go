@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	cmn "github.com/tendermint/classic/libs/common"
-	"github.com/tendermint/classic/libs/version"
+	"github.com/tendermint/classic/libs/versionset"
 )
 
 const (
@@ -23,7 +23,7 @@ func MaxNodeInfoSize() int {
 // between two peers during the Tendermint P2P handshake.
 type NodeInfo struct {
 	// Set of protocol versions
-	ProtocolVersionSet version.ProtocolVersionSet `json:"protocol_version_set"`
+	VersionSet versionset.VersionSet `json:"version_set"`
 
 	// Authenticate
 	NetAddress *NetAddress `json:"net_address"`
@@ -124,7 +124,7 @@ func (info NodeInfo) ID() ID {
 // and they have at least one channel in common.
 func (info NodeInfo) CompatibleWith(other NodeInfo) error {
 	// check protocl verisons
-	_, err := info.ProtocolVersionSet.CompatibleWith(other.ProtocolVersionSet)
+	_, err := info.VersionSet.CompatibleWith(other.VersionSet)
 	if err != nil {
 		return err
 	}

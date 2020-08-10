@@ -5,7 +5,6 @@ import (
 	// number generator here and we can run the tests a bit faster
 	"crypto/rand"
 	"math"
-	"os"
 	"testing"
 	"time"
 
@@ -18,13 +17,6 @@ import (
 	tmtime "github.com/tendermint/classic/types/time"
 	"github.com/tendermint/classic/version"
 )
-
-func TestMain(m *testing.M) {
-	RegisterMockEvidences(cdc)
-
-	code := m.Run()
-	os.Exit(code)
-}
 
 func TestBlockAddEvidence(t *testing.T) {
 	txs := []Tx{Tx("foo"), Tx("bar")}

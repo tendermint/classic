@@ -183,7 +183,7 @@ func (a *addrBook) AddPrivateIDs(ids []string) {
 	defer a.mtx.Unlock()
 
 	for _, id := range ids {
-		a.privateIDs[crypto.MustAddressFromString(id)] = struct{}{}
+		a.privateIDs[crypto.ID(id)] = struct{}{}
 	}
 }
 

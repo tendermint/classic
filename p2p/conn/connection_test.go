@@ -49,16 +49,23 @@ func TestMConnectionSendFlushStop(t *testing.T) {
 	msg := []byte("abc")
 	assert.True(t, clientConn.Send(0x01, msg))
 
-	aminoMsgLength := 14
-
 	// start the reader in a new routine, so we can flush
 	errCh := make(chan error)
 	go func() {
-		msgB := make([]byte, aminoMsgLength)
-		_, err := server.Read(msgB)
+		msgBuf := make([]byte, 1024) // sufficiently big for "abc"
+		_, err := server.Read(msgBuf)
 		if err != nil {
 			t.Error(err)
 			return
+		}
+		bz, _, err := amino.DecodeByteSlice(msgBuf)
+		if err != nil {
+			t.Error(err)
+		}
+		var msg2 Packet
+		err = amino.Unmarshal(bz, &msg2)
+		if err != nil {
+			t.Error(err)
 		}
 		errCh <- err
 	}()

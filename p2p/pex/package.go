@@ -1,14 +1,11 @@
 package pex
 
 import (
-	"reflect"
-
 	"github.com/tendermint/go-amino-x"
-	"github.com/tendermint/go-amino-x/pkg"
 )
 
 var Package = amino.RegisterPackage(amino.NewPackage(
-	"github.com/tendermint/classic/p2p/conn",
+	"github.com/tendermint/classic/p2p/pex",
 	"p2p", // keep short, do not change.
 	amino.GetCallersDirname(),
 ).
@@ -16,16 +13,7 @@ var Package = amino.RegisterPackage(amino.NewPackage(
 	// NA
 	).
 	WithTypes(
-
 		// NOTE: Keep the names short.
-		pkg.Type{
-			Type:             reflect.TypeOf(pexRequestMessage{}),
-			Name:             "PexRequest",
-			PointerPreferred: true,
-		},
-		pkg.Type{
-			Type:             reflect.TypeOf(pexAddrsMessage{}),
-			Name:             "PexAddrs",
-			PointerPreferred: true,
-		},
+		&PexRequestMessage{}, "PexRequest",
+		&PexAddrsMessage{}, "PexAddrs",
 	))

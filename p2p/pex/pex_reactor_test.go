@@ -129,11 +129,11 @@ func TestPEXReactorReceive(t *testing.T) {
 
 	size := book.Size()
 	addrs := []*p2p.NetAddress{peer.SocketAddr()}
-	msg := amino.MustMarshalAny(&pexAddrsMessage{Addrs: addrs})
+	msg := amino.MustMarshalAny(&PexAddrsMessage{Addrs: addrs})
 	r.Receive(PexChannel, peer, msg)
 	assert.Equal(t, size+1, book.Size())
 
-	msg = amino.MustMarshalAny(&pexRequestMessage{})
+	msg = amino.MustMarshalAny(&PexRequestMessage{})
 	r.Receive(PexChannel, peer, msg) // should not panic.
 }
 
@@ -149,7 +149,7 @@ func TestPEXReactorRequestMessageAbuse(t *testing.T) {
 	assert.True(t, sw.Peers().Has(peer.ID()))
 
 	id := peer.ID().String()
-	msg := amino.MustMarshalAny(&pexRequestMessage{})
+	msg := amino.MustMarshalAny(&PexRequestMessage{})
 
 	// first time creates the entry
 	r.Receive(PexChannel, peer, msg)
@@ -186,7 +186,7 @@ func TestPEXReactorAddrsMessageAbuse(t *testing.T) {
 	assert.True(t, sw.Peers().Has(peer.ID()))
 
 	addrs := []*p2p.NetAddress{peer.SocketAddr()}
-	msg := amino.MustMarshalAny(&pexAddrsMessage{Addrs: addrs})
+	msg := amino.MustMarshalAny(&PexAddrsMessage{Addrs: addrs})
 
 	// receive some addrs. should clear the request
 	r.Receive(PexChannel, peer, msg)
@@ -219,8 +219,8 @@ func TestCheckSeeds(t *testing.T) {
 
 	// 4. test create peer with all seeds having unresolvable DNS fails
 	badPeerConfig := &PEXReactorConfig{
-		Seeds: []string{"ed3dfd27bfc4af18f67a49862f04cc100696e84d@bad.network.addr:26657",
-			"d824b13cb5d40fa1d8a614e089357c7eff31b670@anotherbad.network.addr:26657"},
+		Seeds: []string{"c1m6kmam774klwlh4dhmhaatd7al02m0h0hdap9l@bad.network.addr:26657",
+			"c1m6kmam774klwlh4dhmhaatd7al026qqq9xk0hx@anotherbad.network.addr:26657"},
 	}
 	peerSwitch = testCreatePeerWithConfig(dir, 2, badPeerConfig)
 	require.Error(t, peerSwitch.Start())
@@ -228,8 +228,8 @@ func TestCheckSeeds(t *testing.T) {
 
 	// 5. test create peer with one good seed address succeeds
 	badPeerConfig = &PEXReactorConfig{
-		Seeds: []string{"ed3dfd27bfc4af18f67a49862f04cc100696e84d@bad.network.addr:26657",
-			"d824b13cb5d40fa1d8a614e089357c7eff31b670@anotherbad.network.addr:26657",
+		Seeds: []string{"c1m6kmam774klwlh4dhmhaatd7al02m0h0hdap9l@bad.network.addr:26657",
+			"c1m6kmam774klwlh4dhmhaatd7al026qqq9xk0hx@anotherbad.network.addr:26657",
 			seed.NetAddress().String()},
 	}
 	peerSwitch = testCreatePeerWithConfig(dir, 2, badPeerConfig)
@@ -478,7 +478,7 @@ func TestPEXReactorDoesNotAddPrivatePeersToAddrBook(t *testing.T) {
 
 	size := book.Size()
 	addrs := []*p2p.NetAddress{peer.SocketAddr()}
-	msg := amino.MustMarshalAny(&pexAddrsMessage{Addrs: addrs})
+	msg := amino.MustMarshalAny(&PexAddrsMessage{Addrs: addrs})
 	pexR.Receive(PexChannel, peer, msg)
 	assert.Equal(t, size, book.Size())
 

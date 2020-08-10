@@ -22,7 +22,7 @@ type NodeKey struct {
 }
 
 func (nk NodeKey) ID() ID {
-	return nk.PubKey().Address()
+	return nk.PubKey().Address().ID()
 }
 
 // LoadOrGenNodeKey attempts to load the NodeKey from the given filePath.

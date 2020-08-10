@@ -13,6 +13,7 @@ import (
 	"github.com/tendermint/classic/crypto/merkle"
 	"github.com/tendermint/classic/crypto/tmhash"
 	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/classic/types/version"
 	"github.com/tendermint/go-amino-x"
 )
 
@@ -301,7 +302,7 @@ func (h *Header) Populate(
 	consensusHash, appHash, lastResultsHash []byte,
 	proposerAddress Address,
 ) {
-	h.Version = BlockVersion
+	h.Version = version.BlockVersion
 	h.ChainID = chainID
 	h.Time = timestamp
 	h.LastBlockID = lastBlockID

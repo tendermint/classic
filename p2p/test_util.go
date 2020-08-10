@@ -11,7 +11,7 @@ import (
 	"github.com/tendermint/classic/crypto/ed25519"
 	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/classic/libs/log"
-	"github.com/tendermint/classic/libs/version"
+	"github.com/tendermint/classic/libs/versionset"
 
 	"github.com/tendermint/classic/config"
 	"github.com/tendermint/classic/p2p/conn"
@@ -42,8 +42,9 @@ func CreateRandomPeer(outbound bool) *peer {
 
 func CreateRoutableAddr() (addr string, netAddr *NetAddress) {
 	for {
+		var id crypto.ID = ed25519.GenPrivKey().PubKey().Address().ID()
 		var err error
-		addr = fmt.Sprintf("%X@%v.%v.%v.%v:26656", cmn.RandBytes(20), cmn.RandInt()%256, cmn.RandInt()%256, cmn.RandInt()%256, cmn.RandInt()%256)
+		addr = fmt.Sprintf("%s@%v.%v.%v.%v:26656", id, cmn.RandInt()%256, cmn.RandInt()%256, cmn.RandInt()%256, cmn.RandInt()%256)
 		netAddr, err = NewNetAddressFromString(addr)
 		if err != nil {
 			panic(err)
@@ -233,9 +234,9 @@ func testNodeInfo(id ID, name string) NodeInfo {
 	return testNodeInfoWithNetwork(id, name, "testing")
 }
 
-func testProtocolVersionSet() version.ProtocolVersionSet {
-	return version.ProtocolVersionSet{
-		version.ProtocolVersion{
+func testVersionSet() versionset.VersionSet {
+	return versionset.VersionSet{
+		versionset.VersionInfo{
 			Name:    "p2p",
 			Version: "v0.0.0", // dontcare
 		},
@@ -244,13 +245,13 @@ func testProtocolVersionSet() version.ProtocolVersionSet {
 
 func testNodeInfoWithNetwork(id ID, name, network string) NodeInfo {
 	return NodeInfo{
-		ProtocolVersionSet: testProtocolVersionSet(),
-		NetAddress:         NewNetAddressFromIPPort(id, net.ParseIP("127.0.0.1"), getFreePort()),
-		Network:            network,
-		Software:           "p2ptest",
-		Version:            "v1.2.3-rc.0-deadbeef",
-		Channels:           []byte{testCh},
-		Moniker:            name,
+		VersionSet: testVersionSet(),
+		NetAddress: NewNetAddressFromIPPort(id, net.ParseIP("127.0.0.1"), getFreePort()),
+		Network:    network,
+		Software:   "p2ptest",
+		Version:    "v1.2.3-rc.0-deadbeef",
+		Channels:   []byte{testCh},
+		Moniker:    name,
 		Other: NodeInfoOther{
 			TxIndex:    "on",
 			RPCAddress: fmt.Sprintf("127.0.0.1:%d", getFreePort()),
