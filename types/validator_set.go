@@ -529,6 +529,19 @@ func (vals *ValidatorSet) updateWithChangeSet(changes []*Validator, allowDeletes
 		return nil
 	}
 
+	// Validate changes.
+	for _, change := range changes {
+		if change.Address.IsZero() {
+			return fmt.Errorf("validator address cannot be zero")
+		}
+		if change.PubKey == nil {
+			return fmt.Errorf("validator pubkey cannot be nil")
+		}
+		if change.Address != change.PubKey.Address() {
+			return fmt.Errorf("validator address doesn't match pubkey")
+		}
+	}
+
 	// Check for duplicates within changes, split in 'updates' and 'deletes' lists (sorted).
 	updates, deletes, err := processChanges(changes)
 	if err != nil {

@@ -18,7 +18,7 @@ func randVoteSet(height int64, round int, type_ SignedMsgType, numValidators int
 }
 
 // Convenience: Return new vote with different validator address/index
-func withValidator(vote *Vote, addr []byte, idx int) *Vote {
+func withValidator(vote *Vote, addr crypto.Address, idx int) *Vote {
 	vote = vote.Copy()
 	vote.ValidatorAddress = addr
 	vote.ValidatorIndex = idx
@@ -110,8 +110,8 @@ func Test2_3Majority(t *testing.T) {
 	voteSet, _, privValidators := randVoteSet(height, round, PrevoteType, 10, 1)
 
 	voteProto := &Vote{
-		ValidatorAddress: nil, // NOTE: must fill in
-		ValidatorIndex:   -1,  // NOTE: must fill in
+		ValidatorAddress: crypto.Address{}, // NOTE: must fill in
+		ValidatorIndex:   -1,               // NOTE: must fill in
 		Height:           height,
 		Round:            round,
 		Type:             PrevoteType,
@@ -170,8 +170,8 @@ func Test2_3MajorityRedux(t *testing.T) {
 	blockPartsHeader := PartSetHeader{blockPartsTotal, crypto.CRandBytes(32)}
 
 	voteProto := &Vote{
-		ValidatorAddress: nil, // NOTE: must fill in
-		ValidatorIndex:   -1,  // NOTE: must fill in
+		ValidatorAddress: crypto.Address{}, // NOTE: must fill in
+		ValidatorIndex:   -1,               // NOTE: must fill in
 		Height:           height,
 		Round:            round,
 		Timestamp:        tmtime.Now(),
@@ -271,7 +271,7 @@ func TestBadVotes(t *testing.T) {
 	voteSet, _, privValidators := randVoteSet(height, round, PrevoteType, 10, 1)
 
 	voteProto := &Vote{
-		ValidatorAddress: nil,
+		ValidatorAddress: crypto.Address{},
 		ValidatorIndex:   -1,
 		Height:           height,
 		Round:            round,
@@ -338,7 +338,7 @@ func TestConflicts(t *testing.T) {
 	blockHash2 := cmn.RandBytes(32)
 
 	voteProto := &Vote{
-		ValidatorAddress: nil,
+		ValidatorAddress: crypto.Address{},
 		ValidatorIndex:   -1,
 		Height:           height,
 		Round:            round,
@@ -471,7 +471,7 @@ func TestMakeCommit(t *testing.T) {
 	blockHash, blockPartsHeader := crypto.CRandBytes(32), PartSetHeader{123, crypto.CRandBytes(32)}
 
 	voteProto := &Vote{
-		ValidatorAddress: nil,
+		ValidatorAddress: crypto.Address{},
 		ValidatorIndex:   -1,
 		Height:           height,
 		Round:            round,

@@ -6,8 +6,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tendermint/classic/crypto"
 	"github.com/tendermint/classic/crypto/secp256k1"
 	"github.com/tendermint/classic/crypto/tmhash"
+	"github.com/tendermint/go-amino-x"
 )
 
 type voteData struct {
@@ -95,7 +97,7 @@ func TestEvidenceList(t *testing.T) {
 	assert.False(t, evl.Has(&DuplicateVoteEvidence{}))
 }
 
-func TestMaxEvidenceBytes(t *testing.T) {
+func TestEvidenceByteSize(t *testing.T) {
 	val := NewMockPV()
 	blockID := makeBlockID(tmhash.Sum([]byte("blockhash")), math.MaxInt64, tmhash.Sum([]byte("partshash")))
 	blockID2 := makeBlockID(tmhash.Sum([]byte("blockhash2")), math.MaxInt64, tmhash.Sum([]byte("partshash")))
@@ -106,10 +108,10 @@ func TestMaxEvidenceBytes(t *testing.T) {
 		VoteB:  makeVote(val, chainID, math.MaxInt64, math.MaxInt64, math.MaxInt64, math.MaxInt64, blockID2),
 	}
 
-	bz, err := cdc.MarshalSized(ev)
+	bz, err := amino.MarshalSized(ev)
 	require.NoError(t, err)
 
-	assert.EqualValues(t, MaxEvidenceBytes, len(bz))
+	assert.EqualValues(t, 508, len(bz))
 }
 
 func randomDuplicatedVoteEvidence() *DuplicateVoteEvidence {
@@ -160,11 +162,11 @@ func TestDuplicateVoteEvidenceValidation(t *testing.T) {
 }
 
 func TestMockGoodEvidenceValidateBasic(t *testing.T) {
-	goodEvidence := NewMockGoodEvidence(int64(1), 1, []byte{1})
+	goodEvidence := NewMockGoodEvidence(int64(1), 1, crypto.AddressFromPreimage([]byte{1}))
 	assert.Nil(t, goodEvidence.ValidateBasic())
 }
 
 func TestMockBadEvidenceValidateBasic(t *testing.T) {
-	badEvidence := MockBadEvidence{MockGoodEvidence: NewMockGoodEvidence(int64(1), 1, []byte{1})}
+	badEvidence := MockBadEvidence{MockGoodEvidence: NewMockGoodEvidence(int64(1), 1, crypto.AddressFromPreimage([]byte{1}))}
 	assert.Nil(t, badEvidence.ValidateBasic())
 }

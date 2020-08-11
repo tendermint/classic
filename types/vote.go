@@ -12,7 +12,7 @@ import (
 
 const (
 	// MaxVoteBytes is a maximum vote size (including amino overhead).
-	MaxVoteBytes int64  = 223
+	MaxVoteBytes int    = 227
 	nilVoteStr   string = "nil-Vote"
 )
 
@@ -148,6 +148,9 @@ func (vote *Vote) ValidateBasic() error {
 			crypto.AddressSize,
 			len(vote.ValidatorAddress),
 		)
+	}
+	if vote.ValidatorAddress.IsZero() {
+		return fmt.Errorf("Expected ValidatorAddress to be non-zero")
 	}
 	if vote.ValidatorIndex < 0 {
 		return errors.New("Negative ValidatorIndex")

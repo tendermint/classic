@@ -83,11 +83,10 @@ func (genDoc *GenesisDoc) ValidateAndComplete() error {
 		if v.Power == 0 {
 			return errors.Errorf("The genesis file cannot contain validators with no voting power: %v", v)
 		}
-		if v.PubKey.Address() != v.Address {
-			return errors.Errorf("Incorrect address for validator %v in the genesis file, should be %v", v, v.PubKey.Address())
-		}
 		if v.Address.IsZero() {
 			genDoc.Validators[i].Address = v.PubKey.Address()
+		} else if v.PubKey.Address() != v.Address {
+			return errors.Errorf("Incorrect address for validator %v in the genesis file, should be %v", v, v.PubKey.Address())
 		}
 	}
 

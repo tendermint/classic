@@ -13,24 +13,8 @@ import (
 	"github.com/tendermint/classic/crypto/merkle"
 	"github.com/tendermint/classic/crypto/tmhash"
 	cmn "github.com/tendermint/classic/libs/common"
-	"github.com/tendermint/classic/types/version"
+	typesver "github.com/tendermint/classic/types/version"
 	"github.com/tendermint/go-amino-x"
-)
-
-const (
-	// MaxHeaderBytes is a maximum header size (including amino overhead).
-	MaxHeaderBytes int64 = 653
-
-	// MaxAminoOverheadForBlock - maximum amino overhead to encode a block (up to
-	// MaxBlockSizeBytes in size) not including it's parts except Data.
-	// This means it also excludes the overhead for individual transactions.
-	// To compute individual transactions' overhead use types.ComputeAminoOverhead(tx types.Tx, fieldNum int).
-	//
-	// Uvarint length of MaxBlockSizeBytes: 4 bytes
-	// 2 fields (2 embedded):               2 bytes
-	// Uvarint length of Data.Txs:          4 bytes
-	// Data.Txs field:                      1 byte
-	MaxAminoOverheadForBlock int64 = 11
 )
 
 // Block defines the atomic unit of a Tendermint blockchain.
@@ -267,12 +251,13 @@ func (b *Block) StringShort() string {
 // - /docs/spec/blockchain/blockchain.md
 type Header struct {
 	// basic block info
-	Version  string    `json:"version"`
-	ChainID  string    `json:"chain_id"`
-	Height   int64     `json:"height"`
-	Time     time.Time `json:"time"`
-	NumTxs   int64     `json:"num_txs"`
-	TotalTxs int64     `json:"total_txs"`
+	Version    string    `json:"version"`
+	ChainID    string    `json:"chain_id"`
+	Height     int64     `json:"height"`
+	Time       time.Time `json:"time"`
+	NumTxs     int64     `json:"num_txs"`
+	TotalTxs   int64     `json:"total_txs"`
+	AppVersion string    `json:"app_version"`
 
 	// prev block info
 	LastBlockID BlockID `json:"last_block_id"`
@@ -298,15 +283,17 @@ type Header struct {
 func (h *Header) Populate(
 	chainID string,
 	timestamp time.Time, lastBlockID BlockID, totalTxs int64,
+	appVersion string,
 	valHash, nextValHash []byte,
 	consensusHash, appHash, lastResultsHash []byte,
 	proposerAddress Address,
 ) {
-	h.Version = version.BlockVersion
+	h.Version = typesver.BlockVersion
 	h.ChainID = chainID
 	h.Time = timestamp
 	h.LastBlockID = lastBlockID
 	h.TotalTxs = totalTxs
+	h.AppVersion = appVersion
 	h.ValidatorsHash = valHash
 	h.NextValidatorsHash = nextValHash
 	h.ConsensusHash = consensusHash
@@ -332,6 +319,7 @@ func (h *Header) Hash() []byte {
 		bytesOrNil(h.Time),
 		bytesOrNil(h.NumTxs),
 		bytesOrNil(h.TotalTxs),
+		bytesOrNil(h.AppVersion),
 		bytesOrNil(h.LastBlockID),
 		bytesOrNil(h.LastCommitHash),
 		bytesOrNil(h.DataHash),
@@ -357,6 +345,7 @@ func (h *Header) StringIndented(indent string) string {
 %s  Time:           %v
 %s  NumTxs:         %v
 %s  TotalTxs:       %v
+%s  AppVersion:     %v
 %s  LastBlockID:    %v
 %s  LastCommit:     %v
 %s  Data:           %v
@@ -374,6 +363,7 @@ func (h *Header) StringIndented(indent string) string {
 		indent, h.Time,
 		indent, h.NumTxs,
 		indent, h.TotalTxs,
+		indent, h.AppVersion,
 		indent, h.LastBlockID,
 		indent, h.LastCommitHash,
 		indent, h.DataHash,
@@ -832,5 +822,5 @@ func (blockID BlockID) IsComplete() bool {
 
 // String returns a human readable string representation of the BlockID
 func (blockID BlockID) String() string {
-	return fmt.Sprintf(`%v:%v`, blockID.Hash, blockID.PartsHeader)
+	return fmt.Sprintf(`%X:%v`, blockID.Hash, blockID.PartsHeader)
 }

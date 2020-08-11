@@ -15,7 +15,8 @@ import (
 	"github.com/tendermint/classic/crypto/tmhash"
 	cmn "github.com/tendermint/classic/libs/common"
 	tmtime "github.com/tendermint/classic/types/time"
-	"github.com/tendermint/classic/version"
+	typesver "github.com/tendermint/classic/types/version"
+	"github.com/tendermint/go-amino-x"
 )
 
 func TestBlockAddEvidence(t *testing.T) {
@@ -232,7 +233,7 @@ func TestCommitValidateBasic(t *testing.T) {
 	}
 }
 
-func TestMaxHeaderBytes(t *testing.T) {
+func TestHeaderByteSize(t *testing.T) {
 	// Construct a UTF-8 string of MaxChainIDLen length using the supplementary
 	// characters.
 	// Each supplementary character takes 4 bytes.
@@ -247,12 +248,13 @@ func TestMaxHeaderBytes(t *testing.T) {
 	timestamp := time.Date(math.MaxInt64, 0, 0, 0, 0, 0, math.MaxInt64, time.UTC)
 
 	h := Header{
-		Version:            version.Consensus{Block: math.MaxInt64, App: math.MaxInt64},
+		Version:            typesver.BlockVersion,
 		ChainID:            maxChainID,
 		Height:             math.MaxInt64,
 		Time:               timestamp,
 		NumTxs:             math.MaxInt64,
 		TotalTxs:           math.MaxInt64,
+		AppVersion:         "v0.0.0-test",
 		LastBlockID:        makeBlockID(make([]byte, tmhash.Size), math.MaxInt64, make([]byte, tmhash.Size)),
 		LastCommitHash:     tmhash.Sum([]byte("last_commit_hash")),
 		DataHash:           tmhash.Sum([]byte("data_hash")),
@@ -262,13 +264,13 @@ func TestMaxHeaderBytes(t *testing.T) {
 		AppHash:            tmhash.Sum([]byte("app_hash")),
 		LastResultsHash:    tmhash.Sum([]byte("last_results_hash")),
 		EvidenceHash:       tmhash.Sum([]byte("evidence_hash")),
-		ProposerAddress:    crypto.AddressHash([]byte("proposer_address")),
+		ProposerAddress:    crypto.AddressFromPreimage([]byte("proposer_address")),
 	}
 
-	bz, err := cdc.MarshalSized(h)
+	bz, err := amino.MarshalSized(h)
 	require.NoError(t, err)
 
-	assert.EqualValues(t, MaxHeaderBytes, len(bz))
+	assert.EqualValues(t, 662, len(bz))
 }
 
 func randCommit() *Commit {
@@ -280,65 +282,6 @@ func randCommit() *Commit {
 		panic(err)
 	}
 	return commit
-}
-
-func TestBlockMaxDataBytes(t *testing.T) {
-	testCases := []struct {
-		maxBytes      int64
-		valsCount     int
-		evidenceCount int
-		panics        bool
-		result        int64
-	}{
-		0: {-10, 1, 0, true, 0},
-		1: {10, 1, 0, true, 0},
-		2: {886, 1, 0, true, 0},
-		3: {887, 1, 0, false, 0},
-		4: {888, 1, 0, false, 1},
-	}
-
-	for i, tc := range testCases {
-		tc := tc
-		if tc.panics {
-			assert.Panics(t, func() {
-				MaxDataBytes(tc.maxBytes, tc.valsCount, tc.evidenceCount)
-			}, "#%v", i)
-		} else {
-			assert.Equal(t,
-				tc.result,
-				MaxDataBytes(tc.maxBytes, tc.valsCount, tc.evidenceCount),
-				"#%v", i)
-		}
-	}
-}
-
-func TestBlockMaxDataBytesUnknownEvidence(t *testing.T) {
-	testCases := []struct {
-		maxBytes  int64
-		valsCount int
-		panics    bool
-		result    int64
-	}{
-		0: {-10, 1, true, 0},
-		1: {10, 1, true, 0},
-		2: {984, 1, true, 0},
-		3: {985, 1, false, 0},
-		4: {986, 1, false, 1},
-	}
-
-	for i, tc := range testCases {
-		tc := tc
-		if tc.panics {
-			assert.Panics(t, func() {
-				MaxDataBytesUnknownEvidence(tc.maxBytes, tc.valsCount)
-			}, "#%v", i)
-		} else {
-			assert.Equal(t,
-				tc.result,
-				MaxDataBytesUnknownEvidence(tc.maxBytes, tc.valsCount),
-				"#%v", i)
-		}
-	}
 }
 
 func TestCommitToVoteSet(t *testing.T) {
@@ -357,9 +300,9 @@ func TestCommitToVoteSet(t *testing.T) {
 		vote2 := voteSet2.GetByIndex(i)
 		vote3 := commit.GetVote(i)
 
-		vote1bz := cdc.MustMarshal(vote1)
-		vote2bz := cdc.MustMarshal(vote2)
-		vote3bz := cdc.MustMarshal(vote3)
+		vote1bz := amino.MustMarshal(vote1)
+		vote2bz := amino.MustMarshal(vote2)
+		vote3bz := amino.MustMarshal(vote3)
 		assert.Equal(t, vote1bz, vote2bz)
 		assert.Equal(t, vote1bz, vote3bz)
 	}
@@ -427,12 +370,13 @@ func TestSignedHeaderValidateBasic(t *testing.T) {
 	chainID := "𠜎"
 	timestamp := time.Date(math.MaxInt64, 0, 0, 0, 0, 0, math.MaxInt64, time.UTC)
 	h := Header{
-		Version:            version.Consensus{Block: math.MaxInt64, App: math.MaxInt64},
+		Version:            typesver.BlockVersion,
 		ChainID:            chainID,
 		Height:             commit.Height(),
 		Time:               timestamp,
 		NumTxs:             math.MaxInt64,
 		TotalTxs:           math.MaxInt64,
+		AppVersion:         "v0.0.0-test",
 		LastBlockID:        commit.BlockID,
 		LastCommitHash:     commit.Hash(),
 		DataHash:           commit.Hash(),
@@ -442,7 +386,7 @@ func TestSignedHeaderValidateBasic(t *testing.T) {
 		AppHash:            commit.Hash(),
 		LastResultsHash:    commit.Hash(),
 		EvidenceHash:       commit.Hash(),
-		ProposerAddress:    crypto.AddressHash([]byte("proposer_address")),
+		ProposerAddress:    crypto.AddressFromPreimage([]byte("proposer_address")),
 	}
 
 	validSignedHeader := SignedHeader{Header: &h, Commit: commit}

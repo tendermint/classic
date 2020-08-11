@@ -8,10 +8,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	amino "github.com/tendermint/go-amino-x"
 	"github.com/tendermint/classic/crypto"
 	"github.com/tendermint/classic/crypto/ed25519"
 	"github.com/tendermint/classic/crypto/tmhash"
+	"github.com/tendermint/go-amino-x"
 )
 
 func examplePrevote() *Vote {
@@ -40,7 +40,7 @@ func exampleVote(t byte) *Vote {
 				Hash:  tmhash.Sum([]byte("blockID_part_set_header_hash")),
 			},
 		},
-		ValidatorAddress: crypto.AddressHash([]byte("validator_address")),
+		ValidatorAddress: crypto.AddressFromPreimage([]byte("validator_address")),
 		ValidatorIndex:   56789,
 	}
 }
@@ -52,9 +52,8 @@ func exampleVote(t byte) *Vote {
 func TestVoteEncoding(t *testing.T) {
 	vote := examplePrecommit()
 	commitSig := vote.CommitSig()
-	cdc := amino.NewCodec()
-	bz1 := cdc.MustMarshal(vote)
-	bz2 := cdc.MustMarshal(commitSig)
+	bz1 := amino.MustMarshal(vote)
+	bz2 := amino.MustMarshal(commitSig)
 	assert.Equal(t, bz1, bz2)
 }
 
@@ -62,7 +61,7 @@ func TestVoteSignable(t *testing.T) {
 	vote := examplePrecommit()
 	signBytes := vote.SignBytes("test_chain_id")
 
-	expected, err := cdc.MarshalSized(CanonicalizeVote("test_chain_id", vote))
+	expected, err := amino.MarshalSized(CanonicalizeVote("test_chain_id", vote))
 	require.NoError(t, err)
 
 	require.Equal(t, expected, signBytes, "Got unexpected sign bytes for Vote.")
@@ -147,9 +146,9 @@ func TestVoteSignBytesTestVectors(t *testing.T) {
 func TestVoteProposalNotEq(t *testing.T) {
 	cv := CanonicalizeVote("", &Vote{Height: 1, Round: 1})
 	p := CanonicalizeProposal("", &Proposal{Height: 1, Round: 1})
-	vb, err := cdc.MarshalSized(cv)
+	vb, err := amino.MarshalSized(cv)
 	require.NoError(t, err)
-	pb, err := cdc.MarshalSized(p)
+	pb, err := amino.MarshalSized(p)
 	require.NoError(t, err)
 	require.NotEqual(t, vb, pb)
 }
@@ -171,9 +170,9 @@ func TestVoteVerifySignature(t *testing.T) {
 
 	// serialize, deserialize and verify again....
 	precommit := new(Vote)
-	bs, err := cdc.MarshalSized(vote)
+	bs, err := amino.MarshalSized(vote)
 	require.NoError(t, err)
-	err = cdc.UnmarshalSized(bs, &precommit)
+	err = amino.UnmarshalSized(bs, &precommit)
 	require.NoError(t, err)
 
 	// verify the transmitted vote
@@ -228,7 +227,7 @@ func TestMaxVoteBytes(t *testing.T) {
 	timestamp := time.Date(math.MaxInt64, 0, 0, 0, 0, 0, math.MaxInt64, time.UTC)
 
 	vote := &Vote{
-		ValidatorAddress: crypto.AddressHash([]byte("validator_address")),
+		ValidatorAddress: crypto.AddressFromPreimage([]byte("validator_address")),
 		ValidatorIndex:   math.MaxInt64,
 		Height:           math.MaxInt64,
 		Round:            math.MaxInt64,
@@ -247,7 +246,7 @@ func TestMaxVoteBytes(t *testing.T) {
 	err := privVal.SignVote("test_chain_id", vote)
 	require.NoError(t, err)
 
-	bz, err := cdc.MarshalSized(vote)
+	bz, err := amino.MarshalSized(vote)
 	require.NoError(t, err)
 
 	assert.EqualValues(t, MaxVoteBytes, len(bz))
@@ -279,7 +278,7 @@ func TestVoteValidateBasic(t *testing.T) {
 		{"Negative Height", func(v *Vote) { v.Height = -1 }, true},
 		{"Negative Round", func(v *Vote) { v.Round = -1 }, true},
 		{"Invalid BlockID", func(v *Vote) { v.BlockID = BlockID{[]byte{1, 2, 3}, PartSetHeader{111, []byte("blockparts")}} }, true},
-		{"Invalid Address", func(v *Vote) { v.ValidatorAddress = make([]byte, 1) }, true},
+		{"Invalid Address", func(v *Vote) { v.ValidatorAddress = crypto.Address{} }, true},
 		{"Invalid ValidatorIndex", func(v *Vote) { v.ValidatorIndex = -1 }, true},
 		{"Invalid Signature", func(v *Vote) { v.Signature = nil }, true},
 		{"Too big Signature", func(v *Vote) { v.Signature = make([]byte, MaxSignatureSize+1) }, true},

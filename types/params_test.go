@@ -10,13 +10,13 @@ import (
 )
 
 var (
-	valEd25519   = []string{ABCIPubKeyTypeEd25519}
-	valSecp256k1 = []string{ABCIPubKeyTypeSecp256k1}
+	valEd25519   = []string{"/tm.PubKeyEd25519"}
+	valSecp256k1 = []string{"/tm.PubKeySecp256k1"}
 )
 
 func TestConsensusParamsValidation(t *testing.T) {
 	testCases := []struct {
-		params ConsensusParams
+		params abci.ConsensusParams
 		valid  bool
 	}{
 		// test block params
@@ -39,36 +39,36 @@ func TestConsensusParamsValidation(t *testing.T) {
 	}
 	for i, tc := range testCases {
 		if tc.valid {
-			assert.NoErrorf(t, tc.params.Validate(), "expected no error for valid params (#%d)", i)
+			assert.NoErrorf(t, ValidateConsensusParams(tc.params), "expected no error for valid params (#%d)", i)
 		} else {
-			assert.Errorf(t, tc.params.Validate(), "expected error for non valid params (#%d)", i)
+			assert.Errorf(t, ValidateConsensusParams(tc.params), "expected error for non valid params (#%d)", i)
 		}
 	}
 }
 
 func makeParams(
 	blockBytes, blockGas int64,
-	blockTimeIotaMs int64,
+	blockTimeIotaMS int64,
 	evidenceAge int64,
-	pubkeyTypes []string,
-) ConsensusParams {
-	return ConsensusParams{
-		Block: BlockParams{
-			MaxBytes:   blockBytes,
+	pubkeyTypeURLs []string,
+) abci.ConsensusParams {
+	return abci.ConsensusParams{
+		Block: &abci.BlockParams{
+			MaxTxBytes: blockBytes,
 			MaxGas:     blockGas,
-			TimeIotaMs: blockTimeIotaMs,
+			TimeIotaMS: blockTimeIotaMS,
 		},
-		Evidence: EvidenceParams{
+		Evidence: &abci.EvidenceParams{
 			MaxAge: evidenceAge,
 		},
-		Validator: ValidatorParams{
-			PubKeyTypes: pubkeyTypes,
+		Validator: &abci.ValidatorParams{
+			PubKeyTypeURLs: pubkeyTypeURLs,
 		},
 	}
 }
 
 func TestConsensusParamsHash(t *testing.T) {
-	params := []ConsensusParams{
+	params := []abci.ConsensusParams{
 		makeParams(4, 2, 10, 3, valEd25519),
 		makeParams(1, 4, 10, 3, valEd25519),
 		makeParams(1, 2, 10, 4, valEd25519),
@@ -96,29 +96,30 @@ func TestConsensusParamsHash(t *testing.T) {
 
 func TestConsensusParamsUpdate(t *testing.T) {
 	testCases := []struct {
-		params        ConsensusParams
-		updates       *abci.ConsensusParams
-		updatedParams ConsensusParams
+		params        abci.ConsensusParams
+		updates       abci.ConsensusParams
+		updatedParams abci.ConsensusParams
 	}{
 		// empty updates
 		{
 			makeParams(1, 2, 10, 3, valEd25519),
-			&abci.ConsensusParams{},
+			abci.ConsensusParams{},
 			makeParams(1, 2, 10, 3, valEd25519),
 		},
 		// fine updates
 		{
 			makeParams(1, 2, 10, 3, valEd25519),
-			&abci.ConsensusParams{
+			abci.ConsensusParams{
 				Block: &abci.BlockParams{
-					MaxBytes: 100,
-					MaxGas:   200,
+					MaxTxBytes: 100,
+					MaxGas:     200,
+					TimeIotaMS: 10,
 				},
 				Evidence: &abci.EvidenceParams{
 					MaxAge: 300,
 				},
 				Validator: &abci.ValidatorParams{
-					PubKeyTypes: valSecp256k1,
+					PubKeyTypeURLs: valSecp256k1,
 				},
 			},
 			makeParams(100, 200, 10, 300, valSecp256k1),

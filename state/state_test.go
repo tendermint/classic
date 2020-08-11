@@ -905,7 +905,7 @@ func TestConsensusParamsChangesSaveLoad(t *testing.T) {
 	params := make([]types.ConsensusParams, N+1)
 	params[0] = state.ConsensusParams
 	for i := 1; i < N+1; i++ {
-		params[i] = *types.DefaultConsensusParams()
+		params[i] = types.DefaultConsensusParams()
 		params[i].Block.MaxBytes += int64(i)
 	}
 

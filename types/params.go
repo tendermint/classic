@@ -25,8 +25,8 @@ var (
 	}
 )
 
-func DefaultConsensusParams() *abci.ConsensusParams {
-	return &abci.ConsensusParams{
+func DefaultConsensusParams() abci.ConsensusParams {
+	return abci.ConsensusParams{
 		DefaultBlockParams(),
 		DefaultEvidenceParams(),
 		DefaultValidatorParams(),

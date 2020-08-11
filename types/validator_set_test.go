@@ -12,9 +12,10 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/tendermint/classic/crypto"
-	"github.com/tendermint/classic/crypto/ed25519"
+	"github.com/tendermint/classic/crypto/mock"
 	cmn "github.com/tendermint/classic/libs/common"
 	tmtime "github.com/tendermint/classic/types/time"
+	"github.com/tendermint/go-amino-x"
 )
 
 func TestValidatorSetBasic(t *testing.T) {
@@ -27,18 +28,18 @@ func TestValidatorSetBasic(t *testing.T) {
 	assert.Panics(t, func() { vset.IncrementProposerPriority(1) })
 
 	assert.EqualValues(t, vset, vset.Copy())
-	assert.False(t, vset.HasAddress([]byte("some val")))
-	idx, val := vset.GetByAddress([]byte("some val"))
+	assert.False(t, vset.HasAddress(crypto.AddressFromPreimage([]byte("some val"))))
+	idx, val := vset.GetByAddress(crypto.AddressFromPreimage([]byte("some val")))
 	assert.Equal(t, -1, idx)
 	assert.Nil(t, val)
 	addr, val := vset.GetByIndex(-100)
-	assert.Nil(t, addr)
+	assert.Zero(t, addr)
 	assert.Nil(t, val)
 	addr, val = vset.GetByIndex(0)
-	assert.Nil(t, addr)
+	assert.Zero(t, addr)
 	assert.Nil(t, val)
 	addr, val = vset.GetByIndex(100)
-	assert.Nil(t, addr)
+	assert.Zero(t, addr)
 	assert.Nil(t, val)
 	assert.Zero(t, vset.Size())
 	assert.Equal(t, int64(0), vset.TotalVotingPower())
@@ -53,7 +54,7 @@ func TestValidatorSetBasic(t *testing.T) {
 	idx, _ = vset.GetByAddress(val.Address)
 	assert.Equal(t, 0, idx)
 	addr, _ = vset.GetByIndex(0)
-	assert.Equal(t, []byte(val.Address), addr)
+	assert.Equal(t, val.Address, addr)
 	assert.Equal(t, 1, vset.Size())
 	assert.Equal(t, val.VotingPower, vset.TotalVotingPower())
 	assert.NotNil(t, vset.Hash())
@@ -106,7 +107,7 @@ func BenchmarkValidatorSetCopy(b *testing.B) {
 	b.StopTimer()
 	vset := NewValidatorSet([]*Validator{})
 	for i := 0; i < 1000; i++ {
-		privKey := ed25519.GenPrivKey()
+		privKey := mock.GenPrivKey()
 		pubKey := privKey.PubKey()
 		val := NewValidator(pubKey, 10)
 		err := vset.UpdateWithChangeSet([]*Validator{val})
@@ -132,7 +133,7 @@ func TestProposerSelection1(t *testing.T) {
 	var proposers []string
 	for i := 0; i < 99; i++ {
 		val := vset.GetProposer()
-		proposers = append(proposers, string(val.Address))
+		proposers = append(proposers, string(val.Address[17:]))
 		vset.IncrementProposerPriority(1)
 	}
 	expected := `foo baz foo bar foo foo baz foo bar foo foo baz foo foo bar foo baz foo foo bar foo foo baz foo bar foo foo baz foo bar foo foo baz foo foo bar foo baz foo foo bar foo baz foo foo bar foo baz foo foo bar foo baz foo foo foo baz bar foo foo foo baz foo bar foo foo baz foo bar foo foo baz foo bar foo foo baz foo bar foo foo baz foo foo bar foo baz foo foo bar foo baz foo foo bar foo baz foo foo`
@@ -142,9 +143,9 @@ func TestProposerSelection1(t *testing.T) {
 }
 
 func TestProposerSelection2(t *testing.T) {
-	addr0 := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-	addr1 := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}
-	addr2 := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2}
+	addr0 := []byte{1}
+	addr1 := []byte{2}
+	addr2 := []byte{3}
 
 	// when all voting power is same, we go in order of addresses
 	val0, val1, val2 := newValidator(addr0, 100), newValidator(addr1, 100), newValidator(addr2, 100)
@@ -153,8 +154,8 @@ func TestProposerSelection2(t *testing.T) {
 	for i := 0; i < len(valList)*5; i++ {
 		ii := (i) % len(valList)
 		prop := vals.GetProposer()
-		if !bytes.Equal(prop.Address, valList[ii].Address) {
-			t.Fatalf("(%d): Expected %X. Got %X", i, valList[ii].Address, prop.Address)
+		if prop.Address != valList[ii].Address {
+			t.Fatalf("(%d): Expected %s. Got %s", i, valList[ii].Address.ID(), prop.Address.ID())
 		}
 		vals.IncrementProposerPriority(1)
 	}
@@ -164,12 +165,12 @@ func TestProposerSelection2(t *testing.T) {
 	vals = NewValidatorSet(valList)
 	// vals.IncrementProposerPriority(1)
 	prop := vals.GetProposer()
-	if !bytes.Equal(prop.Address, addr2) {
+	if prop.Address != newAddr(addr2) {
 		t.Fatalf("Expected address with highest voting power to be first proposer. Got %X", prop.Address)
 	}
 	vals.IncrementProposerPriority(1)
 	prop = vals.GetProposer()
-	if !bytes.Equal(prop.Address, addr0) {
+	if prop.Address != newAddr(addr0) {
 		t.Fatalf("Expected smallest address to be validator. Got %X", prop.Address)
 	}
 
@@ -177,17 +178,17 @@ func TestProposerSelection2(t *testing.T) {
 	*val2 = *newValidator(addr2, 401)
 	vals = NewValidatorSet(valList)
 	prop = vals.GetProposer()
-	if !bytes.Equal(prop.Address, addr2) {
+	if prop.Address != newAddr(addr2) {
 		t.Fatalf("Expected address with highest voting power to be first proposer. Got %X", prop.Address)
 	}
 	vals.IncrementProposerPriority(1)
 	prop = vals.GetProposer()
-	if !bytes.Equal(prop.Address, addr2) {
+	if prop.Address != newAddr(addr2) {
 		t.Fatalf("Expected address with highest voting power to be second proposer. Got %X", prop.Address)
 	}
 	vals.IncrementProposerPriority(1)
 	prop = vals.GetProposer()
-	if !bytes.Equal(prop.Address, addr0) {
+	if prop.Address != newAddr(addr0) {
 		t.Fatalf("Expected smallest address to be validator. Got %X", prop.Address)
 	}
 
@@ -200,7 +201,7 @@ func TestProposerSelection2(t *testing.T) {
 	for i := 0; i < 120*N; i++ {
 		prop := vals.GetProposer()
 		ii := prop.Address[19]
-		propCount[ii]++
+		propCount[ii-1]++
 		vals.IncrementProposerPriority(1)
 	}
 
@@ -236,17 +237,21 @@ func TestProposerSelection3(t *testing.T) {
 	for ; i < 10000; i++ {
 		got := vset.GetProposer().Address
 		expected := proposerOrder[j%4].Address
-		if !bytes.Equal(got, expected) {
+		if got != expected {
 			t.Fatalf(fmt.Sprintf("vset.Proposer (%X) does not match expected proposer (%X) for (%d, %d)", got, expected, i, j))
 		}
 
 		// serialize, deserialize, check proposer
-		b := vset.toBytes()
-		vset.fromBytes(b)
+		{
+			b := vset.toBytes()
+			var vset2 ValidatorSet
+			vset2.fromBytes(b)
+			assert.Equal(t, vset.Hash(), vset2.Hash())
+		}
 
 		computed := vset.GetProposer() // findGetProposer()
 		if i != 0 {
-			if !bytes.Equal(got, computed.Address) {
+			if got != computed.Address {
 				t.Fatalf(fmt.Sprintf("vset.Proposer (%X) does not match computed proposer (%X) for (%d, %d)", got, computed.Address, i, j))
 			}
 		}
@@ -264,14 +269,22 @@ func TestProposerSelection3(t *testing.T) {
 	}
 }
 
-func newValidator(address []byte, power int64) *Validator {
-	return &Validator{Address: address, VotingPower: power}
+func newAddr(mocksecret []byte) crypto.Address {
+	privkey := mock.PrivKeyMock(mocksecret)
+	pubkey := privkey.PubKey()
+	addr := pubkey.Address()
+	return addr
+}
+
+func newValidator(mocksecret []byte, power int64) *Validator {
+	privkey := mock.PrivKeyMock(mocksecret)
+	pubkey := privkey.PubKey()
+	addr := pubkey.Address()
+	return &Validator{Address: addr, PubKey: pubkey, VotingPower: power}
 }
 
 func randPubKey() crypto.PubKey {
-	var pubKey [32]byte
-	copy(pubKey[:], cmn.RandBytes(32))
-	return ed25519.PubKeyEd25519(pubKey)
+	return mock.GenPrivKey().PubKey()
 }
 
 func randValidator_(totalVotingPower int64) *Validator {
@@ -293,7 +306,7 @@ func randValidatorSet(numValidators int) *ValidatorSet {
 }
 
 func (valSet *ValidatorSet) toBytes() []byte {
-	bz, err := cdc.MarshalSized(valSet)
+	bz, err := amino.MarshalSized(valSet)
 	if err != nil {
 		panic(err)
 	}
@@ -301,7 +314,7 @@ func (valSet *ValidatorSet) toBytes() []byte {
 }
 
 func (valSet *ValidatorSet) fromBytes(b []byte) {
-	err := cdc.UnmarshalSized(b, &valSet)
+	err := amino.UnmarshalSized(b, &valSet)
 	if err != nil {
 		// DATA HAS BEEN CORRUPTED OR THE SPEC HAS CHANGED
 		panic(err)
@@ -315,9 +328,9 @@ func TestValidatorSetTotalVotingPowerPanicsOnOverflow(t *testing.T) {
 	// which should panic on overflows:
 	shouldPanic := func() {
 		NewValidatorSet([]*Validator{
-			{Address: []byte("a"), VotingPower: math.MaxInt64, ProposerPriority: 0},
-			{Address: []byte("b"), VotingPower: math.MaxInt64, ProposerPriority: 0},
-			{Address: []byte("c"), VotingPower: math.MaxInt64, ProposerPriority: 0},
+			{Address: newAddr([]byte("a")), VotingPower: math.MaxInt64, ProposerPriority: 0},
+			{Address: newAddr([]byte("b")), VotingPower: math.MaxInt64, ProposerPriority: 0},
+			{Address: newAddr([]byte("c")), VotingPower: math.MaxInt64, ProposerPriority: 0},
 		})
 	}
 
@@ -353,23 +366,23 @@ func TestAveragingInIncrementProposerPriority(t *testing.T) {
 	}{
 		0: {ValidatorSet{
 			Validators: []*Validator{
-				{Address: []byte("a"), ProposerPriority: 1},
-				{Address: []byte("b"), ProposerPriority: 2},
-				{Address: []byte("c"), ProposerPriority: 3}}},
+				{Address: newAddr([]byte("a")), ProposerPriority: 1},
+				{Address: newAddr([]byte("b")), ProposerPriority: 2},
+				{Address: newAddr([]byte("c")), ProposerPriority: 3}}},
 			1, 2},
 		1: {ValidatorSet{
 			Validators: []*Validator{
-				{Address: []byte("a"), ProposerPriority: 10},
-				{Address: []byte("b"), ProposerPriority: -10},
-				{Address: []byte("c"), ProposerPriority: 1}}},
+				{Address: newAddr([]byte("a")), ProposerPriority: 10},
+				{Address: newAddr([]byte("b")), ProposerPriority: -10},
+				{Address: newAddr([]byte("c")), ProposerPriority: 1}}},
 			// this should average twice but the average should be 0 after the first iteration
 			// (voting power is 0 -> no changes)
 			11, 1 / 3},
 		2: {ValidatorSet{
 			Validators: []*Validator{
-				{Address: []byte("a"), ProposerPriority: 100},
-				{Address: []byte("b"), ProposerPriority: -10},
-				{Address: []byte("c"), ProposerPriority: 1}}},
+				{Address: newAddr([]byte("a")), ProposerPriority: 100},
+				{Address: newAddr([]byte("b")), ProposerPriority: -10},
+				{Address: newAddr([]byte("c")), ProposerPriority: 1}}},
 			1, 91 / 3},
 	}
 	for i, tc := range tcs {
@@ -392,9 +405,9 @@ func TestAveragingInIncrementProposerPriorityWithVotingPower(t *testing.T) {
 	total := vp0 + vp1 + vp2
 	avg := (vp0 + vp1 + vp2 - total) / 3
 	vals := ValidatorSet{Validators: []*Validator{
-		{Address: []byte{0}, ProposerPriority: 0, VotingPower: vp0},
-		{Address: []byte{1}, ProposerPriority: 0, VotingPower: vp1},
-		{Address: []byte{2}, ProposerPriority: 0, VotingPower: vp2}}}
+		{Address: newAddr([]byte{0}), ProposerPriority: 0, VotingPower: vp0},
+		{Address: newAddr([]byte{1}), ProposerPriority: 0, VotingPower: vp1},
+		{Address: newAddr([]byte{2}), ProposerPriority: 0, VotingPower: vp2}}}
 	tcs := []struct {
 		vals                  *ValidatorSet
 		wantProposerPrioritys []int64
@@ -536,7 +549,7 @@ func TestSafeSubClip(t *testing.T) {
 //-------------------------------------------------------------------
 
 func TestValidatorSetVerifyCommit(t *testing.T) {
-	privKey := ed25519.GenPrivKey()
+	privKey := mock.GenPrivKey()
 	pubKey := privKey.PubKey()
 	v1 := NewValidator(pubKey, 1000)
 	vset := NewValidatorSet([]*Validator{v1})
@@ -710,7 +723,7 @@ func verifyValidatorSet(t *testing.T, valSet *ValidatorSet) {
 func toTestValList(valList []*Validator) []testVal {
 	testList := make([]testVal, len(valList))
 	for i, val := range valList {
-		testList[i].name = string(val.Address)
+		testList[i].name = string([]byte(val.PubKey.(mock.PubKeyMock))) // mock
 		testList[i].power = val.VotingPower
 	}
 	return testList
@@ -1214,7 +1227,7 @@ func (valz validatorsByPriority) Less(i, j int) bool {
 	if valz[i].ProposerPriority > valz[j].ProposerPriority {
 		return false
 	}
-	return bytes.Compare(valz[i].Address, valz[j].Address) < 0
+	return valz[i].Address.Compare(valz[j].Address) < 0
 }
 
 func (valz validatorsByPriority) Swap(i, j int) {
@@ -1232,7 +1245,11 @@ func (tvals testValsByAddress) Len() int {
 }
 
 func (tvals testValsByAddress) Less(i, j int) bool {
-	return bytes.Compare([]byte(tvals[i].name), []byte(tvals[j].name)) == -1
+	addr1 := crypto.Address{}
+	copy(addr1[20-len(tvals[i].name):], []byte(tvals[i].name))
+	addr2 := crypto.Address{}
+	copy(addr2[20-len(tvals[j].name):], []byte(tvals[j].name))
+	return bytes.Compare(addr1[:], addr2[:]) < 0
 }
 
 func (tvals testValsByAddress) Swap(i, j int) {

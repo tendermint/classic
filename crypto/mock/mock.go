@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/tendermint/classic/crypto"
+	cmn "github.com/tendermint/classic/libs/common"
 	amino "github.com/tendermint/go-amino-x"
 )
 
@@ -37,6 +38,11 @@ func (privKey PrivKeyMock) Equals(other crypto.PrivKey) bool {
 	} else {
 		return false
 	}
+}
+
+func GenPrivKey() PrivKeyMock {
+	randstr := cmn.RandStr(12)
+	return PrivKeyMock([]byte(randstr))
 }
 
 //-------------------------------------

@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/classic/crypto/tmhash"
+	"github.com/tendermint/go-amino-x"
 )
 
 var testProposal *Proposal
@@ -30,7 +31,7 @@ func TestProposalSignable(t *testing.T) {
 	chainID := "test_chain_id"
 	signBytes := testProposal.SignBytes(chainID)
 
-	expected, err := cdc.MarshalSized(CanonicalizeProposal(chainID, testProposal))
+	expected, err := amino.MarshalSized(CanonicalizeProposal(chainID, testProposal))
 	require.NoError(t, err)
 	require.Equal(t, expected, signBytes, "Got unexpected sign bytes for Proposal")
 }
@@ -62,9 +63,9 @@ func TestProposalVerifySignature(t *testing.T) {
 
 	// serialize, deserialize and verify again....
 	newProp := new(Proposal)
-	bs, err := cdc.MarshalSized(prop)
+	bs, err := amino.MarshalSized(prop)
 	require.NoError(t, err)
-	err = cdc.UnmarshalSized(bs, &newProp)
+	err = amino.UnmarshalSized(bs, &newProp)
 	require.NoError(t, err)
 
 	// verify the transmitted proposal
