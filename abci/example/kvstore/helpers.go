@@ -11,7 +11,7 @@ import (
 func RandVal(i int) abci.ValidatorUpdate {
 	pubkey := ed25519.GenPrivKey().PubKey()
 	power := cmn.RandUint16() + 1
-	v := abci.ValidatorUpdate{pubkey, int64(power)}
+	v := abci.ValidatorUpdate{pubkey.Address(), pubkey, int64(power)}
 	return v
 }
 

@@ -126,8 +126,9 @@ func (app *PersistentKVStoreApplication) BeginBlock(req abci.RequestBeginBlock) 
 					continue
 				}
 				app.updateValidator(abci.ValidatorUpdate{
-					PubKey: val.PubKey,
-					Power:  val.Power - 1,
+					Address: val.PubKey.Address(),
+					PubKey:  val.PubKey,
+					Power:   val.Power - 1,
 				})
 			}
 		}
@@ -205,7 +206,7 @@ func (app *PersistentKVStoreApplication) execValidatorTx(tx []byte) (res abci.Re
 	}
 
 	// update
-	return app.updateValidator(abci.ValidatorUpdate{pubkey, power})
+	return app.updateValidator(abci.ValidatorUpdate{pubkey.Address(), pubkey, power})
 }
 
 // add, update, or remove a validator

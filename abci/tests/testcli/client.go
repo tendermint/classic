@@ -33,7 +33,7 @@ func InitChain(client abcicli.Client) error {
 	for i := 0; i < total; i++ {
 		pubkey := ed25519.GenPrivKey().PubKey()
 		power := int64(cmn.RandInt())
-		vals[i] = abci.ValidatorUpdate{pubkey, power}
+		vals[i] = abci.ValidatorUpdate{pubkey.Address(), pubkey, power}
 	}
 	_, err := client.InitChainSync(abci.RequestInitChain{
 		Validators: vals,
