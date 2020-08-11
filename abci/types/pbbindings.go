@@ -13,7 +13,7 @@ import (
 func (goo RequestBase) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.RequestBase
 	{
-		if isRequestBaseEmptyRepr(goo) {
+		if IsRequestBaseReprEmpty(goo) {
 			var pbov *abcipb.RequestBase
 			msg = pbov
 			return
@@ -39,7 +39,7 @@ func (goo *RequestBase) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err 
 func (_ RequestBase) GetTypeURL() (typeURL string) {
 	return "/abci.RequestBase"
 }
-func isRequestBaseEmptyRepr(goor RequestBase) (empty bool) {
+func IsRequestBaseReprEmpty(goor RequestBase) (empty bool) {
 	{
 		empty = true
 	}
@@ -48,7 +48,7 @@ func isRequestBaseEmptyRepr(goor RequestBase) (empty bool) {
 func (goo RequestEcho) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.RequestEcho
 	{
-		if isRequestEchoEmptyRepr(goo) {
+		if IsRequestEchoReprEmpty(goo) {
 			var pbov *abcipb.RequestEcho
 			msg = pbov
 			return
@@ -96,11 +96,11 @@ func (goo *RequestEcho) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err 
 func (_ RequestEcho) GetTypeURL() (typeURL string) {
 	return "/abci.RequestEcho"
 }
-func isRequestEchoEmptyRepr(goor RequestEcho) (empty bool) {
+func IsRequestEchoReprEmpty(goor RequestEcho) (empty bool) {
 	{
 		empty = true
 		{
-			e := isRequestBaseEmptyRepr(goor.RequestBase)
+			e := IsRequestBaseReprEmpty(goor.RequestBase)
 			if e == false {
 				return false
 			}
@@ -116,7 +116,7 @@ func isRequestEchoEmptyRepr(goor RequestEcho) (empty bool) {
 func (goo RequestFlush) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.RequestFlush
 	{
-		if isRequestFlushEmptyRepr(goo) {
+		if IsRequestFlushReprEmpty(goo) {
 			var pbov *abcipb.RequestFlush
 			msg = pbov
 			return
@@ -158,11 +158,11 @@ func (goo *RequestFlush) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err
 func (_ RequestFlush) GetTypeURL() (typeURL string) {
 	return "/abci.RequestFlush"
 }
-func isRequestFlushEmptyRepr(goor RequestFlush) (empty bool) {
+func IsRequestFlushReprEmpty(goor RequestFlush) (empty bool) {
 	{
 		empty = true
 		{
-			e := isRequestBaseEmptyRepr(goor.RequestBase)
+			e := IsRequestBaseReprEmpty(goor.RequestBase)
 			if e == false {
 				return false
 			}
@@ -173,7 +173,7 @@ func isRequestFlushEmptyRepr(goor RequestFlush) (empty bool) {
 func (goo RequestInfo) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.RequestInfo
 	{
-		if isRequestInfoEmptyRepr(goo) {
+		if IsRequestInfoReprEmpty(goo) {
 			var pbov *abcipb.RequestInfo
 			msg = pbov
 			return
@@ -233,11 +233,11 @@ func (goo *RequestInfo) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err 
 func (_ RequestInfo) GetTypeURL() (typeURL string) {
 	return "/abci.RequestInfo"
 }
-func isRequestInfoEmptyRepr(goor RequestInfo) (empty bool) {
+func IsRequestInfoReprEmpty(goor RequestInfo) (empty bool) {
 	{
 		empty = true
 		{
-			e := isRequestBaseEmptyRepr(goor.RequestBase)
+			e := IsRequestBaseReprEmpty(goor.RequestBase)
 			if e == false {
 				return false
 			}
@@ -263,7 +263,7 @@ func isRequestInfoEmptyRepr(goor RequestInfo) (empty bool) {
 func (goo RequestSetOption) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.RequestSetOption
 	{
-		if isRequestSetOptionEmptyRepr(goo) {
+		if IsRequestSetOptionReprEmpty(goo) {
 			var pbov *abcipb.RequestSetOption
 			msg = pbov
 			return
@@ -317,11 +317,11 @@ func (goo *RequestSetOption) FromPBMessage(cdc *amino.Codec, msg proto.Message) 
 func (_ RequestSetOption) GetTypeURL() (typeURL string) {
 	return "/abci.RequestSetOption"
 }
-func isRequestSetOptionEmptyRepr(goor RequestSetOption) (empty bool) {
+func IsRequestSetOptionReprEmpty(goor RequestSetOption) (empty bool) {
 	{
 		empty = true
 		{
-			e := isRequestBaseEmptyRepr(goor.RequestBase)
+			e := IsRequestBaseReprEmpty(goor.RequestBase)
 			if e == false {
 				return false
 			}
@@ -342,7 +342,7 @@ func isRequestSetOptionEmptyRepr(goor RequestSetOption) (empty bool) {
 func (goo RequestInitChain) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.RequestInitChain
 	{
-		if isRequestInitChainEmptyRepr(goo) {
+		if IsRequestInitChainReprEmpty(goo) {
 			var pbov *abcipb.RequestInitChain
 			msg = pbov
 			return
@@ -506,11 +506,11 @@ func (goo *RequestInitChain) FromPBMessage(cdc *amino.Codec, msg proto.Message) 
 func (_ RequestInitChain) GetTypeURL() (typeURL string) {
 	return "/abci.RequestInitChain"
 }
-func isRequestInitChainEmptyRepr(goor RequestInitChain) (empty bool) {
+func IsRequestInitChainReprEmpty(goor RequestInitChain) (empty bool) {
 	{
 		empty = true
 		{
-			e := isRequestBaseEmptyRepr(goor.RequestBase)
+			e := IsRequestBaseReprEmpty(goor.RequestBase)
 			if e == false {
 				return false
 			}
@@ -546,7 +546,7 @@ func isRequestInitChainEmptyRepr(goor RequestInitChain) (empty bool) {
 func (goo RequestQuery) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.RequestQuery
 	{
-		if isRequestQueryEmptyRepr(goo) {
+		if IsRequestQueryReprEmpty(goo) {
 			var pbov *abcipb.RequestQuery
 			msg = pbov
 			return
@@ -644,11 +644,11 @@ func (goo *RequestQuery) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err
 func (_ RequestQuery) GetTypeURL() (typeURL string) {
 	return "/abci.RequestQuery"
 }
-func isRequestQueryEmptyRepr(goor RequestQuery) (empty bool) {
+func IsRequestQueryReprEmpty(goor RequestQuery) (empty bool) {
 	{
 		empty = true
 		{
-			e := isRequestBaseEmptyRepr(goor.RequestBase)
+			e := IsRequestBaseReprEmpty(goor.RequestBase)
 			if e == false {
 				return false
 			}
@@ -679,7 +679,7 @@ func isRequestQueryEmptyRepr(goor RequestQuery) (empty bool) {
 func (goo RequestBeginBlock) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.RequestBeginBlock
 	{
-		if isRequestBeginBlockEmptyRepr(goo) {
+		if IsRequestBeginBlockReprEmpty(goo) {
 			var pbov *abcipb.RequestBeginBlock
 			msg = pbov
 			return
@@ -849,11 +849,11 @@ func (goo *RequestBeginBlock) FromPBMessage(cdc *amino.Codec, msg proto.Message)
 func (_ RequestBeginBlock) GetTypeURL() (typeURL string) {
 	return "/abci.RequestBeginBlock"
 }
-func isRequestBeginBlockEmptyRepr(goor RequestBeginBlock) (empty bool) {
+func IsRequestBeginBlockReprEmpty(goor RequestBeginBlock) (empty bool) {
 	{
 		empty = true
 		{
-			e := isRequestBaseEmptyRepr(goor.RequestBase)
+			e := IsRequestBaseReprEmpty(goor.RequestBase)
 			if e == false {
 				return false
 			}
@@ -884,7 +884,7 @@ func isRequestBeginBlockEmptyRepr(goor RequestBeginBlock) (empty bool) {
 func (goo RequestCheckTx) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.RequestCheckTx
 	{
-		if isRequestCheckTxEmptyRepr(goo) {
+		if IsRequestCheckTxReprEmpty(goo) {
 			var pbov *abcipb.RequestCheckTx
 			msg = pbov
 			return
@@ -970,11 +970,11 @@ func (goo *RequestCheckTx) FromPBMessage(cdc *amino.Codec, msg proto.Message) (e
 func (_ RequestCheckTx) GetTypeURL() (typeURL string) {
 	return "/abci.RequestCheckTx"
 }
-func isRequestCheckTxEmptyRepr(goor RequestCheckTx) (empty bool) {
+func IsRequestCheckTxReprEmpty(goor RequestCheckTx) (empty bool) {
 	{
 		empty = true
 		{
-			e := isRequestBaseEmptyRepr(goor.RequestBase)
+			e := IsRequestBaseReprEmpty(goor.RequestBase)
 			if e == false {
 				return false
 			}
@@ -995,7 +995,7 @@ func isRequestCheckTxEmptyRepr(goor RequestCheckTx) (empty bool) {
 func (goo RequestDeliverTx) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.RequestDeliverTx
 	{
-		if isRequestDeliverTxEmptyRepr(goo) {
+		if IsRequestDeliverTxReprEmpty(goo) {
 			var pbov *abcipb.RequestDeliverTx
 			msg = pbov
 			return
@@ -1075,11 +1075,11 @@ func (goo *RequestDeliverTx) FromPBMessage(cdc *amino.Codec, msg proto.Message) 
 func (_ RequestDeliverTx) GetTypeURL() (typeURL string) {
 	return "/abci.RequestDeliverTx"
 }
-func isRequestDeliverTxEmptyRepr(goor RequestDeliverTx) (empty bool) {
+func IsRequestDeliverTxReprEmpty(goor RequestDeliverTx) (empty bool) {
 	{
 		empty = true
 		{
-			e := isRequestBaseEmptyRepr(goor.RequestBase)
+			e := IsRequestBaseReprEmpty(goor.RequestBase)
 			if e == false {
 				return false
 			}
@@ -1095,7 +1095,7 @@ func isRequestDeliverTxEmptyRepr(goor RequestDeliverTx) (empty bool) {
 func (goo RequestEndBlock) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.RequestEndBlock
 	{
-		if isRequestEndBlockEmptyRepr(goo) {
+		if IsRequestEndBlockReprEmpty(goo) {
 			var pbov *abcipb.RequestEndBlock
 			msg = pbov
 			return
@@ -1143,11 +1143,11 @@ func (goo *RequestEndBlock) FromPBMessage(cdc *amino.Codec, msg proto.Message) (
 func (_ RequestEndBlock) GetTypeURL() (typeURL string) {
 	return "/abci.RequestEndBlock"
 }
-func isRequestEndBlockEmptyRepr(goor RequestEndBlock) (empty bool) {
+func IsRequestEndBlockReprEmpty(goor RequestEndBlock) (empty bool) {
 	{
 		empty = true
 		{
-			e := isRequestBaseEmptyRepr(goor.RequestBase)
+			e := IsRequestBaseReprEmpty(goor.RequestBase)
 			if e == false {
 				return false
 			}
@@ -1163,7 +1163,7 @@ func isRequestEndBlockEmptyRepr(goor RequestEndBlock) (empty bool) {
 func (goo RequestCommit) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.RequestCommit
 	{
-		if isRequestCommitEmptyRepr(goo) {
+		if IsRequestCommitReprEmpty(goo) {
 			var pbov *abcipb.RequestCommit
 			msg = pbov
 			return
@@ -1205,11 +1205,11 @@ func (goo *RequestCommit) FromPBMessage(cdc *amino.Codec, msg proto.Message) (er
 func (_ RequestCommit) GetTypeURL() (typeURL string) {
 	return "/abci.RequestCommit"
 }
-func isRequestCommitEmptyRepr(goor RequestCommit) (empty bool) {
+func IsRequestCommitReprEmpty(goor RequestCommit) (empty bool) {
 	{
 		empty = true
 		{
-			e := isRequestBaseEmptyRepr(goor.RequestBase)
+			e := IsRequestBaseReprEmpty(goor.RequestBase)
 			if e == false {
 				return false
 			}
@@ -1220,7 +1220,7 @@ func isRequestCommitEmptyRepr(goor RequestCommit) (empty bool) {
 func (goo ResponseBase) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.ResponseBase
 	{
-		if isResponseBaseEmptyRepr(goo) {
+		if IsResponseBaseReprEmpty(goo) {
 			var pbov *abcipb.ResponseBase
 			msg = pbov
 			return
@@ -1368,7 +1368,7 @@ func (goo *ResponseBase) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err
 func (_ ResponseBase) GetTypeURL() (typeURL string) {
 	return "/abci.ResponseBase"
 }
-func isResponseBaseEmptyRepr(goor ResponseBase) (empty bool) {
+func IsResponseBaseReprEmpty(goor ResponseBase) (empty bool) {
 	{
 		empty = true
 		{
@@ -1402,7 +1402,7 @@ func isResponseBaseEmptyRepr(goor ResponseBase) (empty bool) {
 func (goo ResponseException) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.ResponseException
 	{
-		if isResponseExceptionEmptyRepr(goo) {
+		if IsResponseExceptionReprEmpty(goo) {
 			var pbov *abcipb.ResponseException
 			msg = pbov
 			return
@@ -1444,11 +1444,11 @@ func (goo *ResponseException) FromPBMessage(cdc *amino.Codec, msg proto.Message)
 func (_ ResponseException) GetTypeURL() (typeURL string) {
 	return "/abci.ResponseException"
 }
-func isResponseExceptionEmptyRepr(goor ResponseException) (empty bool) {
+func IsResponseExceptionReprEmpty(goor ResponseException) (empty bool) {
 	{
 		empty = true
 		{
-			e := isResponseBaseEmptyRepr(goor.ResponseBase)
+			e := IsResponseBaseReprEmpty(goor.ResponseBase)
 			if e == false {
 				return false
 			}
@@ -1459,7 +1459,7 @@ func isResponseExceptionEmptyRepr(goor ResponseException) (empty bool) {
 func (goo ResponseEcho) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.ResponseEcho
 	{
-		if isResponseEchoEmptyRepr(goo) {
+		if IsResponseEchoReprEmpty(goo) {
 			var pbov *abcipb.ResponseEcho
 			msg = pbov
 			return
@@ -1507,11 +1507,11 @@ func (goo *ResponseEcho) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err
 func (_ ResponseEcho) GetTypeURL() (typeURL string) {
 	return "/abci.ResponseEcho"
 }
-func isResponseEchoEmptyRepr(goor ResponseEcho) (empty bool) {
+func IsResponseEchoReprEmpty(goor ResponseEcho) (empty bool) {
 	{
 		empty = true
 		{
-			e := isResponseBaseEmptyRepr(goor.ResponseBase)
+			e := IsResponseBaseReprEmpty(goor.ResponseBase)
 			if e == false {
 				return false
 			}
@@ -1527,7 +1527,7 @@ func isResponseEchoEmptyRepr(goor ResponseEcho) (empty bool) {
 func (goo ResponseFlush) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.ResponseFlush
 	{
-		if isResponseFlushEmptyRepr(goo) {
+		if IsResponseFlushReprEmpty(goo) {
 			var pbov *abcipb.ResponseFlush
 			msg = pbov
 			return
@@ -1569,11 +1569,11 @@ func (goo *ResponseFlush) FromPBMessage(cdc *amino.Codec, msg proto.Message) (er
 func (_ ResponseFlush) GetTypeURL() (typeURL string) {
 	return "/abci.ResponseFlush"
 }
-func isResponseFlushEmptyRepr(goor ResponseFlush) (empty bool) {
+func IsResponseFlushReprEmpty(goor ResponseFlush) (empty bool) {
 	{
 		empty = true
 		{
-			e := isResponseBaseEmptyRepr(goor.ResponseBase)
+			e := IsResponseBaseReprEmpty(goor.ResponseBase)
 			if e == false {
 				return false
 			}
@@ -1584,7 +1584,7 @@ func isResponseFlushEmptyRepr(goor ResponseFlush) (empty bool) {
 func (goo ResponseInfo) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.ResponseInfo
 	{
-		if isResponseInfoEmptyRepr(goo) {
+		if IsResponseInfoReprEmpty(goo) {
 			var pbov *abcipb.ResponseInfo
 			msg = pbov
 			return
@@ -1682,11 +1682,11 @@ func (goo *ResponseInfo) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err
 func (_ ResponseInfo) GetTypeURL() (typeURL string) {
 	return "/abci.ResponseInfo"
 }
-func isResponseInfoEmptyRepr(goor ResponseInfo) (empty bool) {
+func IsResponseInfoReprEmpty(goor ResponseInfo) (empty bool) {
 	{
 		empty = true
 		{
-			e := isResponseBaseEmptyRepr(goor.ResponseBase)
+			e := IsResponseBaseReprEmpty(goor.ResponseBase)
 			if e == false {
 				return false
 			}
@@ -1717,7 +1717,7 @@ func isResponseInfoEmptyRepr(goor ResponseInfo) (empty bool) {
 func (goo ResponseSetOption) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.ResponseSetOption
 	{
-		if isResponseSetOptionEmptyRepr(goo) {
+		if IsResponseSetOptionReprEmpty(goo) {
 			var pbov *abcipb.ResponseSetOption
 			msg = pbov
 			return
@@ -1759,11 +1759,11 @@ func (goo *ResponseSetOption) FromPBMessage(cdc *amino.Codec, msg proto.Message)
 func (_ ResponseSetOption) GetTypeURL() (typeURL string) {
 	return "/abci.ResponseSetOption"
 }
-func isResponseSetOptionEmptyRepr(goor ResponseSetOption) (empty bool) {
+func IsResponseSetOptionReprEmpty(goor ResponseSetOption) (empty bool) {
 	{
 		empty = true
 		{
-			e := isResponseBaseEmptyRepr(goor.ResponseBase)
+			e := IsResponseBaseReprEmpty(goor.ResponseBase)
 			if e == false {
 				return false
 			}
@@ -1774,7 +1774,7 @@ func isResponseSetOptionEmptyRepr(goor ResponseSetOption) (empty bool) {
 func (goo ResponseInitChain) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.ResponseInitChain
 	{
-		if isResponseInitChainEmptyRepr(goo) {
+		if IsResponseInitChainReprEmpty(goo) {
 			var pbov *abcipb.ResponseInitChain
 			msg = pbov
 			return
@@ -1886,11 +1886,11 @@ func (goo *ResponseInitChain) FromPBMessage(cdc *amino.Codec, msg proto.Message)
 func (_ ResponseInitChain) GetTypeURL() (typeURL string) {
 	return "/abci.ResponseInitChain"
 }
-func isResponseInitChainEmptyRepr(goor ResponseInitChain) (empty bool) {
+func IsResponseInitChainReprEmpty(goor ResponseInitChain) (empty bool) {
 	{
 		empty = true
 		{
-			e := isResponseBaseEmptyRepr(goor.ResponseBase)
+			e := IsResponseBaseReprEmpty(goor.ResponseBase)
 			if e == false {
 				return false
 			}
@@ -1911,7 +1911,7 @@ func isResponseInitChainEmptyRepr(goor ResponseInitChain) (empty bool) {
 func (goo ResponseQuery) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.ResponseQuery
 	{
-		if isResponseQueryEmptyRepr(goo) {
+		if IsResponseQueryReprEmpty(goo) {
 			var pbov *abcipb.ResponseQuery
 			msg = pbov
 			return
@@ -2057,11 +2057,11 @@ func (goo *ResponseQuery) FromPBMessage(cdc *amino.Codec, msg proto.Message) (er
 func (_ ResponseQuery) GetTypeURL() (typeURL string) {
 	return "/abci.ResponseQuery"
 }
-func isResponseQueryEmptyRepr(goor ResponseQuery) (empty bool) {
+func IsResponseQueryReprEmpty(goor ResponseQuery) (empty bool) {
 	{
 		empty = true
 		{
-			e := isResponseBaseEmptyRepr(goor.ResponseBase)
+			e := IsResponseBaseReprEmpty(goor.ResponseBase)
 			if e == false {
 				return false
 			}
@@ -2092,7 +2092,7 @@ func isResponseQueryEmptyRepr(goor ResponseQuery) (empty bool) {
 func (goo ResponseBeginBlock) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.ResponseBeginBlock
 	{
-		if isResponseBeginBlockEmptyRepr(goo) {
+		if IsResponseBeginBlockReprEmpty(goo) {
 			var pbov *abcipb.ResponseBeginBlock
 			msg = pbov
 			return
@@ -2134,11 +2134,11 @@ func (goo *ResponseBeginBlock) FromPBMessage(cdc *amino.Codec, msg proto.Message
 func (_ ResponseBeginBlock) GetTypeURL() (typeURL string) {
 	return "/abci.ResponseBeginBlock"
 }
-func isResponseBeginBlockEmptyRepr(goor ResponseBeginBlock) (empty bool) {
+func IsResponseBeginBlockReprEmpty(goor ResponseBeginBlock) (empty bool) {
 	{
 		empty = true
 		{
-			e := isResponseBaseEmptyRepr(goor.ResponseBase)
+			e := IsResponseBaseReprEmpty(goor.ResponseBase)
 			if e == false {
 				return false
 			}
@@ -2149,7 +2149,7 @@ func isResponseBeginBlockEmptyRepr(goor ResponseBeginBlock) (empty bool) {
 func (goo ResponseCheckTx) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.ResponseCheckTx
 	{
-		if isResponseCheckTxEmptyRepr(goo) {
+		if IsResponseCheckTxReprEmpty(goo) {
 			var pbov *abcipb.ResponseCheckTx
 			msg = pbov
 			return
@@ -2203,11 +2203,11 @@ func (goo *ResponseCheckTx) FromPBMessage(cdc *amino.Codec, msg proto.Message) (
 func (_ ResponseCheckTx) GetTypeURL() (typeURL string) {
 	return "/abci.ResponseCheckTx"
 }
-func isResponseCheckTxEmptyRepr(goor ResponseCheckTx) (empty bool) {
+func IsResponseCheckTxReprEmpty(goor ResponseCheckTx) (empty bool) {
 	{
 		empty = true
 		{
-			e := isResponseBaseEmptyRepr(goor.ResponseBase)
+			e := IsResponseBaseReprEmpty(goor.ResponseBase)
 			if e == false {
 				return false
 			}
@@ -2228,7 +2228,7 @@ func isResponseCheckTxEmptyRepr(goor ResponseCheckTx) (empty bool) {
 func (goo ResponseDeliverTx) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.ResponseDeliverTx
 	{
-		if isResponseDeliverTxEmptyRepr(goo) {
+		if IsResponseDeliverTxReprEmpty(goo) {
 			var pbov *abcipb.ResponseDeliverTx
 			msg = pbov
 			return
@@ -2282,11 +2282,11 @@ func (goo *ResponseDeliverTx) FromPBMessage(cdc *amino.Codec, msg proto.Message)
 func (_ ResponseDeliverTx) GetTypeURL() (typeURL string) {
 	return "/abci.ResponseDeliverTx"
 }
-func isResponseDeliverTxEmptyRepr(goor ResponseDeliverTx) (empty bool) {
+func IsResponseDeliverTxReprEmpty(goor ResponseDeliverTx) (empty bool) {
 	{
 		empty = true
 		{
-			e := isResponseBaseEmptyRepr(goor.ResponseBase)
+			e := IsResponseBaseReprEmpty(goor.ResponseBase)
 			if e == false {
 				return false
 			}
@@ -2307,7 +2307,7 @@ func isResponseDeliverTxEmptyRepr(goor ResponseDeliverTx) (empty bool) {
 func (goo ResponseEndBlock) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.ResponseEndBlock
 	{
-		if isResponseEndBlockEmptyRepr(goo) {
+		if IsResponseEndBlockReprEmpty(goo) {
 			var pbov *abcipb.ResponseEndBlock
 			msg = pbov
 			return
@@ -2471,11 +2471,11 @@ func (goo *ResponseEndBlock) FromPBMessage(cdc *amino.Codec, msg proto.Message) 
 func (_ ResponseEndBlock) GetTypeURL() (typeURL string) {
 	return "/abci.ResponseEndBlock"
 }
-func isResponseEndBlockEmptyRepr(goor ResponseEndBlock) (empty bool) {
+func IsResponseEndBlockReprEmpty(goor ResponseEndBlock) (empty bool) {
 	{
 		empty = true
 		{
-			e := isResponseBaseEmptyRepr(goor.ResponseBase)
+			e := IsResponseBaseReprEmpty(goor.ResponseBase)
 			if e == false {
 				return false
 			}
@@ -2501,7 +2501,7 @@ func isResponseEndBlockEmptyRepr(goor ResponseEndBlock) (empty bool) {
 func (goo ResponseCommit) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.ResponseCommit
 	{
-		if isResponseCommitEmptyRepr(goo) {
+		if IsResponseCommitReprEmpty(goo) {
 			var pbov *abcipb.ResponseCommit
 			msg = pbov
 			return
@@ -2543,11 +2543,11 @@ func (goo *ResponseCommit) FromPBMessage(cdc *amino.Codec, msg proto.Message) (e
 func (_ ResponseCommit) GetTypeURL() (typeURL string) {
 	return "/abci.ResponseCommit"
 }
-func isResponseCommitEmptyRepr(goor ResponseCommit) (empty bool) {
+func IsResponseCommitReprEmpty(goor ResponseCommit) (empty bool) {
 	{
 		empty = true
 		{
-			e := isResponseBaseEmptyRepr(goor.ResponseBase)
+			e := IsResponseBaseReprEmpty(goor.ResponseBase)
 			if e == false {
 				return false
 			}
@@ -2558,7 +2558,7 @@ func isResponseCommitEmptyRepr(goor ResponseCommit) (empty bool) {
 func (goo StringError) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.StringError
 	{
-		if isStringErrorEmptyRepr(goo) {
+		if IsStringErrorReprEmpty(goo) {
 			var pbov *abcipb.StringError
 			msg = pbov
 			return
@@ -2590,7 +2590,7 @@ func (goo *StringError) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err 
 func (_ StringError) GetTypeURL() (typeURL string) {
 	return "/abci.StringError"
 }
-func isStringErrorEmptyRepr(goor StringError) (empty bool) {
+func IsStringErrorReprEmpty(goor StringError) (empty bool) {
 	{
 		empty = true
 		{
@@ -2604,7 +2604,7 @@ func isStringErrorEmptyRepr(goor StringError) (empty bool) {
 func (goo ConsensusParams) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.ConsensusParams
 	{
-		if isConsensusParamsEmptyRepr(goo) {
+		if IsConsensusParamsReprEmpty(goo) {
 			var pbov *abcipb.ConsensusParams
 			msg = pbov
 			return
@@ -2696,7 +2696,7 @@ func (goo *ConsensusParams) FromPBMessage(cdc *amino.Codec, msg proto.Message) (
 func (_ ConsensusParams) GetTypeURL() (typeURL string) {
 	return "/abci.ConsensusParams"
 }
-func isConsensusParamsEmptyRepr(goor ConsensusParams) (empty bool) {
+func IsConsensusParamsReprEmpty(goor ConsensusParams) (empty bool) {
 	{
 		empty = true
 		{
@@ -2720,7 +2720,7 @@ func isConsensusParamsEmptyRepr(goor ConsensusParams) (empty bool) {
 func (goo BlockParams) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.BlockParams
 	{
-		if isBlockParamsEmptyRepr(goo) {
+		if IsBlockParamsReprEmpty(goo) {
 			var pbov *abcipb.BlockParams
 			msg = pbov
 			return
@@ -2764,7 +2764,7 @@ func (goo *BlockParams) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err 
 func (_ BlockParams) GetTypeURL() (typeURL string) {
 	return "/abci.BlockParams"
 }
-func isBlockParamsEmptyRepr(goor BlockParams) (empty bool) {
+func IsBlockParamsReprEmpty(goor BlockParams) (empty bool) {
 	{
 		empty = true
 		{
@@ -2788,7 +2788,7 @@ func isBlockParamsEmptyRepr(goor BlockParams) (empty bool) {
 func (goo EvidenceParams) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.EvidenceParams
 	{
-		if isEvidenceParamsEmptyRepr(goo) {
+		if IsEvidenceParamsReprEmpty(goo) {
 			var pbov *abcipb.EvidenceParams
 			msg = pbov
 			return
@@ -2820,7 +2820,7 @@ func (goo *EvidenceParams) FromPBMessage(cdc *amino.Codec, msg proto.Message) (e
 func (_ EvidenceParams) GetTypeURL() (typeURL string) {
 	return "/abci.EvidenceParams"
 }
-func isEvidenceParamsEmptyRepr(goor EvidenceParams) (empty bool) {
+func IsEvidenceParamsReprEmpty(goor EvidenceParams) (empty bool) {
 	{
 		empty = true
 		{
@@ -2834,7 +2834,7 @@ func isEvidenceParamsEmptyRepr(goor EvidenceParams) (empty bool) {
 func (goo ValidatorParams) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.ValidatorParams
 	{
-		if isValidatorParamsEmptyRepr(goo) {
+		if IsValidatorParamsReprEmpty(goo) {
 			var pbov *abcipb.ValidatorParams
 			msg = pbov
 			return
@@ -2898,7 +2898,7 @@ func (goo *ValidatorParams) FromPBMessage(cdc *amino.Codec, msg proto.Message) (
 func (_ ValidatorParams) GetTypeURL() (typeURL string) {
 	return "/abci.ValidatorParams"
 }
-func isValidatorParamsEmptyRepr(goor ValidatorParams) (empty bool) {
+func IsValidatorParamsReprEmpty(goor ValidatorParams) (empty bool) {
 	{
 		empty = true
 		{
@@ -2912,7 +2912,7 @@ func isValidatorParamsEmptyRepr(goor ValidatorParams) (empty bool) {
 func (goo ValidatorUpdate) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.ValidatorUpdate
 	{
-		if isValidatorUpdateEmptyRepr(goo) {
+		if IsValidatorUpdateReprEmpty(goo) {
 			var pbov *abcipb.ValidatorUpdate
 			msg = pbov
 			return
@@ -2994,7 +2994,7 @@ func (goo *ValidatorUpdate) FromPBMessage(cdc *amino.Codec, msg proto.Message) (
 func (_ ValidatorUpdate) GetTypeURL() (typeURL string) {
 	return "/abci.ValidatorUpdate"
 }
-func isValidatorUpdateEmptyRepr(goor ValidatorUpdate) (empty bool) {
+func IsValidatorUpdateReprEmpty(goor ValidatorUpdate) (empty bool) {
 	{
 		empty = true
 		{
@@ -3018,7 +3018,7 @@ func isValidatorUpdateEmptyRepr(goor ValidatorUpdate) (empty bool) {
 func (goo LastCommitInfo) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.LastCommitInfo
 	{
-		if isLastCommitInfoEmptyRepr(goo) {
+		if IsLastCommitInfoReprEmpty(goo) {
 			var pbov *abcipb.LastCommitInfo
 			msg = pbov
 			return
@@ -3104,7 +3104,7 @@ func (goo *LastCommitInfo) FromPBMessage(cdc *amino.Codec, msg proto.Message) (e
 func (_ LastCommitInfo) GetTypeURL() (typeURL string) {
 	return "/abci.LastCommitInfo"
 }
-func isLastCommitInfoEmptyRepr(goor LastCommitInfo) (empty bool) {
+func IsLastCommitInfoReprEmpty(goor LastCommitInfo) (empty bool) {
 	{
 		empty = true
 		{
@@ -3123,7 +3123,7 @@ func isLastCommitInfoEmptyRepr(goor LastCommitInfo) (empty bool) {
 func (goo VoteInfo) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.VoteInfo
 	{
-		if isVoteInfoEmptyRepr(goo) {
+		if IsVoteInfoReprEmpty(goo) {
 			var pbov *abcipb.VoteInfo
 			msg = pbov
 			return
@@ -3191,7 +3191,7 @@ func (goo *VoteInfo) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err err
 func (_ VoteInfo) GetTypeURL() (typeURL string) {
 	return "/abci.VoteInfo"
 }
-func isVoteInfoEmptyRepr(goor VoteInfo) (empty bool) {
+func IsVoteInfoReprEmpty(goor VoteInfo) (empty bool) {
 	{
 		empty = true
 		{
@@ -3215,7 +3215,7 @@ func isVoteInfoEmptyRepr(goor VoteInfo) (empty bool) {
 func (goo Validator) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.Validator
 	{
-		if isValidatorEmptyRepr(goo) {
+		if IsValidatorReprEmpty(goo) {
 			var pbov *abcipb.Validator
 			msg = pbov
 			return
@@ -3297,7 +3297,7 @@ func (goo *Validator) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err er
 func (_ Validator) GetTypeURL() (typeURL string) {
 	return "/abci.Validator"
 }
-func isValidatorEmptyRepr(goor Validator) (empty bool) {
+func IsValidatorReprEmpty(goor Validator) (empty bool) {
 	{
 		empty = true
 		{
@@ -3321,7 +3321,7 @@ func isValidatorEmptyRepr(goor Validator) (empty bool) {
 func (goo Violation) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.Violation
 	{
-		if isViolationEmptyRepr(goo) {
+		if IsViolationReprEmpty(goo) {
 			var pbov *abcipb.Violation
 			msg = pbov
 			return
@@ -3435,7 +3435,7 @@ func (goo *Violation) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err er
 func (_ Violation) GetTypeURL() (typeURL string) {
 	return "/abci.Violation"
 }
-func isViolationEmptyRepr(goor Violation) (empty bool) {
+func IsViolationReprEmpty(goor Violation) (empty bool) {
 	{
 		empty = true
 		{
@@ -3469,7 +3469,7 @@ func isViolationEmptyRepr(goor Violation) (empty bool) {
 func (goo SimpleEvent) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.SimpleEvent
 	{
-		if isSimpleEventEmptyRepr(goo) {
+		if IsSimpleEventReprEmpty(goo) {
 			var pbov *abcipb.SimpleEvent
 			msg = pbov
 			return
@@ -3494,7 +3494,7 @@ func (goo *SimpleEvent) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err 
 func (_ SimpleEvent) GetTypeURL() (typeURL string) {
 	return "/abci.SimpleEvent"
 }
-func isSimpleEventEmptyRepr(goor SimpleEvent) (empty bool) {
+func IsSimpleEventReprEmpty(goor SimpleEvent) (empty bool) {
 	{
 		empty = true
 		if goor != "" {
@@ -3506,7 +3506,7 @@ func isSimpleEventEmptyRepr(goor SimpleEvent) (empty bool) {
 func (goo MockHeader) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.MockHeader
 	{
-		if isMockHeaderEmptyRepr(goo) {
+		if IsMockHeaderReprEmpty(goo) {
 			var pbov *abcipb.MockHeader
 			msg = pbov
 			return
@@ -3570,7 +3570,7 @@ func (goo *MockHeader) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err e
 func (_ MockHeader) GetTypeURL() (typeURL string) {
 	return "/abci.MockHeader"
 }
-func isMockHeaderEmptyRepr(goor MockHeader) (empty bool) {
+func IsMockHeaderReprEmpty(goor MockHeader) (empty bool) {
 	{
 		empty = true
 		{

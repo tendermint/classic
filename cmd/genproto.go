@@ -9,6 +9,7 @@ import (
 	"github.com/tendermint/classic/crypto/merkle"
 	"github.com/tendermint/classic/crypto/multisig"
 	"github.com/tendermint/classic/crypto/secp256k1"
+	"github.com/tendermint/classic/types"
 )
 
 func main() {
@@ -18,6 +19,7 @@ func main() {
 		multisig.Package,
 		merkle.Package,
 		abci.Package,
+		types.Package,
 	}
 	for _, pkg := range pkgs {
 		genproto.WriteProto3Schema(pkg)

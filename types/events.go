@@ -39,17 +39,12 @@ type EventDataRoundState struct {
 	Step   string `json:"step"`
 }
 
-type ValidatorInfo struct {
-	Address Address `json:"address"`
-	Index   int     `json:"index"`
-}
-
 type EventDataNewRound struct {
 	Height int64  `json:"height"`
 	Round  int    `json:"round"`
 	Step   string `json:"step"`
 
-	Proposer ValidatorInfo `json:"proposer"`
+	Proposer abci.Validator `json:"proposer"`
 }
 
 type EventDataCompleteProposal struct {

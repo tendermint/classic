@@ -9,6 +9,7 @@ message ProofOp {
 	bytes Key = 2;
 	bytes Data = 3;
 }
+
 message Proof {
 	repeated ProofOp Ops = 1;
 }

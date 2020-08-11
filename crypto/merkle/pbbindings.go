@@ -9,7 +9,7 @@ import (
 func (goo ProofOp) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *merklepb.ProofOp
 	{
-		if isProofOpEmptyRepr(goo) {
+		if IsProofOpReprEmpty(goo) {
 			var pbov *merklepb.ProofOp
 			msg = pbov
 			return
@@ -117,7 +117,7 @@ func (goo *ProofOp) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err erro
 func (_ ProofOp) GetTypeURL() (typeURL string) {
 	return "/tm.ProofOp"
 }
-func isProofOpEmptyRepr(goor ProofOp) (empty bool) {
+func IsProofOpReprEmpty(goor ProofOp) (empty bool) {
 	{
 		empty = true
 		{
@@ -141,7 +141,7 @@ func isProofOpEmptyRepr(goor ProofOp) (empty bool) {
 func (goo Proof) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *merklepb.Proof
 	{
-		if isProofEmptyRepr(goo) {
+		if IsProofReprEmpty(goo) {
 			var pbov *merklepb.Proof
 			msg = pbov
 			return
@@ -215,7 +215,7 @@ func (goo *Proof) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err error)
 func (_ Proof) GetTypeURL() (typeURL string) {
 	return "/tm.Proof"
 }
-func isProofEmptyRepr(goor Proof) (empty bool) {
+func IsProofReprEmpty(goor Proof) (empty bool) {
 	{
 		empty = true
 		{

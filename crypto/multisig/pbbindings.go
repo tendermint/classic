@@ -11,7 +11,7 @@ import (
 func (goo PubKeyMultisigThreshold) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *multisigpb.PubKeyMultisig
 	{
-		if isPubKeyMultisigEmptyRepr(goo) {
+		if IsPubKeyMultisigReprEmpty(goo) {
 			var pbov *multisigpb.PubKeyMultisig
 			msg = pbov
 			return
@@ -95,7 +95,7 @@ func (goo *PubKeyMultisigThreshold) FromPBMessage(cdc *amino.Codec, msg proto.Me
 func (_ PubKeyMultisigThreshold) GetTypeURL() (typeURL string) {
 	return "/tm.PubKeyMultisig"
 }
-func isPubKeyMultisigEmptyRepr(goor PubKeyMultisigThreshold) (empty bool) {
+func IsPubKeyMultisigReprEmpty(goor PubKeyMultisigThreshold) (empty bool) {
 	{
 		empty = true
 		{

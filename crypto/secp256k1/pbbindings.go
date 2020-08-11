@@ -9,7 +9,7 @@ import (
 func (goo PubKeySecp256k1) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *secp256k1pb.PubKeySecp256K1
 	{
-		if isPubKeySecp256k1EmptyRepr(goo) {
+		if IsPubKeySecp256k1ReprEmpty(goo) {
 			var pbov *secp256k1pb.PubKeySecp256K1
 			msg = pbov
 			return
@@ -58,7 +58,7 @@ func (goo *PubKeySecp256k1) FromPBMessage(cdc *amino.Codec, msg proto.Message) (
 func (_ PubKeySecp256k1) GetTypeURL() (typeURL string) {
 	return "/tm.PubKeySecp256k1"
 }
-func isPubKeySecp256k1EmptyRepr(goor PubKeySecp256k1) (empty bool) {
+func IsPubKeySecp256k1ReprEmpty(goor PubKeySecp256k1) (empty bool) {
 	{
 		empty = true
 		if len(goor) != 0 {
@@ -70,7 +70,7 @@ func isPubKeySecp256k1EmptyRepr(goor PubKeySecp256k1) (empty bool) {
 func (goo PrivKeySecp256k1) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *secp256k1pb.PrivKeySecp256K1
 	{
-		if isPrivKeySecp256k1EmptyRepr(goo) {
+		if IsPrivKeySecp256k1ReprEmpty(goo) {
 			var pbov *secp256k1pb.PrivKeySecp256K1
 			msg = pbov
 			return
@@ -119,7 +119,7 @@ func (goo *PrivKeySecp256k1) FromPBMessage(cdc *amino.Codec, msg proto.Message) 
 func (_ PrivKeySecp256k1) GetTypeURL() (typeURL string) {
 	return "/tm.PrivKeySecp256k1"
 }
-func isPrivKeySecp256k1EmptyRepr(goor PrivKeySecp256k1) (empty bool) {
+func IsPrivKeySecp256k1ReprEmpty(goor PrivKeySecp256k1) (empty bool) {
 	{
 		empty = true
 		if len(goor) != 0 {

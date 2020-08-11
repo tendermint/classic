@@ -11,24 +11,29 @@ import "github.com/tendermint/classic/crypto/merkle/types.proto";
 // messages
 message RequestBase {
 }
+
 message RequestEcho {
 	RequestBase RequestBase = 1;
 	string Message = 2;
 }
+
 message RequestFlush {
 	RequestBase RequestBase = 1;
 }
+
 message RequestInfo {
 	RequestBase RequestBase = 1;
 	string Version = 2;
 	uint64 BlockVersion = 3;
 	uint64 P2PVersion = 4;
 }
+
 message RequestSetOption {
 	RequestBase RequestBase = 1;
 	string Key = 2;
 	string Value = 3;
 }
+
 message RequestInitChain {
 	RequestBase RequestBase = 1;
 	google.protobuf.Timestamp Time = 2;
@@ -37,6 +42,7 @@ message RequestInitChain {
 	repeated ValidatorUpdate Validators = 5;
 	bytes AppStateBytes = 6;
 }
+
 message RequestQuery {
 	RequestBase RequestBase = 1;
 	bytes Data = 2;
@@ -44,6 +50,7 @@ message RequestQuery {
 	sint64 Height = 4;
 	bool Prove = 5;
 }
+
 message RequestBeginBlock {
 	RequestBase RequestBase = 1;
 	bytes Hash = 2;
@@ -51,22 +58,27 @@ message RequestBeginBlock {
 	LastCommitInfo LastCommitInfo = 4;
 	repeated Violation Violations = 5;
 }
+
 message RequestCheckTx {
 	RequestBase RequestBase = 1;
 	bytes Tx = 2;
 	sint64 Type = 3;
 }
+
 message RequestDeliverTx {
 	RequestBase RequestBase = 1;
 	bytes Tx = 2;
 }
+
 message RequestEndBlock {
 	RequestBase RequestBase = 1;
 	sint64 Height = 2;
 }
+
 message RequestCommit {
 	RequestBase RequestBase = 1;
 }
+
 message ResponseBase {
 	google.protobuf.Any Error = 1;
 	bytes Data = 2;
@@ -74,16 +86,20 @@ message ResponseBase {
 	string Log = 4;
 	string Info = 5;
 }
+
 message ResponseException {
 	ResponseBase ResponseBase = 1;
 }
+
 message ResponseEcho {
 	ResponseBase ResponseBase = 1;
 	string Message = 2;
 }
+
 message ResponseFlush {
 	ResponseBase ResponseBase = 1;
 }
+
 message ResponseInfo {
 	ResponseBase ResponseBase = 1;
 	string ABCIVersion = 2;
@@ -91,14 +107,17 @@ message ResponseInfo {
 	sint64 LastBlockHeight = 4;
 	bytes LastBlockAppHash = 5;
 }
+
 message ResponseSetOption {
 	ResponseBase ResponseBase = 1;
 }
+
 message ResponseInitChain {
 	ResponseBase ResponseBase = 1;
 	ConsensusParams ConsensusParams = 2;
 	repeated ValidatorUpdate Validators = 3;
 }
+
 message ResponseQuery {
 	ResponseBase ResponseBase = 1;
 	bytes Key = 2;
@@ -106,66 +125,81 @@ message ResponseQuery {
 	tm.Proof Proof = 4;
 	sint64 Height = 5;
 }
+
 message ResponseBeginBlock {
 	ResponseBase ResponseBase = 1;
 }
+
 message ResponseCheckTx {
 	ResponseBase ResponseBase = 1;
 	sint64 GasWanted = 2;
 	sint64 GasUsed = 3;
 }
+
 message ResponseDeliverTx {
 	ResponseBase ResponseBase = 1;
 	sint64 GasWanted = 2;
 	sint64 GasUsed = 3;
 }
+
 message ResponseEndBlock {
 	ResponseBase ResponseBase = 1;
 	repeated ValidatorUpdate ValidatorUpdates = 2;
 	ConsensusParams ConsensusParams = 3;
 	repeated google.protobuf.Any Events = 4;
 }
+
 message ResponseCommit {
 	ResponseBase ResponseBase = 1;
 }
+
 message StringError {
 	string Message = 1;
 }
+
 message ConsensusParams {
 	BlockParams Block = 1;
 	EvidenceParams Evidence = 2;
 	ValidatorParams Validator = 3;
 }
+
 message BlockParams {
 	sint64 MaxTxBytes = 1;
 	sint64 MaxGas = 2;
 	sint64 TimeIotaMS = 3;
 }
+
 message EvidenceParams {
 	sint64 MaxAge = 1;
 }
+
 message ValidatorParams {
 	repeated string PubKeyTypeURLs = 1;
 }
+
 message ValidatorUpdate {
 	bytes Address = 1;
 	google.protobuf.Any PubKey = 2;
 	sint64 Power = 3;
 }
+
 message LastCommitInfo {
 	sint32 Round = 1;
 	repeated VoteInfo Votes = 2;
 }
+
 message VoteInfo {
 	bytes Address = 1;
 	sint64 Power = 2;
 	bool SignedLastBlock = 3;
 }
+
 message Validator {
 	bytes Address = 1;
 	google.protobuf.Any PubKey = 2;
 	sint64 Power = 3;
 }
+
 message Violation {
 	google.protobuf.Any Evidence = 1;
 	repeated Validator Validators = 2;
@@ -173,9 +207,11 @@ message Violation {
 	google.protobuf.Timestamp Time = 4;
 	sint64 TotalVotingPower = 5;
 }
+
 message SimpleEvent {
 	string Value = 1;
 }
+
 message MockHeader {
 	string Version = 1;
 	string ChainID = 2;
