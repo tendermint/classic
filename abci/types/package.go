@@ -53,6 +53,9 @@ var Package = amino.RegisterPackage(amino.NewPackage(
 		ResponseEndBlock{},
 		ResponseCommit{},
 
+		// error types
+		StringError{},
+
 		// misc types
 		ConsensusParams{},
 		BlockParams{},

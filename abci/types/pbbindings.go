@@ -2555,6 +2555,52 @@ func isResponseCommitEmptyRepr(goor ResponseCommit) (empty bool) {
 	}
 	return
 }
+func (goo StringError) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
+	var pbo *abcipb.StringError
+	{
+		if isStringErrorEmptyRepr(goo) {
+			var pbov *abcipb.StringError
+			msg = pbov
+			return
+		}
+		pbo = new(abcipb.StringError)
+		{
+			pbo.Message = string(goo.Message)
+		}
+	}
+	msg = pbo
+	return
+}
+func (goo StringError) EmptyPBMessage(cdc *amino.Codec) (msg proto.Message) {
+	pbo := new(abcipb.StringError)
+	msg = pbo
+	return
+}
+func (goo *StringError) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err error) {
+	var pbo *abcipb.StringError = msg.(*abcipb.StringError)
+	{
+		if pbo != nil {
+			{
+				(*goo).Message = string(pbo.Message)
+			}
+		}
+	}
+	return
+}
+func (_ StringError) GetTypeURL() (typeURL string) {
+	return "/abci.StringError"
+}
+func isStringErrorEmptyRepr(goor StringError) (empty bool) {
+	{
+		empty = true
+		{
+			if goor.Message != "" {
+				return false
+			}
+		}
+	}
+	return
+}
 func (goo ConsensusParams) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
 	var pbo *abcipb.ConsensusParams
 	{
@@ -2873,6 +2919,23 @@ func (goo ValidatorUpdate) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err
 		}
 		pbo = new(abcipb.ValidatorUpdate)
 		{
+			goorl := len(goo.Address)
+			if goorl == 0 {
+				pbo.Address = nil
+			} else {
+				var pbos = make([]uint8, goorl)
+				for i := 0; i < goorl; i += 1 {
+					{
+						goore := goo.Address[i]
+						{
+							pbos[i] = byte(goore)
+						}
+					}
+				}
+				pbo.Address = pbos
+			}
+		}
+		{
 			if goo.PubKey != nil {
 				typeUrl := cdc.GetTypeURL(goo.PubKey)
 				bz := []byte(nil)
@@ -2900,6 +2963,19 @@ func (goo *ValidatorUpdate) FromPBMessage(cdc *amino.Codec, msg proto.Message) (
 	{
 		if pbo != nil {
 			{
+				var goors = [20]uint8{}
+				for i := 0; i < 20; i += 1 {
+					{
+						pboe := pbo.Address[i]
+						{
+							pboev := pboe
+							goors[i] = uint8(uint8(pboev))
+						}
+					}
+				}
+				(*goo).Address = goors
+			}
+			{
 				typeUrl := pbo.PubKey.TypeUrl
 				bz := pbo.PubKey.Value
 				goorp := &(*goo).PubKey
@@ -2921,6 +2997,11 @@ func (_ ValidatorUpdate) GetTypeURL() (typeURL string) {
 func isValidatorUpdateEmptyRepr(goor ValidatorUpdate) (empty bool) {
 	{
 		empty = true
+		{
+			if len(goor.Address) != 0 {
+				return false
+			}
+		}
 		{
 			if goor.PubKey != nil {
 				return false
@@ -3085,25 +3166,17 @@ func (goo *VoteInfo) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err err
 	{
 		if pbo != nil {
 			{
-				var pbol int = 0
-				if pbo.Address != nil {
-					pbol = len(pbo.Address)
-				}
-				if pbol == 0 {
-					(*goo).Address = nil
-				} else {
-					var goors = make([]uint8, pbol)
-					for i := 0; i < pbol; i += 1 {
+				var goors = [20]uint8{}
+				for i := 0; i < 20; i += 1 {
+					{
+						pboe := pbo.Address[i]
 						{
-							pboe := pbo.Address[i]
-							{
-								pboev := pboe
-								goors[i] = uint8(uint8(pboev))
-							}
+							pboev := pboe
+							goors[i] = uint8(uint8(pboev))
 						}
 					}
-					(*goo).Address = goors
 				}
+				(*goo).Address = goors
 			}
 			{
 				(*goo).Power = int64(pbo.Power)
@@ -3149,6 +3222,23 @@ func (goo Validator) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error
 		}
 		pbo = new(abcipb.Validator)
 		{
+			goorl := len(goo.Address)
+			if goorl == 0 {
+				pbo.Address = nil
+			} else {
+				var pbos = make([]uint8, goorl)
+				for i := 0; i < goorl; i += 1 {
+					{
+						goore := goo.Address[i]
+						{
+							pbos[i] = byte(goore)
+						}
+					}
+				}
+				pbo.Address = pbos
+			}
+		}
+		{
 			if goo.PubKey != nil {
 				typeUrl := cdc.GetTypeURL(goo.PubKey)
 				bz := []byte(nil)
@@ -3176,6 +3266,19 @@ func (goo *Validator) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err er
 	{
 		if pbo != nil {
 			{
+				var goors = [20]uint8{}
+				for i := 0; i < 20; i += 1 {
+					{
+						pboe := pbo.Address[i]
+						{
+							pboev := pboe
+							goors[i] = uint8(uint8(pboev))
+						}
+					}
+				}
+				(*goo).Address = goors
+			}
+			{
 				typeUrl := pbo.PubKey.TypeUrl
 				bz := pbo.PubKey.Value
 				goorp := &(*goo).PubKey
@@ -3197,6 +3300,11 @@ func (_ Validator) GetTypeURL() (typeURL string) {
 func isValidatorEmptyRepr(goor Validator) (empty bool) {
 	{
 		empty = true
+		{
+			if len(goor.Address) != 0 {
+				return false
+			}
+		}
 		{
 			if goor.PubKey != nil {
 				return false

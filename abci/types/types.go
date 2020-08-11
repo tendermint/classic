@@ -245,8 +245,9 @@ type ValidatorParams struct {
 }
 
 type ValidatorUpdate struct {
-	PubKey crypto.PubKey
-	Power  int64
+	Address crypto.Address
+	PubKey  crypto.PubKey
+	Power   int64
 }
 
 type LastCommitInfo struct {
@@ -256,15 +257,16 @@ type LastCommitInfo struct {
 
 // unstable
 type VoteInfo struct {
-	Address         []byte
+	Address         crypto.Address
 	Power           int64
 	SignedLastBlock bool
 }
 
 // unstable
 type Validator struct {
-	PubKey crypto.PubKey
-	Power  int64
+	Address crypto.Address
+	PubKey  crypto.PubKey
+	Power   int64
 }
 
 // unstable
