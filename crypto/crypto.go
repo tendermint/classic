@@ -47,6 +47,8 @@ func AddressFromBytes(bz []byte) (ret Address) {
 func (addr Address) Compare(other Address) int {
 	bz1 := make([]byte, len(addr))
 	bz2 := make([]byte, len(other))
+	copy(bz1, addr[:])
+	copy(bz2, other[:])
 	return bytes.Compare(bz1, bz2)
 }
 

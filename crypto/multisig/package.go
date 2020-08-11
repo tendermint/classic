@@ -1,8 +1,6 @@
 package multisig
 
 import (
-	"reflect"
-
 	"github.com/tendermint/go-amino-x"
 )
 
@@ -11,9 +9,5 @@ var Package = amino.RegisterPackage(amino.NewPackage(
 	"tm",
 	amino.GetCallersDirname(),
 ).WithDependencies().WithTypes(
-	amino.Type{
-		Type:             reflect.TypeOf(PubKeyMultisigThreshold{}),
-		Name:             "PubKeyMultisig",
-		PointerPreferred: false,
-	},
+	PubKeyMultisigThreshold{}, "PubKeyMultisig",
 ))
