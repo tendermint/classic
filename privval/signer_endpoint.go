@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 
 	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/go-amino-x"
 )
 
 const (
@@ -97,7 +98,7 @@ func (se *signerEndpoint) ReadMessage() (msg SignerMessage, err error) {
 	}
 
 	const maxRemoteSignerMsgSize = 1024 * 10
-	_, err = cdc.UnmarshalSizedReader(se.conn, &msg, maxRemoteSignerMsgSize)
+	_, err = amino.UnmarshalSizedReader(se.conn, &msg, maxRemoteSignerMsgSize)
 	if _, ok := err.(timeoutError); ok {
 		if err != nil {
 			err = errors.Wrap(ErrReadTimeout, err.Error())
@@ -129,7 +130,7 @@ func (se *signerEndpoint) WriteMessage(msg SignerMessage) (err error) {
 		return
 	}
 
-	_, err = cdc.MarshalSizedWriter(se.conn, msg)
+	_, err = amino.MarshalAnySizedWriter(se.conn, msg)
 	if _, ok := err.(timeoutError); ok {
 		if err != nil {
 			err = errors.Wrap(ErrWriteTimeout, err.Error())

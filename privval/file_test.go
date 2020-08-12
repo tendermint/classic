@@ -13,6 +13,7 @@ import (
 	"github.com/tendermint/classic/crypto/ed25519"
 	"github.com/tendermint/classic/types"
 	tmtime "github.com/tendermint/classic/types/time"
+	"github.com/tendermint/go-amino-x"
 )
 
 func TestGenLoadValidator(t *testing.T) {
@@ -97,7 +98,7 @@ func TestUnmarshalValidatorState(t *testing.T) {
 	}`
 
 	val := FilePVLastSignState{}
-	err := cdc.UnmarshalJSON([]byte(serialized), &val)
+	err := amino.UnmarshalJSON([]byte(serialized), &val)
 	require.Nil(err, "%+v", err)
 
 	// make sure the values match
@@ -106,7 +107,7 @@ func TestUnmarshalValidatorState(t *testing.T) {
 	assert.EqualValues(val.Step, 1)
 
 	// export it and make sure it is the same
-	out, err := cdc.MarshalJSON(val)
+	out, err := amino.MarshalJSON(val)
 	require.Nil(err, "%+v", err)
 	assert.JSONEq(serialized, string(out))
 }
@@ -118,27 +119,29 @@ func TestUnmarshalValidatorKey(t *testing.T) {
 	privKey := ed25519.GenPrivKey()
 	pubKey := privKey.PubKey()
 	addr := pubKey.Address()
+	addrBytes := addr[:]
 	pubArray := [32]byte(pubKey.(ed25519.PubKeyEd25519))
 	pubBytes := pubArray[:]
 	privArray := [64]byte(privKey)
 	privBytes := privArray[:]
+	addrB64 := base64.StdEncoding.EncodeToString(addrBytes)
 	pubB64 := base64.StdEncoding.EncodeToString(pubBytes)
 	privB64 := base64.StdEncoding.EncodeToString(privBytes)
 
 	serialized := fmt.Sprintf(`{
   "address": "%s",
   "pub_key": {
-    "type": "tendermint/PubKeyEd25519",
+    "@type": "/tm.PubKeyEd25519",
     "value": "%s"
   },
   "priv_key": {
-    "type": "tendermint/PrivKeyEd25519",
+    "@type": "/tm.PrivKeyEd25519",
     "value": "%s"
   }
-}`, addr, pubB64, privB64)
+}`, addrB64, pubB64, privB64)
 
 	val := FilePVKey{}
-	err := cdc.UnmarshalJSON([]byte(serialized), &val)
+	err := amino.UnmarshalJSON([]byte(serialized), &val)
 	require.Nil(err, "%+v", err)
 
 	// make sure the values match
@@ -147,7 +150,7 @@ func TestUnmarshalValidatorKey(t *testing.T) {
 	assert.EqualValues(privKey, val.PrivKey)
 
 	// export it and make sure it is the same
-	out, err := cdc.MarshalJSON(val)
+	out, err := amino.MarshalJSON(val)
 	require.Nil(err, "%+v", err)
 	assert.JSONEq(serialized, string(out))
 }

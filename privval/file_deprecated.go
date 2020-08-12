@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"github.com/tendermint/classic/crypto"
-	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/classic/types"
+	"github.com/tendermint/go-amino-x"
 )
 
 // OldFilePV is the old version of the FilePV, pre v0.28.0.
@@ -18,7 +18,7 @@ type OldFilePV struct {
 	LastRound     int            `json:"last_round"`
 	LastStep      int8           `json:"last_step"`
 	LastSignature []byte         `json:"last_signature,omitempty"`
-	LastSignBytes []byte   `json:"last_signbytes,omitempty"`
+	LastSignBytes []byte         `json:"last_signbytes,omitempty"`
 	PrivKey       crypto.PrivKey `json:"priv_key"`
 
 	filePath string
@@ -31,7 +31,7 @@ func LoadOldFilePV(filePath string) (*OldFilePV, error) {
 		return nil, err
 	}
 	pv := &OldFilePV{}
-	err = cdc.UnmarshalJSON(pvJSONBytes, &pv)
+	err = amino.UnmarshalJSON(pvJSONBytes, &pv)
 	if err != nil {
 		return nil, err
 	}

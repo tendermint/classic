@@ -1,26 +1,12 @@
 package privval
 
 import (
-	amino "github.com/tendermint/go-amino-x"
 	"github.com/tendermint/classic/crypto"
 	"github.com/tendermint/classic/types"
 )
 
 // SignerMessage is sent between Signer Clients and Servers.
 type SignerMessage interface{}
-
-func RegisterRemoteSignerMsg(cdc *amino.Codec) {
-	cdc.RegisterInterface((*SignerMessage)(nil), nil)
-	cdc.RegisterConcrete(&PubKeyRequest{}, "tendermint/remotesigner/PubKeyRequest", nil)
-	cdc.RegisterConcrete(&PubKeyResponse{}, "tendermint/remotesigner/PubKeyResponse", nil)
-	cdc.RegisterConcrete(&SignVoteRequest{}, "tendermint/remotesigner/SignVoteRequest", nil)
-	cdc.RegisterConcrete(&SignedVoteResponse{}, "tendermint/remotesigner/SignedVoteResponse", nil)
-	cdc.RegisterConcrete(&SignProposalRequest{}, "tendermint/remotesigner/SignProposalRequest", nil)
-	cdc.RegisterConcrete(&SignedProposalResponse{}, "tendermint/remotesigner/SignedProposalResponse", nil)
-
-	cdc.RegisterConcrete(&PingRequest{}, "tendermint/remotesigner/PingRequest", nil)
-	cdc.RegisterConcrete(&PingResponse{}, "tendermint/remotesigner/PingResponse", nil)
-}
 
 // TODO: Add ChainIDRequest
 

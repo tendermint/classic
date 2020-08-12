@@ -20,14 +20,14 @@ func TestGenesisBad(t *testing.T) {
 		{1, 1, 1, 1, 1}, // junk
 		[]byte(`{}`),    // empty
 		[]byte(`{"chain_id":"mychain","validators":[{}]}`), // invalid validator
-		// missing pub_key type
+		// missing pub_key @type
 		[]byte(`{"validators":[{"pub_key":{"value":"AT/+aaL1eB0477Mud9JMm8Sh8BIvOYlPGC9KkIUmFaE="},"power":"10","name":""}]}`),
 		// missing chain_id
-		[]byte(`{"validators":[{"pub_key":{"type":"tendermint/PubKeyEd25519","value":"AT/+aaL1eB0477Mud9JMm8Sh8BIvOYlPGC9KkIUmFaE="},"power":"10","name":""}]}`),
+		[]byte(`{"validators":[{"pub_key":{"@type":"/tm.PubKeyEd25519","value":"AT/+aaL1eB0477Mud9JMm8Sh8BIvOYlPGC9KkIUmFaE="},"power":"10","name":""}]}`),
 		// too big chain_id
-		[]byte(`{"chain_id": "Lorem ipsum dolor sit amet, consectetuer adipiscing", "validators": [{"pub_key":{"type":"tendermint/PubKeyEd25519","value":"AT/+aaL1eB0477Mud9JMm8Sh8BIvOYlPGC9KkIUmFaE="},"power":"10","name":""}]}`),
+		[]byte(`{"chain_id": "Lorem ipsum dolor sit amet, consectetuer adipiscing", "validators": [{"pub_key":{"@type":"/tm.PubKeyEd25519","value":"AT/+aaL1eB0477Mud9JMm8Sh8BIvOYlPGC9KkIUmFaE="},"power":"10","name":""}]}`),
 		// wrong address
-		[]byte(`{"chain_id":"mychain", "validators":[{"address": "A", "pub_key":{"type":"tendermint/PubKeyEd25519","value":"AT/+aaL1eB0477Mud9JMm8Sh8BIvOYlPGC9KkIUmFaE="},"power":"10","name":""}]}`),
+		[]byte(`{"chain_id":"mychain", "validators":[{"address": "A", "pub_key":{"@type":"/tm.PubKeyEd25519","value":"AT/+aaL1eB0477Mud9JMm8Sh8BIvOYlPGC9KkIUmFaE="},"power":"10","name":""}]}`),
 	}
 
 	for _, testCase := range testCases {

@@ -12,6 +12,7 @@ import (
 	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/classic/types"
 	tmtime "github.com/tendermint/classic/types/time"
+	"github.com/tendermint/go-amino-x"
 )
 
 // TODO: type ?
@@ -52,7 +53,7 @@ func (pvKey FilePVKey) Save() {
 		panic("cannot save PrivValidator key: filePath not set")
 	}
 
-	jsonBytes, err := cdc.MarshalJSONIndent(pvKey, "", "  ")
+	jsonBytes, err := amino.MarshalJSONIndent(pvKey, "", "  ")
 	if err != nil {
 		panic(err)
 	}
@@ -67,10 +68,10 @@ func (pvKey FilePVKey) Save() {
 
 // FilePVLastSignState stores the mutable part of PrivValidator.
 type FilePVLastSignState struct {
-	Height    int64        `json:"height"`
-	Round     int          `json:"round"`
-	Step      int8         `json:"step"`
-	Signature []byte       `json:"signature,omitempty"`
+	Height    int64  `json:"height"`
+	Round     int    `json:"round"`
+	Step      int8   `json:"step"`
+	Signature []byte `json:"signature,omitempty"`
 	SignBytes []byte `json:"signbytes,omitempty"`
 
 	filePath string
@@ -117,7 +118,7 @@ func (lss *FilePVLastSignState) Save() {
 	if outFile == "" {
 		panic("cannot save FilePVLastSignState: filePath not set")
 	}
-	jsonBytes, err := cdc.MarshalJSONIndent(lss, "", "  ")
+	jsonBytes, err := amino.MarshalJSONIndent(lss, "", "  ")
 	if err != nil {
 		panic(err)
 	}
@@ -178,7 +179,7 @@ func loadFilePV(keyFilePath, stateFilePath string, loadState bool) *FilePV {
 		cmn.Exit(err.Error())
 	}
 	pvKey := FilePVKey{}
-	err = cdc.UnmarshalJSON(keyJSONBytes, &pvKey)
+	err = amino.UnmarshalJSON(keyJSONBytes, &pvKey)
 	if err != nil {
 		cmn.Exit(fmt.Sprintf("Error reading PrivValidator key from %v: %v\n", keyFilePath, err))
 	}
@@ -194,7 +195,7 @@ func loadFilePV(keyFilePath, stateFilePath string, loadState bool) *FilePV {
 		if err != nil {
 			cmn.Exit(err.Error())
 		}
-		err = cdc.UnmarshalJSON(stateJSONBytes, &pvState)
+		err = amino.UnmarshalJSON(stateJSONBytes, &pvState)
 		if err != nil {
 			cmn.Exit(fmt.Sprintf("Error reading PrivValidator state from %v: %v\n", stateFilePath, err))
 		}
@@ -378,10 +379,10 @@ func (pv *FilePV) saveSigned(height int64, round int, step int8,
 // returns true if the only difference in the votes is their timestamp.
 func checkVotesOnlyDifferByTimestamp(lastSignBytes, newSignBytes []byte) (time.Time, bool) {
 	var lastVote, newVote types.CanonicalVote
-	if err := cdc.UnmarshalSized(lastSignBytes, &lastVote); err != nil {
+	if err := amino.UnmarshalSized(lastSignBytes, &lastVote); err != nil {
 		panic(fmt.Sprintf("LastSignBytes cannot be unmarshalled into vote: %v", err))
 	}
-	if err := cdc.UnmarshalSized(newSignBytes, &newVote); err != nil {
+	if err := amino.UnmarshalSized(newSignBytes, &newVote); err != nil {
 		panic(fmt.Sprintf("signBytes cannot be unmarshalled into vote: %v", err))
 	}
 
@@ -391,8 +392,8 @@ func checkVotesOnlyDifferByTimestamp(lastSignBytes, newSignBytes []byte) (time.T
 	now := tmtime.Now()
 	lastVote.Timestamp = now
 	newVote.Timestamp = now
-	lastVoteBytes, _ := cdc.MarshalJSON(lastVote)
-	newVoteBytes, _ := cdc.MarshalJSON(newVote)
+	lastVoteBytes, _ := amino.MarshalJSON(lastVote)
+	newVoteBytes, _ := amino.MarshalJSON(newVote)
 
 	return lastTime, bytes.Equal(newVoteBytes, lastVoteBytes)
 }
@@ -401,10 +402,10 @@ func checkVotesOnlyDifferByTimestamp(lastSignBytes, newSignBytes []byte) (time.T
 // returns true if the only difference in the proposals is their timestamp
 func checkProposalsOnlyDifferByTimestamp(lastSignBytes, newSignBytes []byte) (time.Time, bool) {
 	var lastProposal, newProposal types.CanonicalProposal
-	if err := cdc.UnmarshalSized(lastSignBytes, &lastProposal); err != nil {
+	if err := amino.UnmarshalSized(lastSignBytes, &lastProposal); err != nil {
 		panic(fmt.Sprintf("LastSignBytes cannot be unmarshalled into proposal: %v", err))
 	}
-	if err := cdc.UnmarshalSized(newSignBytes, &newProposal); err != nil {
+	if err := amino.UnmarshalSized(newSignBytes, &newProposal); err != nil {
 		panic(fmt.Sprintf("signBytes cannot be unmarshalled into proposal: %v", err))
 	}
 
@@ -413,8 +414,8 @@ func checkProposalsOnlyDifferByTimestamp(lastSignBytes, newSignBytes []byte) (ti
 	now := tmtime.Now()
 	lastProposal.Timestamp = now
 	newProposal.Timestamp = now
-	lastProposalBytes, _ := cdc.MarshalSized(lastProposal)
-	newProposalBytes, _ := cdc.MarshalSized(newProposal)
+	lastProposalBytes, _ := amino.MarshalSized(lastProposal)
+	newProposalBytes, _ := amino.MarshalSized(newProposal)
 
 	return lastTime, bytes.Equal(newProposalBytes, lastProposalBytes)
 }
