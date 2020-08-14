@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tendermint/classic/abci/example/kvstore"
-	abci "github.com/tendermint/classic/abci/types"
 	"github.com/tendermint/classic/proxy"
 	"github.com/tendermint/classic/types"
 )
@@ -67,7 +66,7 @@ func TestCacheAfterUpdate(t *testing.T) {
 			tx := types.Tx{byte(v)}
 			updateTxs = append(updateTxs, tx)
 		}
-		mempool.Update(int64(tcIndex), updateTxs, abciResponses(len(updateTxs), abci.CodeTypeOK), nil, nil)
+		mempool.Update(int64(tcIndex), updateTxs, abciResponses(len(updateTxs), nil), nil, nil)
 
 		for _, v := range tc.reAddIndices {
 			tx := types.Tx{byte(v)}

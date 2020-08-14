@@ -14,20 +14,20 @@ import (
 type Mempool interface {
 	// CheckTx executes a new transaction against the application to determine
 	// its validity and whether it should be added to the mempool.
-	CheckTx(tx types.Tx, callback func(*abci.Response)) error
+	CheckTx(tx types.Tx, callback func(abci.Response)) error
 
 	// CheckTxWithInfo performs the same operation as CheckTx, but with extra
 	// meta data about the tx.
 	// Currently this metadata is the peer who sent it, used to prevent the tx
 	// from being gossiped back to them.
-	CheckTxWithInfo(tx types.Tx, callback func(*abci.Response), txInfo TxInfo) error
+	CheckTxWithInfo(tx types.Tx, callback func(abci.Response), txInfo TxInfo) error
 
-	// ReapMaxBytesMaxGas reaps transactions from the mempool up to maxBytes
+	// ReapMaxBytesMaxGas reaps transactions from the mempool up to maxDataBytes
 	// bytes total with the condition that the total gasWanted must be less than
 	// maxGas.
 	// If both maxes are negative, there is no cap on the size of all returned
 	// transactions (~ all available transactions).
-	ReapMaxBytesMaxGas(maxBytes, maxGas int64) types.Txs
+	ReapMaxBytesMaxGas(maxDataBytes, maxGas int64) types.Txs
 
 	// ReapMaxTxs reaps up to max transactions from the mempool.
 	// If max is negative, there is no cap on the size of all returned
@@ -43,7 +43,7 @@ type Mempool interface {
 	// Update informs the mempool that the given txs were committed and can be discarded.
 	// NOTE: this should be called *after* block is committed by consensus.
 	// NOTE: unsafe; Lock/Unlock must be managed by caller
-	Update(blockHeight int64, blockTxs types.Txs, deliverTxResponses []*abci.ResponseDeliverTx, newPreFn PreCheckFunc, newPostFn PostCheckFunc) error
+	Update(blockHeight int64, blockTxs types.Txs, deliverTxResponses []abci.ResponseDeliverTx, newPreFn PreCheckFunc, newPostFn PostCheckFunc) error
 
 	// FlushAppConn flushes the mempool connection to ensure async reqResCb calls are
 	// done. E.g. from CheckTx.
@@ -85,7 +85,7 @@ type PreCheckFunc func(types.Tx) error
 // PostCheckFunc is an optional filter executed after CheckTx and rejects
 // transaction if false is returned. An example would be to ensure a
 // transaction doesn't require more gas than available for the block.
-type PostCheckFunc func(types.Tx, *abci.ResponseCheckTx) error
+type PostCheckFunc func(types.Tx, abci.ResponseCheckTx) error
 
 // TxInfo are parameters that get passed when attempting to add a tx to the
 // mempool.
@@ -97,17 +97,12 @@ type TxInfo struct {
 
 //--------------------------------------------------------------------------------
 
-// PreCheckAminoMaxBytes checks that the size of the transaction plus the amino
-// overhead is smaller or equal to the expected maxBytes.
-func PreCheckAminoMaxBytes(maxBytes int64) PreCheckFunc {
+// PreCheckMaxTxBytes checks that the size of the transaction is smaller or
+// equal to the expected maxBytes.  It is a rough calculation that doesn't take
+// into account encoding overhead etc.
+func PreCheckMaxTxBytes(maxBytes int64) PreCheckFunc {
 	return func(tx types.Tx) error {
-		// We have to account for the amino overhead in the tx size as well
-		// NOTE: fieldNum = 1 as types.Block.Data contains Txs []Tx as first field.
-		// If this field order ever changes this needs to updated here accordingly.
-		// NOTE: if some []Tx are encoded without a parenting struct, the
-		// fieldNum is also equal to 1.
-		aminoOverhead := types.ComputeAminoOverhead(tx, 1)
-		txSize := int64(len(tx)) + aminoOverhead
+		txSize := int64(len(tx))
 		if txSize > maxBytes {
 			return fmt.Errorf("Tx size (including amino overhead) is too big: %d, max: %d",
 				txSize, maxBytes)
@@ -119,7 +114,7 @@ func PreCheckAminoMaxBytes(maxBytes int64) PreCheckFunc {
 // PostCheckMaxGas checks that the wanted gas is smaller or equal to the passed
 // maxGas. Returns nil if maxGas is -1.
 func PostCheckMaxGas(maxGas int64) PostCheckFunc {
-	return func(tx types.Tx, res *abci.ResponseCheckTx) error {
+	return func(tx types.Tx, res abci.ResponseCheckTx) error {
 		if maxGas == -1 {
 			return nil
 		}

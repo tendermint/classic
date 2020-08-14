@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	amino "github.com/tendermint/go-amino-x"
+	"github.com/tendermint/go-amino-x"
 
 	cfg "github.com/tendermint/classic/config"
 	"github.com/tendermint/classic/libs/clist"
@@ -18,8 +18,6 @@ import (
 
 const (
 	MempoolChannel = byte(0x30)
-
-	aminoOverheadForTxMessage = 8
 
 	peerCatchupSleepIntervalMS = 100 // If peer is behind, sleep this amount
 
@@ -157,7 +155,7 @@ func (memR *Reactor) RemovePeer(peer p2p.Peer, reason interface{}) {
 func (memR *Reactor) Receive(chID byte, src p2p.Peer, msgBytes []byte) {
 	msg, err := memR.decodeMsg(msgBytes)
 	if err != nil {
-		memR.Logger.Error("Error decoding message", "src", src, "chId", chID, "msg", msg, "err", err, "bytes", msgBytes)
+		memR.Logger.Error("Error decoding mempool message", "src", src, "chId", chID, "msg", msg, "err", err, "bytes", msgBytes)
 		memR.Switch.StopPeerForError(src, err)
 		return
 	}
@@ -232,7 +230,7 @@ func (memR *Reactor) broadcastTxRoutine(peer p2p.Peer) {
 		if _, ok := memTx.senders.Load(peerID); !ok {
 			// send memTx
 			msg := &TxMessage{Tx: memTx.tx}
-			success := peer.Send(MempoolChannel, cdc.MustMarshal(msg))
+			success := peer.Send(MempoolChannel, amino.MustMarshalAny(msg))
 			if !success {
 				time.Sleep(peerCatchupSleepIntervalMS * time.Millisecond)
 				continue
@@ -257,17 +255,12 @@ func (memR *Reactor) broadcastTxRoutine(peer p2p.Peer) {
 // MempoolMessage is a message sent or received by the Reactor.
 type MempoolMessage interface{}
 
-func RegisterMempoolMessages(cdc *amino.Codec) {
-	cdc.RegisterInterface((*MempoolMessage)(nil), nil)
-	cdc.RegisterConcrete(&TxMessage{}, "tendermint/mempool/TxMessage", nil)
-}
-
 func (memR *Reactor) decodeMsg(bz []byte) (msg MempoolMessage, err error) {
-	maxMsgSize := calcMaxMsgSize(memR.config.MaxTxBytes)
+	maxMsgSize := memR.config.MaxTxBytes
 	if l := len(bz); l > maxMsgSize {
 		return msg, ErrTxTooLarge{maxMsgSize, l}
 	}
-	err = cdc.Unmarshal(bz, &msg)
+	err = amino.Unmarshal(bz, &msg)
 	return
 }
 
@@ -281,10 +274,4 @@ type TxMessage struct {
 // String returns a string representation of the TxMessage.
 func (m *TxMessage) String() string {
 	return fmt.Sprintf("[TxMessage %v]", m.Tx)
-}
-
-// calcMaxMsgSize returns the max size of TxMessage
-// account for amino overhead of TxMessage
-func calcMaxMsgSize(maxTxSize int) int {
-	return maxTxSize + aminoOverheadForTxMessage
 }
