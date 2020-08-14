@@ -6,38 +6,19 @@ import (
 	"io/ioutil"
 	"time"
 
+	abci "github.com/tendermint/classic/abci/types"
+	"github.com/tendermint/classic/crypto"
 	"github.com/tendermint/classic/types"
 	tmtime "github.com/tendermint/classic/types/time"
-	"github.com/tendermint/classic/version"
+	typesver "github.com/tendermint/classic/types/version"
+	tmver "github.com/tendermint/classic/version"
+	"github.com/tendermint/go-amino-x"
 )
 
 // database keys
 var (
 	stateKey = []byte("stateKey")
 )
-
-//-----------------------------------------------------------------------------
-
-// Version is for versioning the State.
-// It holds the Block and App version needed for making blocks,
-// and the software version to support upgrades to the format of
-// the State as stored on disk.
-type Version struct {
-	Consensus version.Consensus
-	Software  string
-}
-
-// initStateVersion sets the Consensus.Block and Software versions,
-// but leaves the Consensus.App version blank.
-// The Consensus.App version will be set during the Handshake, once
-// we hear from the app what protocol version it is running.
-var initStateVersion = Version{
-	Consensus: version.Consensus{
-		Block: version.BlockProtocol,
-		App:   0,
-	},
-	Software: version.TMCoreSemVer,
-}
 
 //-----------------------------------------------------------------------------
 
@@ -49,7 +30,9 @@ var initStateVersion = Version{
 // Instead, use state.Copy() or state.NextState(...).
 // NOTE: not goroutine-safe.
 type State struct {
-	Version Version
+	SoftwareVersion string
+	BlockVersion    string
+	AppVersion      string
 
 	// immutable
 	ChainID string
@@ -73,7 +56,7 @@ type State struct {
 
 	// Consensus parameters used for validating blocks.
 	// Changes returned by EndBlock and updated after Commit.
-	ConsensusParams                  types.ConsensusParams
+	ConsensusParams                  abci.ConsensusParams
 	LastHeightConsensusParamsChanged int64
 
 	// Merkle root of the results from executing prev block
@@ -85,8 +68,12 @@ type State struct {
 
 // Copy makes a copy of the State for mutating.
 func (state State) Copy() State {
+	// Make a faithful copy.
 	return State{
-		Version: state.Version,
+		SoftwareVersion: state.SoftwareVersion,
+		BlockVersion:    state.BlockVersion,
+		AppVersion:      state.AppVersion,
+
 		ChainID: state.ChainID,
 
 		LastBlockHeight:  state.LastBlockHeight,
@@ -116,7 +103,7 @@ func (state State) Equals(state2 State) bool {
 
 // Bytes serializes the State using go-amino.
 func (state State) Bytes() []byte {
-	return cdc.MustMarshal(state)
+	return amino.MustMarshal(state)
 }
 
 // IsEmpty returns true if the State is equal to the empty State.
@@ -127,19 +114,18 @@ func (state State) IsEmpty() bool {
 //------------------------------------------------------------------------
 // Create a block from the latest state
 
-// MakeBlock builds a block from the current state with the given txs, commit,
-// and evidence. Note it also takes a proposerAddress because the state does not
+// MakeBlock builds a block from the current state with the given txs and commit.
+// Note it also takes a proposerAddress because the state does not
 // track rounds, and hence does not know the correct proposer. TODO: fix this!
 func (state State) MakeBlock(
 	height int64,
 	txs []types.Tx,
 	commit *types.Commit,
-	evidence []types.Evidence,
-	proposerAddress []byte,
+	proposerAddress crypto.Address,
 ) (*types.Block, *types.PartSet) {
 
 	// Build base block with block data.
-	block := types.MakeBlock(height, txs, commit, evidence)
+	block := types.MakeBlock(height, txs, commit)
 
 	// Set time.
 	var timestamp time.Time
@@ -151,8 +137,9 @@ func (state State) MakeBlock(
 
 	// Fill rest of header with state data.
 	block.Header.Populate(
-		state.Version.Consensus, state.ChainID,
+		state.ChainID,
 		timestamp, state.LastBlockID, state.LastBlockTotalTx+block.NumTxs,
+		state.AppVersion,
 		state.Validators.Hash(), state.NextValidators.Hash(),
 		state.ConsensusParams.Hash(), state.AppHash, state.LastResultsHash,
 		proposerAddress,
@@ -230,8 +217,10 @@ func MakeGenesisState(genDoc *types.GenesisDoc) (State, error) {
 	}
 
 	return State{
-		Version: initStateVersion,
-		ChainID: genDoc.ChainID,
+		SoftwareVersion: tmver.Version,
+		BlockVersion:    typesver.BlockVersion,
+		AppVersion:      "", // gets set by Handshaker after RequestInfo..
+		ChainID:         genDoc.ChainID,
 
 		LastBlockHeight: 0,
 		LastBlockID:     types.BlockID{},
@@ -242,7 +231,7 @@ func MakeGenesisState(genDoc *types.GenesisDoc) (State, error) {
 		LastValidators:              types.NewValidatorSet(nil),
 		LastHeightValidatorsChanged: 1,
 
-		ConsensusParams:                  *genDoc.ConsensusParams,
+		ConsensusParams:                  genDoc.ConsensusParams,
 		LastHeightConsensusParamsChanged: 1,
 
 		AppHash: genDoc.AppHash,

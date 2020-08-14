@@ -2,8 +2,8 @@ package state
 
 import (
 	abci "github.com/tendermint/classic/abci/types"
-	"github.com/tendermint/classic/types"
 	dbm "github.com/tendermint/classic/db"
+	"github.com/tendermint/classic/types"
 )
 
 //
@@ -26,14 +26,13 @@ func UpdateState(
 	blockID types.BlockID,
 	header *types.Header,
 	abciResponses *ABCIResponses,
-	validatorUpdates []*types.Validator,
 ) (State, error) {
-	return updateState(state, blockID, header, abciResponses, validatorUpdates)
+	return updateState(state, blockID, header, abciResponses)
 }
 
 // ValidateValidatorUpdates is an alias for validateValidatorUpdates exported
 // from execution.go, exclusively and explicitly for testing.
-func ValidateValidatorUpdates(abciUpdates []abci.ValidatorUpdate, params types.ValidatorParams) error {
+func ValidateValidatorUpdates(abciUpdates []abci.ValidatorUpdate, params abci.ValidatorParams) error {
 	return validateValidatorUpdates(abciUpdates, params)
 }
 
@@ -51,7 +50,7 @@ func SaveABCIResponses(db dbm.DB, height int64, abciResponses *ABCIResponses) {
 
 // SaveConsensusParamsInfo is an alias for the private saveConsensusParamsInfo
 // method in store.go, exported exclusively and explicitly for testing.
-func SaveConsensusParamsInfo(db dbm.DB, nextHeight, changeHeight int64, params types.ConsensusParams) {
+func SaveConsensusParamsInfo(db dbm.DB, nextHeight, changeHeight int64, params abci.ConsensusParams) {
 	saveConsensusParamsInfo(db, nextHeight, changeHeight, params)
 }
 

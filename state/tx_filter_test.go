@@ -7,28 +7,24 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	dbm "github.com/tendermint/classic/db"
 	cmn "github.com/tendermint/classic/libs/common"
 	sm "github.com/tendermint/classic/state"
 	"github.com/tendermint/classic/types"
-	dbm "github.com/tendermint/classic/db"
 )
 
 func TestTxFilter(t *testing.T) {
 	genDoc := randomGenesisDoc()
-	genDoc.ConsensusParams.Block.MaxBytes = 3000
+	genDoc.ConsensusParams.Block.MaxTxBytes = 3000
 
-	// Max size of Txs is much smaller than size of block,
-	// since we need to account for commits and evidence.
 	testCases := []struct {
 		tx    types.Tx
 		isErr bool
 	}{
 		{types.Tx(cmn.RandBytes(250)), false},
-		{types.Tx(cmn.RandBytes(1809)), false},
-		{types.Tx(cmn.RandBytes(1810)), false},
-		{types.Tx(cmn.RandBytes(1811)), true},
-		{types.Tx(cmn.RandBytes(1812)), true},
-		{types.Tx(cmn.RandBytes(3000)), true},
+		{types.Tx(cmn.RandBytes(3000)), false},
+		{types.Tx(cmn.RandBytes(3001)), true},
+		{types.Tx(cmn.RandBytes(5000)), true},
 	}
 
 	for i, tc := range testCases {

@@ -4,9 +4,10 @@ import (
 	"fmt"
 
 	abci "github.com/tendermint/classic/abci/types"
+	dbm "github.com/tendermint/classic/db"
 	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/classic/types"
-	dbm "github.com/tendermint/classic/db"
+	"github.com/tendermint/go-amino-x"
 )
 
 const (
@@ -76,7 +77,7 @@ func loadState(db dbm.DB, key []byte) (state State) {
 		return state
 	}
 
-	err := cdc.Unmarshal(buf, &state)
+	err := amino.Unmarshal(buf, &state)
 	if err != nil {
 		// DATA HAS BEEN CORRUPTED OR THE SPEC HAS CHANGED
 		cmn.Exit(fmt.Sprintf(`LoadState: Data has been corrupted or its spec has changed:
@@ -115,30 +116,30 @@ func saveState(db dbm.DB, state State, key []byte) {
 // of the various ABCI calls during block processing.
 // It is persisted to disk for each height before calling Commit.
 type ABCIResponses struct {
-	DeliverTx  []*abci.ResponseDeliverTx `json:"deliver_tx"`
-	EndBlock   *abci.ResponseEndBlock    `json:"end_block"`
-	BeginBlock *abci.ResponseBeginBlock  `json:"begin_block"`
+	DeliverTxs []abci.ResponseDeliverTx `json:"deliver_tx"`
+	EndBlock   abci.ResponseEndBlock    `json:"end_block"`
+	BeginBlock abci.ResponseBeginBlock  `json:"begin_block"`
 }
 
 // NewABCIResponses returns a new ABCIResponses
 func NewABCIResponses(block *types.Block) *ABCIResponses {
-	resDeliverTxs := make([]*abci.ResponseDeliverTx, block.NumTxs)
+	resDeliverTxs := make([]abci.ResponseDeliverTx, block.NumTxs)
 	if block.NumTxs == 0 {
 		// This makes Amino encoding/decoding consistent.
 		resDeliverTxs = nil
 	}
 	return &ABCIResponses{
-		DeliverTx: resDeliverTxs,
+		DeliverTxs: resDeliverTxs,
 	}
 }
 
 // Bytes serializes the ABCIResponse using go-amino.
 func (arz *ABCIResponses) Bytes() []byte {
-	return cdc.MustMarshal(arz)
+	return amino.MustMarshal(arz)
 }
 
 func (arz *ABCIResponses) ResultsHash() []byte {
-	results := types.NewResults(arz.DeliverTx)
+	results := types.NewResults(arz.DeliverTxs)
 	return results.Hash()
 }
 
@@ -147,12 +148,12 @@ func (arz *ABCIResponses) ResultsHash() []byte {
 // s.Save(). It can also be used to produce Merkle proofs of the result of txs.
 func LoadABCIResponses(db dbm.DB, height int64) (*ABCIResponses, error) {
 	buf := db.Get(calcABCIResponsesKey(height))
-	if len(buf) == 0 {
+	if buf == nil {
 		return nil, ErrNoABCIResponsesForHeight{height}
 	}
 
 	abciResponses := new(ABCIResponses)
-	err := cdc.Unmarshal(buf, abciResponses)
+	err := amino.Unmarshal(buf, abciResponses)
 	if err != nil {
 		// DATA HAS BEEN CORRUPTED OR THE SPEC HAS CHANGED
 		cmn.Exit(fmt.Sprintf(`LoadABCIResponses: Data has been corrupted or its spec has
@@ -180,7 +181,7 @@ type ValidatorsInfo struct {
 
 // Bytes serializes the ValidatorsInfo using go-amino.
 func (valInfo *ValidatorsInfo) Bytes() []byte {
-	return cdc.MustMarshal(valInfo)
+	return amino.MustMarshal(valInfo)
 }
 
 // LoadValidators loads the ValidatorSet for a given height.
@@ -230,7 +231,7 @@ func loadValidatorsInfo(db dbm.DB, height int64) *ValidatorsInfo {
 	}
 
 	v := new(ValidatorsInfo)
-	err := cdc.Unmarshal(buf, v)
+	err := amino.Unmarshal(buf, v)
 	if err != nil {
 		// DATA HAS BEEN CORRUPTED OR THE SPEC HAS CHANGED
 		cmn.Exit(fmt.Sprintf(`LoadValidators: Data has been corrupted or its spec has changed:
@@ -265,25 +266,25 @@ func saveValidatorsInfo(db dbm.DB, height, lastHeightChanged int64, valSet *type
 
 // ConsensusParamsInfo represents the latest consensus params, or the last height it changed
 type ConsensusParamsInfo struct {
-	ConsensusParams   types.ConsensusParams
+	ConsensusParams   abci.ConsensusParams
 	LastHeightChanged int64
 }
 
 // Bytes serializes the ConsensusParamsInfo using go-amino.
 func (params ConsensusParamsInfo) Bytes() []byte {
-	return cdc.MustMarshal(params)
+	return amino.MustMarshal(params)
 }
 
 // LoadConsensusParams loads the ConsensusParams for a given height.
-func LoadConsensusParams(db dbm.DB, height int64) (types.ConsensusParams, error) {
-	empty := types.ConsensusParams{}
+func LoadConsensusParams(db dbm.DB, height int64) (abci.ConsensusParams, error) {
+	empty := abci.ConsensusParams{}
 
 	paramsInfo := loadConsensusParamsInfo(db, height)
 	if paramsInfo == nil {
 		return empty, ErrNoConsensusParamsForHeight{height}
 	}
 
-	if paramsInfo.ConsensusParams.Equals(&empty) {
+	if amino.DeepEqual(empty, paramsInfo.ConsensusParams) {
 		paramsInfo2 := loadConsensusParamsInfo(db, paramsInfo.LastHeightChanged)
 		if paramsInfo2 == nil {
 			panic(
@@ -307,7 +308,7 @@ func loadConsensusParamsInfo(db dbm.DB, height int64) *ConsensusParamsInfo {
 	}
 
 	paramsInfo := new(ConsensusParamsInfo)
-	err := cdc.Unmarshal(buf, paramsInfo)
+	err := amino.Unmarshal(buf, paramsInfo)
 	if err != nil {
 		// DATA HAS BEEN CORRUPTED OR THE SPEC HAS CHANGED
 		cmn.Exit(fmt.Sprintf(`LoadConsensusParams: Data has been corrupted or its spec has changed:
@@ -322,7 +323,7 @@ func loadConsensusParamsInfo(db dbm.DB, height int64) *ConsensusParamsInfo {
 // It should be called from s.Save(), right before the state itself is persisted.
 // If the consensus params did not change after processing the latest block,
 // only the last height for which they changed is persisted.
-func saveConsensusParamsInfo(db dbm.DB, nextHeight, changeHeight int64, params types.ConsensusParams) {
+func saveConsensusParamsInfo(db dbm.DB, nextHeight, changeHeight int64, params abci.ConsensusParams) {
 	paramsInfo := &ConsensusParamsInfo{
 		LastHeightChanged: changeHeight,
 	}

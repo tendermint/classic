@@ -1,11 +1,7 @@
 package null
 
 import (
-	"errors"
-
-	"github.com/tendermint/classic/libs/pubsub/query"
 	"github.com/tendermint/classic/state/txindex"
-	"github.com/tendermint/classic/types"
 )
 
 var _ txindex.TxIndexer = (*TxIndex)(nil)
@@ -13,6 +9,7 @@ var _ txindex.TxIndexer = (*TxIndex)(nil)
 // TxIndex acts as a /dev/null.
 type TxIndex struct{}
 
+/*
 // Get on a TxIndex is disabled and panics when invoked.
 func (txi *TxIndex) Get(hash []byte) (*types.TxResult, error) {
 	return nil, errors.New(`Indexing is disabled (set 'tx_index = "kv"' in config)`)
@@ -31,3 +28,4 @@ func (txi *TxIndex) Index(result *types.TxResult) error {
 func (txi *TxIndex) Search(q *query.Query) ([]*types.TxResult, error) {
 	return []*types.TxResult{}, nil
 }
+*/

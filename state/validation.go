@@ -6,24 +6,30 @@ import (
 	"fmt"
 
 	"github.com/tendermint/classic/crypto"
-	"github.com/tendermint/classic/types"
 	dbm "github.com/tendermint/classic/db"
+	"github.com/tendermint/classic/types"
 )
 
 //-----------------------------------------------------
 // Validate block
 
-func validateBlock(evidencePool EvidencePool, stateDB dbm.DB, state State, block *types.Block) error {
+func validateBlock(stateDB dbm.DB, state State, block *types.Block) error {
 	// Validate internal consistency.
 	if err := block.ValidateBasic(); err != nil {
 		return err
 	}
 
 	// Validate basic info.
-	if block.Version != state.Version.Consensus {
+	if block.Version != state.BlockVersion {
 		return fmt.Errorf("Wrong Block.Header.Version. Expected %v, got %v",
-			state.Version.Consensus,
+			state.BlockVersion,
 			block.Version,
+		)
+	}
+	if block.AppVersion != state.AppVersion {
+		return fmt.Errorf("Wrong Block.Header.AppVersion. Expected %v, got %v",
+			state.AppVersion,
+			block.AppVersion,
 		)
 	}
 	if block.ChainID != state.ChainID {
@@ -129,24 +135,6 @@ func validateBlock(evidencePool EvidencePool, stateDB dbm.DB, state State, block
 		}
 	}
 
-	// Limit the amount of evidence
-	maxNumEvidence, _ := types.MaxEvidencePerBlock(state.ConsensusParams.Block.MaxBytes)
-	numEvidence := int64(len(block.Evidence.Evidence))
-	if numEvidence > maxNumEvidence {
-		return types.NewErrEvidenceOverflow(maxNumEvidence, numEvidence)
-
-	}
-
-	// Validate all evidence.
-	for _, ev := range block.Evidence.Evidence {
-		if err := VerifyEvidence(stateDB, state, ev); err != nil {
-			return types.NewErrEvidenceInvalid(ev, err)
-		}
-		if evidencePool != nil && evidencePool.IsCommitted(ev) {
-			return types.NewErrEvidenceInvalid(ev, errors.New("evidence was already committed"))
-		}
-	}
-
 	// NOTE: We can't actually verify it's the right proposer because we dont
 	// know what round the block was first proposed. So just check that it's
 	// a legit address and a known validator.
@@ -160,6 +148,7 @@ func validateBlock(evidencePool EvidencePool, stateDB dbm.DB, state State, block
 	return nil
 }
 
+/*
 // VerifyEvidence verifies the evidence fully by checking:
 // - it is sufficiently recent (MaxAge)
 // - it is from a key who was a validator at the given height
@@ -200,3 +189,4 @@ func VerifyEvidence(stateDB dbm.DB, state State, evidence types.Evidence) error 
 
 	return nil
 }
+*/
