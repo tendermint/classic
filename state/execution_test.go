@@ -13,7 +13,7 @@ import (
 	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/classic/libs/events"
 	"github.com/tendermint/classic/libs/log"
-	"github.com/tendermint/classic/mock"
+	"github.com/tendermint/classic/mempool/mock"
 	"github.com/tendermint/classic/proxy"
 	sm "github.com/tendermint/classic/state"
 	"github.com/tendermint/classic/types"

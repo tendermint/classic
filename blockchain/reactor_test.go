@@ -15,7 +15,7 @@ import (
 	cfg "github.com/tendermint/classic/config"
 	dbm "github.com/tendermint/classic/db"
 	"github.com/tendermint/classic/libs/log"
-	"github.com/tendermint/classic/mock"
+	"github.com/tendermint/classic/mempool/mock"
 	"github.com/tendermint/classic/p2p"
 	"github.com/tendermint/classic/proxy"
 	sm "github.com/tendermint/classic/state"
