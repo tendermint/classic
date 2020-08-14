@@ -19,7 +19,7 @@ var Package = amino.RegisterPackage(amino.NewPackage(
 		Block{},
 		Header{},
 		Data{},
-		EvidenceData{},
+		//EvidenceData{},
 		Commit{},
 		BlockID{},
 		CommitSig{},
@@ -32,15 +32,15 @@ var Package = amino.RegisterPackage(amino.NewPackage(
 		Validator{},
 
 		// Event types
-		EventDataNewBlock{},
-		EventDataNewBlockHeader{},
-		EventDataTx{},
-		EventDataRoundState{},
-		EventDataNewRound{},
-		EventDataCompleteProposal{},
-		EventDataVote{},
-		EventDataValidatorSetUpdates{},
-		EventDataString(""),
+		EventNewBlock{},
+		EventNewBlockHeader{},
+		EventTx{},
+		EventRoundState{},
+		EventNewRound{},
+		EventCompleteProposal{},
+		EventVote{},
+		EventValidatorSetUpdates{},
+		EventString(""),
 
 		// Evidence types
 		DuplicateVoteEvidence{},

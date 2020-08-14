@@ -12,9 +12,9 @@ func TestABCIResults(t *testing.T) {
 	a := ABCIResult{Error: nil, Data: nil}
 	b := ABCIResult{Error: nil, Data: []byte{}}
 	c := ABCIResult{Error: nil, Data: []byte("one")}
-	d := ABCIResult{Error: abci.StringError{"?"}, Data: nil}
-	e := ABCIResult{Error: abci.StringError{"?"}, Data: []byte("foo")}
-	f := ABCIResult{Error: abci.StringError{"?"}, Data: []byte("bar")}
+	d := ABCIResult{Error: abci.StringError("?"), Data: nil}
+	e := ABCIResult{Error: abci.StringError("?"), Data: []byte("foo")}
+	f := ABCIResult{Error: abci.StringError("?"), Data: []byte("bar")}
 
 	// Nil and []byte{} should produce the same bytes
 	require.Equal(t, a.Bytes(), a.Bytes())
@@ -45,12 +45,12 @@ func TestABCIResults(t *testing.T) {
 }
 
 func TestABCIResultsBytes(t *testing.T) {
-	results := NewResults([]*abci.ResponseDeliverTx{
+	results := NewResults([]abci.ResponseDeliverTx{
 		{ResponseBase: abci.ResponseBase{Error: nil, Data: []byte{}}},
 		{ResponseBase: abci.ResponseBase{Error: nil, Data: []byte("one")}},
-		{ResponseBase: abci.ResponseBase{Error: abci.StringError{"?"}, Data: nil}},
-		{ResponseBase: abci.ResponseBase{Error: abci.StringError{"?"}, Data: []byte("foo")}},
-		{ResponseBase: abci.ResponseBase{Error: abci.StringError{"?"}, Data: []byte("bar")}},
+		{ResponseBase: abci.ResponseBase{Error: abci.StringError("?"), Data: nil}},
+		{ResponseBase: abci.ResponseBase{Error: abci.StringError("?"), Data: []byte("foo")}},
+		{ResponseBase: abci.ResponseBase{Error: abci.StringError("?"), Data: []byte("bar")}},
 	})
 	assert.NotNil(t, results.Bytes())
 }

@@ -2,8 +2,8 @@ package types
 
 import (
 	"fmt"
-	"strings"
 
+	abci "github.com/tendermint/classic/abci/types"
 	"github.com/tendermint/classic/crypto"
 	cmn "github.com/tendermint/classic/libs/common"
 )
@@ -24,6 +24,18 @@ func NewValidator(pubKey crypto.PubKey, votingPower int64) *Validator {
 		Address:          pubKey.Address(),
 		PubKey:           pubKey,
 		VotingPower:      votingPower,
+		ProposerPriority: 0,
+	}
+}
+
+func NewValidatorFromABCIValidatorUpdate(update abci.ValidatorUpdate) *Validator {
+	if update.Address.IsZero() {
+		update.Address = update.PubKey.Address()
+	}
+	return &Validator{
+		Address:          update.Address,
+		PubKey:           update.PubKey,
+		VotingPower:      update.Power,
 		ProposerPriority: 0,
 	}
 }
@@ -69,16 +81,6 @@ func (v *Validator) String() string {
 		v.ProposerPriority)
 }
 
-// ValidatorListString returns a prettified validator list for logging purposes.
-func ValidatorListString(vals []*Validator) string {
-	chunks := make([]string, len(vals))
-	for i, val := range vals {
-		chunks[i] = fmt.Sprintf("%s:%d", val.Address, val.VotingPower)
-	}
-
-	return strings.Join(chunks, ",")
-}
-
 // Bytes computes the unique encoding of a validator with a given voting power.
 // These are the bytes that gets hashed in consensus. It excludes address
 // as its redundant with the pubkey. This also excludes ProposerPriority
@@ -91,6 +93,14 @@ func (v *Validator) Bytes() []byte {
 		v.PubKey,
 		v.VotingPower,
 	})
+}
+
+func (v *Validator) ABCIValidatorUpdate() abci.ValidatorUpdate {
+	return abci.ValidatorUpdate{
+		Address: v.Address,
+		PubKey:  v.PubKey,
+		Power:   v.VotingPower,
+	}
 }
 
 //----------------------------------------

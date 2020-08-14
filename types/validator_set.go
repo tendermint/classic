@@ -9,6 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	abci "github.com/tendermint/classic/abci/types"
 	"github.com/tendermint/classic/crypto"
 	"github.com/tendermint/classic/crypto/merkle"
 )
@@ -598,6 +599,16 @@ func (vals *ValidatorSet) updateWithChangeSet(changes []*Validator, allowDeletes
 // is not changed.
 func (vals *ValidatorSet) UpdateWithChangeSet(changes []*Validator) error {
 	return vals.updateWithChangeSet(changes, true)
+}
+
+// Same as UpdateWithChangeSet, but with abci.ValidatorUpdate.
+// The ProposerPriority gets set to 0 for new/existing validators.
+func (vals *ValidatorSet) UpdateWithABCIValidatorUpdates(valUpdates []abci.ValidatorUpdate) error {
+	changes := make([]*Validator, len(valUpdates))
+	for i, valUpdate := range valUpdates {
+		changes[i] = NewValidatorFromABCIValidatorUpdate(valUpdate)
+	}
+	return vals.UpdateWithChangeSet(changes)
 }
 
 // Verify that +2/3 of the set had signed the given signBytes.

@@ -26,7 +26,7 @@ func (a ABCIResult) Bytes() []byte {
 type ABCIResults []ABCIResult
 
 // NewResults creates ABCIResults from the list of ResponseDeliverTx.
-func NewResults(responses []*abci.ResponseDeliverTx) ABCIResults {
+func NewResults(responses []abci.ResponseDeliverTx) ABCIResults {
 	res := make(ABCIResults, len(responses))
 	for i, d := range responses {
 		res[i] = NewResultFromResponse(d)
@@ -35,7 +35,7 @@ func NewResults(responses []*abci.ResponseDeliverTx) ABCIResults {
 }
 
 // NewResultFromResponse creates ABCIResult from ResponseDeliverTx.
-func NewResultFromResponse(response *abci.ResponseDeliverTx) ABCIResult {
+func NewResultFromResponse(response abci.ResponseDeliverTx) ABCIResult {
 	return ABCIResult{
 		Error:  response.Error,
 		Data:   response.Data,

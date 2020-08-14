@@ -12,8 +12,7 @@ import "github.com/tendermint/classic/abci/types/types.proto";
 message Block {
 	Header Header = 1;
 	Data Data = 2;
-	EvidenceData Evidence = 3;
-	Commit LastCommit = 4;
+	Commit LastCommit = 3;
 }
 
 message Header {
@@ -32,16 +31,11 @@ message Header {
 	bytes ConsensusHash = 13;
 	bytes AppHash = 14;
 	bytes LastResultsHash = 15;
-	bytes EvidenceHash = 16;
-	bytes ProposerAddress = 17;
+	bytes ProposerAddress = 16;
 }
 
 message Data {
 	repeated bytes Txs = 1;
-}
-
-message EvidenceData {
-	repeated google.protobuf.Any Evidence = 1;
 }
 
 message Commit {
@@ -88,51 +82,51 @@ message Validator {
 	sint64 ProposerPriority = 4;
 }
 
-message EventDataNewBlock {
+message EventNewBlock {
 	Block Block = 1;
 	abci.ResponseBeginBlock ResultBeginBlock = 2;
 	abci.ResponseEndBlock ResultEndBlock = 3;
 }
 
-message EventDataNewBlockHeader {
+message EventNewBlockHeader {
 	Header Header = 1;
 	abci.ResponseBeginBlock ResultBeginBlock = 2;
 	abci.ResponseEndBlock ResultEndBlock = 3;
 }
 
-message EventDataTx {
+message EventTx {
 	TxResult TxResult = 1;
 }
 
-message EventDataRoundState {
+message EventRoundState {
 	sint64 Height = 1;
 	sint64 Round = 2;
 	string Step = 3;
 }
 
-message EventDataNewRound {
+message EventNewRound {
 	sint64 Height = 1;
 	sint64 Round = 2;
 	string Step = 3;
-	abci.Validator Proposer = 4;
+	Validator Proposer = 4;
 }
 
-message EventDataCompleteProposal {
+message EventCompleteProposal {
 	sint64 Height = 1;
 	sint64 Round = 2;
 	string Step = 3;
 	BlockID BlockID = 4;
 }
 
-message EventDataVote {
+message EventVote {
 	Vote Vote = 1;
 }
 
-message EventDataValidatorSetUpdates {
-	repeated Validator ValidatorUpdates = 1;
+message EventValidatorSetUpdates {
+	repeated abci.ValidatorUpdate ValidatorUpdates = 1;
 }
 
-message EventDataString {
+message EventString {
 	string Value = 1;
 }
 

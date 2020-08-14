@@ -22,8 +22,7 @@ type Block struct {
 	mtx        sync.Mutex
 	Header     `json:"header"`
 	Data       `json:"data"`
-	Evidence   EvidenceData `json:"evidence"`
-	LastCommit *Commit      `json:"last_commit"`
+	LastCommit *Commit `json:"last_commit"`
 }
 
 // ValidateBasic performs basic validation that doesn't involve state data.
@@ -117,23 +116,6 @@ func (b *Block) ValidateBasic() error {
 		return fmt.Errorf("Wrong Header.LastResultsHash: %v", err)
 	}
 
-	// Validate evidence and its hash.
-	if err := ValidateHash(b.EvidenceHash); err != nil {
-		return fmt.Errorf("Wrong Header.EvidenceHash: %v", err)
-	}
-	// NOTE: b.Evidence.Evidence may be nil, but we're just looping.
-	for i, ev := range b.Evidence.Evidence {
-		if err := ev.ValidateBasic(); err != nil {
-			return fmt.Errorf("Invalid evidence (#%d): %v", i, err)
-		}
-	}
-	if !bytes.Equal(b.EvidenceHash, b.Evidence.Hash()) {
-		return fmt.Errorf("Wrong Header.EvidenceHash. Expected %v, got %v",
-			b.EvidenceHash,
-			b.Evidence.Hash(),
-		)
-	}
-
 	if len(b.ProposerAddress) != crypto.AddressSize {
 		return fmt.Errorf("Expected len(Header.ProposerAddress) to be %d, got %d",
 			crypto.AddressSize, len(b.ProposerAddress))
@@ -149,9 +131,6 @@ func (b *Block) fillHeader() {
 	}
 	if b.DataHash == nil {
 		b.DataHash = b.Data.Hash()
-	}
-	if b.EvidenceHash == nil {
-		b.EvidenceHash = b.Evidence.Hash()
 	}
 }
 
@@ -225,11 +204,9 @@ func (b *Block) StringIndented(indent string) string {
 %s  %v
 %s  %v
 %s  %v
-%s  %v
 %s}#%v`,
 		indent, b.Header.StringIndented(indent+"  "),
 		indent, b.Data.StringIndented(indent+"  "),
-		indent, b.Evidence.StringIndented(indent+"  "),
 		indent, b.LastCommit.StringIndented(indent+"  "),
 		indent, b.Hash())
 }
@@ -274,8 +251,31 @@ type Header struct {
 	LastResultsHash    []byte `json:"last_results_hash"`    // root hash of all results from the txs from the previous block
 
 	// consensus info
-	EvidenceHash    []byte  `json:"evidence_hash"`    // evidence included in the block
 	ProposerAddress Address `json:"proposer_address"` // original proposer of the block
+}
+
+func (h *Header) AssertABCIHeader() {}
+
+// MakeBlock returns a new block with an empty header, except what can be
+// computed from itself.
+// It populates the same set of fields validated by ValidateBasic.
+func MakeBlock(height int64, txs []Tx, lastCommit *Commit) *Block {
+	block := &Block{
+		Header: Header{
+			Height: height,
+			NumTxs: int64(len(txs)),
+		},
+		Data: Data{
+			Txs: txs,
+		},
+		LastCommit: lastCommit,
+	}
+	block.fillHeader()
+	return block
+}
+
+func (h *Header) Copy() *Header {
+	return amino.DeepCopy(h).(*Header)
 }
 
 // Populate the Header with state-derived data.
@@ -328,7 +328,6 @@ func (h *Header) Hash() []byte {
 		bytesOrNil(h.ConsensusHash),
 		bytesOrNil(h.AppHash),
 		bytesOrNil(h.LastResultsHash),
-		bytesOrNil(h.EvidenceHash),
 		bytesOrNil(h.ProposerAddress),
 	})
 }
@@ -354,7 +353,6 @@ func (h *Header) StringIndented(indent string) string {
 %s  App:            %v
 %s  Consensus:      %v
 %s  Results:        %v
-%s  Evidence:       %v
 %s  Proposer:       %v
 %s}#%v`,
 		indent, h.Version,
@@ -372,7 +370,6 @@ func (h *Header) StringIndented(indent string) string {
 		indent, h.AppHash,
 		indent, h.ConsensusHash,
 		indent, h.LastResultsHash,
-		indent, h.EvidenceHash,
 		indent, h.ProposerAddress,
 		indent, h.Hash())
 }
@@ -411,7 +408,7 @@ type Commit struct {
 	// Any peer with a block can gossip precommits by index with a peer without recalculating the
 	// active ValidatorSet.
 	BlockID    BlockID      `json:"block_id"`
-	Precommits []*CommitSig `json:"precommits"`
+	Precommits []*CommitSig `json:"precommits" amino:"nil_elements"`
 
 	// memoized in first call to corresponding method
 	// NOTE: can't memoize in constructor because constructor
@@ -731,44 +728,6 @@ func (data *Data) StringIndented(indent string) string {
 %s  %v
 %s}#%v`,
 		indent, strings.Join(txStrings, "\n"+indent+"  "),
-		indent, data.hash)
-}
-
-//-----------------------------------------------------------------------------
-
-// EvidenceData contains any evidence of malicious wrong-doing by validators
-type EvidenceData struct {
-	Evidence EvidenceList `json:"evidence"`
-
-	// Volatile
-	hash []byte
-}
-
-// Hash returns the hash of the data.
-func (data *EvidenceData) Hash() []byte {
-	if data.hash == nil {
-		data.hash = data.Evidence.Hash()
-	}
-	return data.hash
-}
-
-// StringIndented returns a string representation of the evidence.
-func (data *EvidenceData) StringIndented(indent string) string {
-	if data == nil {
-		return "nil-Evidence"
-	}
-	evStrings := make([]string, cmn.MinInt(len(data.Evidence), 21))
-	for i, ev := range data.Evidence {
-		if i == 20 {
-			evStrings[i] = fmt.Sprintf("... (%v total)", len(data.Evidence))
-			break
-		}
-		evStrings[i] = fmt.Sprintf("Evidence:%v", ev)
-	}
-	return fmt.Sprintf(`EvidenceData{
-%s  %v
-%s}#%v`,
-		indent, strings.Join(evStrings, "\n"+indent+"  "),
 		indent, data.hash)
 }
 

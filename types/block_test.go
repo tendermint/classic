@@ -19,24 +19,6 @@ import (
 	"github.com/tendermint/go-amino-x"
 )
 
-func TestBlockAddEvidence(t *testing.T) {
-	txs := []Tx{Tx("foo"), Tx("bar")}
-	lastID := makeBlockIDRandom()
-	h := int64(3)
-
-	voteSet, valSet, vals := randVoteSet(h-1, 1, PrecommitType, 10, 1)
-	commit, err := MakeCommit(lastID, h-1, 1, voteSet, vals)
-	require.NoError(t, err)
-
-	ev := NewMockGoodEvidence(h, 0, valSet.Validators[0].Address)
-	evList := []Evidence{ev}
-
-	block := MakeBlock(h, txs, commit, evList)
-	require.NotNil(t, block)
-	require.Equal(t, 1, len(block.Evidence.Evidence))
-	require.NotNil(t, block.EvidenceHash)
-}
-
 func TestBlockValidateBasic(t *testing.T) {
 	require.Error(t, (*Block)(nil).ValidateBasic())
 
@@ -47,9 +29,6 @@ func TestBlockValidateBasic(t *testing.T) {
 	voteSet, valSet, vals := randVoteSet(h-1, 1, PrecommitType, 10, 1)
 	commit, err := MakeCommit(lastID, h-1, 1, voteSet, vals)
 	require.NoError(t, err)
-
-	ev := NewMockGoodEvidence(h, 0, valSet.Validators[0].Address)
-	evList := []Evidence{ev}
 
 	testCases := []struct {
 		testName      string
@@ -72,15 +51,12 @@ func TestBlockValidateBasic(t *testing.T) {
 		{"Tampered DataHash", func(blk *Block) {
 			blk.DataHash = cmn.RandBytes(len(blk.DataHash))
 		}, true},
-		{"Tampered EvidenceHash", func(blk *Block) {
-			blk.EvidenceHash = []byte("something else")
-		}, true},
 	}
 	for i, tc := range testCases {
 		tc := tc
 		i := i
 		t.Run(tc.testName, func(t *testing.T) {
-			block := MakeBlock(h, txs, commit, evList)
+			block := MakeBlock(h, txs, commit)
 			block.ProposerAddress = valSet.GetProposer().Address
 			tc.malleateBlock(block)
 			err = block.ValidateBasic()
@@ -91,33 +67,15 @@ func TestBlockValidateBasic(t *testing.T) {
 
 func TestBlockHash(t *testing.T) {
 	assert.Nil(t, (*Block)(nil).Hash())
-	assert.Nil(t, MakeBlock(int64(3), []Tx{Tx("Hello World")}, nil, nil).Hash())
+	assert.Nil(t, MakeBlock(int64(3), []Tx{Tx("Hello World")}, nil).Hash())
 }
 
 func TestBlockMakePartSet(t *testing.T) {
 	assert.Nil(t, (*Block)(nil).MakePartSet(2))
 
-	partSet := MakeBlock(int64(3), []Tx{Tx("Hello World")}, nil, nil).MakePartSet(1024)
+	partSet := MakeBlock(int64(3), []Tx{Tx("Hello World")}, nil).MakePartSet(1024)
 	assert.NotNil(t, partSet)
 	assert.Equal(t, 1, partSet.Total())
-}
-
-func TestBlockMakePartSetWithEvidence(t *testing.T) {
-	assert.Nil(t, (*Block)(nil).MakePartSet(2))
-
-	lastID := makeBlockIDRandom()
-	h := int64(3)
-
-	voteSet, valSet, vals := randVoteSet(h-1, 1, PrecommitType, 10, 1)
-	commit, err := MakeCommit(lastID, h-1, 1, voteSet, vals)
-	require.NoError(t, err)
-
-	ev := NewMockGoodEvidence(h, 0, valSet.Validators[0].Address)
-	evList := []Evidence{ev}
-
-	partSet := MakeBlock(h, []Tx{Tx("Hello World")}, commit, evList).MakePartSet(1024)
-	assert.NotNil(t, partSet)
-	assert.Equal(t, 3, partSet.Total())
 }
 
 func TestBlockHashesTo(t *testing.T) {
@@ -129,10 +87,7 @@ func TestBlockHashesTo(t *testing.T) {
 	commit, err := MakeCommit(lastID, h-1, 1, voteSet, vals)
 	require.NoError(t, err)
 
-	ev := NewMockGoodEvidence(h, 0, valSet.Validators[0].Address)
-	evList := []Evidence{ev}
-
-	block := MakeBlock(h, []Tx{Tx("Hello World")}, commit, evList)
+	block := MakeBlock(h, []Tx{Tx("Hello World")}, commit)
 	block.ValidatorsHash = valSet.Hash()
 	assert.False(t, block.HashesTo([]byte{}))
 	assert.False(t, block.HashesTo([]byte("something else")))
@@ -140,7 +95,7 @@ func TestBlockHashesTo(t *testing.T) {
 }
 
 func TestBlockSize(t *testing.T) {
-	size := MakeBlock(int64(3), []Tx{Tx("Hello World")}, nil, nil).Size()
+	size := MakeBlock(int64(3), []Tx{Tx("Hello World")}, nil).Size()
 	if size <= 0 {
 		t.Fatal("Size of the block is zero or negative")
 	}
@@ -151,7 +106,7 @@ func TestBlockString(t *testing.T) {
 	assert.Equal(t, "nil-Block", (*Block)(nil).StringIndented(""))
 	assert.Equal(t, "nil-Block", (*Block)(nil).StringShort())
 
-	block := MakeBlock(int64(3), []Tx{Tx("Hello World")}, nil, nil)
+	block := MakeBlock(int64(3), []Tx{Tx("Hello World")}, nil)
 	assert.NotEqual(t, "nil-Block", block.String())
 	assert.NotEqual(t, "nil-Block", block.StringIndented(""))
 	assert.NotEqual(t, "nil-Block", block.StringShort())
@@ -263,14 +218,13 @@ func TestHeaderByteSize(t *testing.T) {
 		ConsensusHash:      tmhash.Sum([]byte("consensus_hash")),
 		AppHash:            tmhash.Sum([]byte("app_hash")),
 		LastResultsHash:    tmhash.Sum([]byte("last_results_hash")),
-		EvidenceHash:       tmhash.Sum([]byte("evidence_hash")),
 		ProposerAddress:    crypto.AddressFromPreimage([]byte("proposer_address")),
 	}
 
 	bz, err := amino.MarshalSized(h)
 	require.NoError(t, err)
 
-	assert.EqualValues(t, 662, len(bz))
+	assert.EqualValues(t, 627, len(bz))
 }
 
 func randCommit() *Commit {
@@ -385,7 +339,6 @@ func TestSignedHeaderValidateBasic(t *testing.T) {
 		ConsensusHash:      commit.Hash(),
 		AppHash:            commit.Hash(),
 		LastResultsHash:    commit.Hash(),
-		EvidenceHash:       commit.Hash(),
 		ProposerAddress:    crypto.AddressFromPreimage([]byte("proposer_address")),
 	}
 
