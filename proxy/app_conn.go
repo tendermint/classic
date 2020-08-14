@@ -2,7 +2,7 @@ package proxy
 
 import (
 	abcicli "github.com/tendermint/classic/abci/client"
-	"github.com/tendermint/classic/abci/types"
+	abci "github.com/tendermint/classic/abci/types"
 )
 
 //----------------------------------------------------------------------------------------
@@ -12,19 +12,19 @@ type AppConnConsensus interface {
 	SetResponseCallback(abcicli.Callback)
 	Error() error
 
-	InitChainSync(types.RequestInitChain) (*types.ResponseInitChain, error)
+	InitChainSync(abci.RequestInitChain) (abci.ResponseInitChain, error)
 
-	BeginBlockSync(types.RequestBeginBlock) (*types.ResponseBeginBlock, error)
-	DeliverTxAsync(types.RequestDeliverTx) *abcicli.ReqRes
-	EndBlockSync(types.RequestEndBlock) (*types.ResponseEndBlock, error)
-	CommitSync() (*types.ResponseCommit, error)
+	BeginBlockSync(abci.RequestBeginBlock) (abci.ResponseBeginBlock, error)
+	DeliverTxAsync(abci.RequestDeliverTx) *abcicli.ReqRes
+	EndBlockSync(abci.RequestEndBlock) (abci.ResponseEndBlock, error)
+	CommitSync() (abci.ResponseCommit, error)
 }
 
 type AppConnMempool interface {
 	SetResponseCallback(abcicli.Callback)
 	Error() error
 
-	CheckTxAsync(types.RequestCheckTx) *abcicli.ReqRes
+	CheckTxAsync(abci.RequestCheckTx) *abcicli.ReqRes
 
 	FlushAsync() *abcicli.ReqRes
 	FlushSync() error
@@ -33,11 +33,11 @@ type AppConnMempool interface {
 type AppConnQuery interface {
 	Error() error
 
-	EchoSync(string) (*types.ResponseEcho, error)
-	InfoSync(types.RequestInfo) (*types.ResponseInfo, error)
-	QuerySync(types.RequestQuery) (*types.ResponseQuery, error)
+	EchoSync(string) (abci.ResponseEcho, error)
+	InfoSync(abci.RequestInfo) (abci.ResponseInfo, error)
+	QuerySync(abci.RequestQuery) (abci.ResponseQuery, error)
 
-	//	SetOptionSync(key string, value string) (res types.Result)
+	//	SetOptionSync(key string, value string) (res abci.Result)
 }
 
 //-----------------------------------------------------------------------------------------
@@ -61,23 +61,23 @@ func (app *appConnConsensus) Error() error {
 	return app.appConn.Error()
 }
 
-func (app *appConnConsensus) InitChainSync(req types.RequestInitChain) (*types.ResponseInitChain, error) {
+func (app *appConnConsensus) InitChainSync(req abci.RequestInitChain) (abci.ResponseInitChain, error) {
 	return app.appConn.InitChainSync(req)
 }
 
-func (app *appConnConsensus) BeginBlockSync(req types.RequestBeginBlock) (*types.ResponseBeginBlock, error) {
+func (app *appConnConsensus) BeginBlockSync(req abci.RequestBeginBlock) (abci.ResponseBeginBlock, error) {
 	return app.appConn.BeginBlockSync(req)
 }
 
-func (app *appConnConsensus) DeliverTxAsync(req types.RequestDeliverTx) *abcicli.ReqRes {
+func (app *appConnConsensus) DeliverTxAsync(req abci.RequestDeliverTx) *abcicli.ReqRes {
 	return app.appConn.DeliverTxAsync(req)
 }
 
-func (app *appConnConsensus) EndBlockSync(req types.RequestEndBlock) (*types.ResponseEndBlock, error) {
+func (app *appConnConsensus) EndBlockSync(req abci.RequestEndBlock) (abci.ResponseEndBlock, error) {
 	return app.appConn.EndBlockSync(req)
 }
 
-func (app *appConnConsensus) CommitSync() (*types.ResponseCommit, error) {
+func (app *appConnConsensus) CommitSync() (abci.ResponseCommit, error) {
 	return app.appConn.CommitSync()
 }
 
@@ -110,7 +110,7 @@ func (app *appConnMempool) FlushSync() error {
 	return app.appConn.FlushSync()
 }
 
-func (app *appConnMempool) CheckTxAsync(req types.RequestCheckTx) *abcicli.ReqRes {
+func (app *appConnMempool) CheckTxAsync(req abci.RequestCheckTx) *abcicli.ReqRes {
 	return app.appConn.CheckTxAsync(req)
 }
 
@@ -131,14 +131,14 @@ func (app *appConnQuery) Error() error {
 	return app.appConn.Error()
 }
 
-func (app *appConnQuery) EchoSync(msg string) (*types.ResponseEcho, error) {
+func (app *appConnQuery) EchoSync(msg string) (abci.ResponseEcho, error) {
 	return app.appConn.EchoSync(msg)
 }
 
-func (app *appConnQuery) InfoSync(req types.RequestInfo) (*types.ResponseInfo, error) {
+func (app *appConnQuery) InfoSync(req abci.RequestInfo) (abci.ResponseInfo, error) {
 	return app.appConn.InfoSync(req)
 }
 
-func (app *appConnQuery) QuerySync(reqQuery types.RequestQuery) (*types.ResponseQuery, error) {
+func (app *appConnQuery) QuerySync(reqQuery abci.RequestQuery) (abci.ResponseQuery, error) {
 	return app.appConn.QuerySync(reqQuery)
 }

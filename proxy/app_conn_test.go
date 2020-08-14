@@ -8,7 +8,7 @@ import (
 	abcicli "github.com/tendermint/classic/abci/client"
 	"github.com/tendermint/classic/abci/example/kvstore"
 	"github.com/tendermint/classic/abci/server"
-	"github.com/tendermint/classic/abci/types"
+	abci "github.com/tendermint/classic/abci/types"
 	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/classic/libs/log"
 )
@@ -18,7 +18,7 @@ import (
 type AppConnTest interface {
 	EchoAsync(string) *abcicli.ReqRes
 	FlushSync() error
-	InfoSync(types.RequestInfo) (*types.ResponseInfo, error)
+	InfoSync(abci.RequestInfo) (abci.ResponseInfo, error)
 }
 
 type appConnTest struct {
@@ -37,7 +37,7 @@ func (app *appConnTest) FlushSync() error {
 	return app.appConn.FlushSync()
 }
 
-func (app *appConnTest) InfoSync(req types.RequestInfo) (*types.ResponseInfo, error) {
+func (app *appConnTest) InfoSync(req abci.RequestInfo) (abci.ResponseInfo, error) {
 	return app.appConn.InfoSync(req)
 }
 
@@ -114,7 +114,7 @@ func BenchmarkEcho(b *testing.B) {
 	}
 
 	b.StopTimer()
-	// info := proxy.InfoSync(types.RequestInfo{""})
+	// info := proxy.InfoSync(abci.RequestInfo{""})
 	//b.Log("N: ", b.N, info)
 }
 
@@ -143,11 +143,11 @@ func TestInfo(t *testing.T) {
 	proxy := NewAppConnTest(cli)
 	t.Log("Connected")
 
-	resInfo, err := proxy.InfoSync(RequestInfo)
+	resInfo, err := proxy.InfoSync(abci.RequestInfo{})
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
-	if resInfo.Data != "{\"size\":0}" {
+	if string(resInfo.Data) != "{\"size\":0}" {
 		t.Error("Expected ResponseInfo with one element '{\"size\":0}' but got something else")
 	}
 }

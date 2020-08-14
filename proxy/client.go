@@ -8,7 +8,7 @@ import (
 	abcicli "github.com/tendermint/classic/abci/client"
 	"github.com/tendermint/classic/abci/example/counter"
 	"github.com/tendermint/classic/abci/example/kvstore"
-	"github.com/tendermint/classic/abci/types"
+	abci "github.com/tendermint/classic/abci/types"
 )
 
 // NewABCIClient returns newly connected client
@@ -21,10 +21,10 @@ type ClientCreator interface {
 
 type localClientCreator struct {
 	mtx *sync.Mutex
-	app types.Application
+	app abci.Application
 }
 
-func NewLocalClientCreator(app types.Application) ClientCreator {
+func NewLocalClientCreator(app abci.Application) ClientCreator {
 	return &localClientCreator{
 		mtx: new(sync.Mutex),
 		app: app,
@@ -74,7 +74,7 @@ func DefaultClientCreator(addr, transport, dbDir string) ClientCreator {
 	case "persistent_kvstore":
 		return NewLocalClientCreator(kvstore.NewPersistentKVStoreApplication(dbDir))
 	case "noop":
-		return NewLocalClientCreator(types.NewBaseApplication())
+		return NewLocalClientCreator(abci.NewBaseApplication())
 	default:
 		mustConnect := false // loop retrying
 		return NewRemoteClientCreator(addr, transport, mustConnect)
