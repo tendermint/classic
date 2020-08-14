@@ -5,6 +5,7 @@
 BREAKING:
 
  - Remove HexBytes
+ - Simplified EventSwitch (no "event" string)
 
 NEW FEATURES:
  - Add libs.versionset.VersionSet

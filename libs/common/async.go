@@ -5,6 +5,18 @@ import (
 )
 
 //----------------------------------------
+// Routine
+
+func Routine(fn func()) <-chan struct{} {
+	done := make(chan struct{})
+	go func() {
+		fn()
+		close(done)
+	}()
+	return done
+}
+
+//----------------------------------------
 // Task
 
 // val: the value returned after task execution.
