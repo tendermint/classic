@@ -23,9 +23,6 @@ message RequestFlush {
 
 message RequestInfo {
 	RequestBase RequestBase = 1;
-	string Version = 2;
-	uint64 BlockVersion = 3;
-	uint64 P2PVersion = 4;
 }
 
 message RequestSetOption {
@@ -56,7 +53,6 @@ message RequestBeginBlock {
 	bytes Hash = 2;
 	google.protobuf.Any Header = 3;
 	LastCommitInfo LastCommitInfo = 4;
-	repeated Violation Violations = 5;
 }
 
 message RequestCheckTx {
@@ -154,7 +150,7 @@ message ResponseCommit {
 }
 
 message StringError {
-	string Message = 1;
+	string Value = 1;
 }
 
 message ConsensusParams {
@@ -165,8 +161,9 @@ message ConsensusParams {
 
 message BlockParams {
 	sint64 MaxTxBytes = 1;
-	sint64 MaxGas = 2;
-	sint64 TimeIotaMS = 3;
+	sint64 MaxDataBytes = 2;
+	sint64 MaxGas = 3;
+	sint64 TimeIotaMS = 4;
 }
 
 message EvidenceParams {
@@ -192,20 +189,6 @@ message VoteInfo {
 	bytes Address = 1;
 	sint64 Power = 2;
 	bool SignedLastBlock = 3;
-}
-
-message Validator {
-	bytes Address = 1;
-	google.protobuf.Any PubKey = 2;
-	sint64 Power = 3;
-}
-
-message Violation {
-	google.protobuf.Any Evidence = 1;
-	repeated Validator Validators = 2;
-	sint64 Height = 3;
-	google.protobuf.Timestamp Time = 4;
-	sint64 TotalVotingPower = 5;
 }
 
 message SimpleEvent {

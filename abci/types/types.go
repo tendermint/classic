@@ -30,9 +30,6 @@ type RequestFlush struct {
 
 type RequestInfo struct {
 	RequestBase
-	Version      string
-	BlockVersion uint64
-	P2PVersion   uint64
 }
 
 // nondeterministic
@@ -64,7 +61,7 @@ type RequestBeginBlock struct {
 	Hash           []byte
 	Header         Header
 	LastCommitInfo *LastCommitInfo
-	Violations     []Violation
+	//Violations     []Violation
 }
 
 type CheckTxType int
@@ -211,19 +208,29 @@ type Evidence interface {
 //----------------------------------------
 // Error types
 
-type StringError struct {
-	Message string
-}
+type StringError string
 
 func (_ StringError) AssertABCIError() {}
 
 func (err StringError) Error() string {
-	return err.Message
+	return string(err)
+}
+
+//----------------------------------------
+// Event types
+
+type StringEvent string
+
+func (_ StringEvent) AssertABCIEvent() {}
+
+func (err StringEvent) Event() string {
+	return string(err)
 }
 
 //----------------------------------------
 // Misc
 
+// Parameters that need to be negotiated between the app and consensus.
 type ConsensusParams struct {
 	Block     *BlockParams
 	Evidence  *EvidenceParams
@@ -231,9 +238,10 @@ type ConsensusParams struct {
 }
 
 type BlockParams struct {
-	MaxTxBytes int64 // must be > 0
-	MaxGas     int64 // must be >= -1
-	TimeIotaMS int64
+	MaxTxBytes   int64 // must be > 0
+	MaxDataBytes int64 // must be > 0
+	MaxGas       int64 // must be >= -1
+	TimeIotaMS   int64
 }
 
 type EvidenceParams struct {
@@ -252,7 +260,7 @@ type ValidatorUpdate struct {
 
 type LastCommitInfo struct {
 	Round int32
-	Votes []*VoteInfo
+	Votes []VoteInfo
 }
 
 // unstable
@@ -262,6 +270,7 @@ type VoteInfo struct {
 	SignedLastBlock bool
 }
 
+/*
 // unstable
 type Validator struct {
 	Address crypto.Address
@@ -277,3 +286,4 @@ type Violation struct {
 	Time             time.Time
 	TotalVotingPower int64
 }
+*/

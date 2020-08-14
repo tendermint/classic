@@ -475,11 +475,7 @@ func cmdEcho(cmd *cobra.Command, args []string) error {
 
 // Get some info from the application
 func cmdInfo(cmd *cobra.Command, args []string) error {
-	var version string
-	if len(args) == 1 {
-		version = args[0]
-	}
-	res, err := client.InfoSync(abci.RequestInfo{Version: version})
+	res, err := client.InfoSync(abci.RequestInfo{})
 	if err != nil {
 		return err
 	}
@@ -489,7 +485,7 @@ func cmdInfo(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-var badError abci.Error = abci.StringError{"badError"}
+var badError abci.Error = abci.StringError("badError")
 
 // Set an option on the application
 func cmdSetOption(cmd *cobra.Command, args []string) error {

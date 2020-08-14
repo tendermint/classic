@@ -213,7 +213,7 @@ func (s *SocketServer) handleRequest(req abci.Request, responses chan<- abci.Res
 	default:
 		responses <- abci.ResponseException{
 			ResponseBase: abci.ResponseBase{
-				Error: abci.StringError{"Unknown request"},
+				Error: abci.StringError("Unknown request"),
 			},
 		}
 	}

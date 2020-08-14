@@ -54,7 +54,7 @@ var Package = amino.RegisterPackage(amino.NewPackage(
 		ResponseCommit{},
 
 		// error types
-		StringError{},
+		StringError(""),
 
 		// misc types
 		ConsensusParams{},
@@ -64,8 +64,8 @@ var Package = amino.RegisterPackage(amino.NewPackage(
 		ValidatorUpdate{},
 		LastCommitInfo{},
 		VoteInfo{},
-		Validator{},
-		Violation{},
+		//Validator{},
+		//Violation{},
 
 		// events
 		SimpleEvent(""),

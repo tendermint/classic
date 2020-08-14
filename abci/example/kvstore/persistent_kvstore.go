@@ -7,11 +7,10 @@ import (
 	"strings"
 
 	"github.com/tendermint/classic/abci/example/errors"
-	"github.com/tendermint/classic/abci/types"
+	abci "github.com/tendermint/classic/abci/types"
 	"github.com/tendermint/classic/crypto"
 	dbm "github.com/tendermint/classic/db"
 	"github.com/tendermint/classic/libs/log"
-	tmtypes "github.com/tendermint/classic/types"
 	"github.com/tendermint/go-amino-x"
 )
 
@@ -118,6 +117,7 @@ func (app *PersistentKVStoreApplication) BeginBlock(req abci.RequestBeginBlock) 
 	// reset valset changes
 	app.ValSetChanges = make([]abci.ValidatorUpdate, 0)
 
+	/* REMOVE
 	for _, vio := range req.Violations {
 		if _, ok := vio.Evidence.(*tmtypes.DuplicateVoteEvidence); ok {
 			for _, val := range vio.Validators {
@@ -133,6 +133,7 @@ func (app *PersistentKVStoreApplication) BeginBlock(req abci.RequestBeginBlock) 
 			}
 		}
 	}
+	*/
 	return abci.ResponseBeginBlock{}
 }
 

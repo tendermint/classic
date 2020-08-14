@@ -187,15 +187,6 @@ func (goo RequestInfo) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err err
 			}
 			pbo.RequestBase = pbom.(*abcipb.RequestBase)
 		}
-		{
-			pbo.Version = string(goo.Version)
-		}
-		{
-			pbo.BlockVersion = uint64(goo.BlockVersion)
-		}
-		{
-			pbo.P2PVersion = uint64(goo.P2PVersion)
-		}
 	}
 	msg = pbo
 	return
@@ -217,15 +208,6 @@ func (goo *RequestInfo) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err 
 					}
 				}
 			}
-			{
-				(*goo).Version = string(pbo.Version)
-			}
-			{
-				(*goo).BlockVersion = uint64(pbo.BlockVersion)
-			}
-			{
-				(*goo).P2PVersion = uint64(pbo.P2PVersion)
-			}
 		}
 	}
 	return
@@ -239,21 +221,6 @@ func IsRequestInfoReprEmpty(goor RequestInfo) (empty bool) {
 		{
 			e := IsRequestBaseReprEmpty(goor.RequestBase)
 			if e == false {
-				return false
-			}
-		}
-		{
-			if goor.Version != "" {
-				return false
-			}
-		}
-		{
-			if goor.BlockVersion != 0 {
-				return false
-			}
-		}
-		{
-			if goor.P2PVersion != 0 {
 				return false
 			}
 		}
@@ -734,28 +701,6 @@ func (goo RequestBeginBlock) ToPBMessage(cdc *amino.Codec) (msg proto.Message, e
 				}
 			}
 		}
-		{
-			goorl := len(goo.Violations)
-			if goorl == 0 {
-				pbo.Violations = nil
-			} else {
-				var pbos = make([]*abcipb.Violation, goorl)
-				for i := 0; i < goorl; i += 1 {
-					{
-						goore := goo.Violations[i]
-						{
-							pbom := proto.Message(nil)
-							pbom, err = goore.ToPBMessage(cdc)
-							if err != nil {
-								return
-							}
-							pbos[i] = pbom.(*abcipb.Violation)
-						}
-					}
-				}
-				pbo.Violations = pbos
-			}
-		}
 	}
 	msg = pbo
 	return
@@ -816,32 +761,6 @@ func (goo *RequestBeginBlock) FromPBMessage(cdc *amino.Codec, msg proto.Message)
 					}
 				}
 			}
-			{
-				var pbol int = 0
-				if pbo.Violations != nil {
-					pbol = len(pbo.Violations)
-				}
-				if pbol == 0 {
-					(*goo).Violations = nil
-				} else {
-					var goors = make([]Violation, pbol)
-					for i := 0; i < pbol; i += 1 {
-						{
-							pboe := pbo.Violations[i]
-							{
-								pboev := pboe
-								if pboev != nil {
-									err = goors[i].FromPBMessage(cdc, pboev)
-									if err != nil {
-										return
-									}
-								}
-							}
-						}
-					}
-					(*goo).Violations = goors
-				}
-			}
 		}
 	}
 	return
@@ -870,11 +789,6 @@ func IsRequestBeginBlockReprEmpty(goor RequestBeginBlock) (empty bool) {
 		}
 		{
 			if goor.LastCommitInfo != nil {
-				return false
-			}
-		}
-		{
-			if len(goor.Violations) != 0 {
 				return false
 			}
 		}
@@ -2563,10 +2477,7 @@ func (goo StringError) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err err
 			msg = pbov
 			return
 		}
-		pbo = new(abcipb.StringError)
-		{
-			pbo.Message = string(goo.Message)
-		}
+		pbo = &abcipb.StringError{Value: string(goo)}
 	}
 	msg = pbo
 	return
@@ -2579,11 +2490,7 @@ func (goo StringError) EmptyPBMessage(cdc *amino.Codec) (msg proto.Message) {
 func (goo *StringError) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err error) {
 	var pbo *abcipb.StringError = msg.(*abcipb.StringError)
 	{
-		if pbo != nil {
-			{
-				(*goo).Message = string(pbo.Message)
-			}
-		}
+		*goo = StringError(pbo.Value)
 	}
 	return
 }
@@ -2593,10 +2500,8 @@ func (_ StringError) GetTypeURL() (typeURL string) {
 func IsStringErrorReprEmpty(goor StringError) (empty bool) {
 	{
 		empty = true
-		{
-			if goor.Message != "" {
-				return false
-			}
+		if goor != "" {
+			return false
 		}
 	}
 	return
@@ -2730,6 +2635,9 @@ func (goo BlockParams) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err err
 			pbo.MaxTxBytes = int64(goo.MaxTxBytes)
 		}
 		{
+			pbo.MaxDataBytes = int64(goo.MaxDataBytes)
+		}
+		{
 			pbo.MaxGas = int64(goo.MaxGas)
 		}
 		{
@@ -2752,6 +2660,9 @@ func (goo *BlockParams) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err 
 				(*goo).MaxTxBytes = int64(pbo.MaxTxBytes)
 			}
 			{
+				(*goo).MaxDataBytes = int64(pbo.MaxDataBytes)
+			}
+			{
 				(*goo).MaxGas = int64(pbo.MaxGas)
 			}
 			{
@@ -2769,6 +2680,11 @@ func IsBlockParamsReprEmpty(goor BlockParams) (empty bool) {
 		empty = true
 		{
 			if goor.MaxTxBytes != 0 {
+				return false
+			}
+		}
+		{
+			if goor.MaxDataBytes != 0 {
 				return false
 			}
 		}
@@ -3037,17 +2953,12 @@ func (goo LastCommitInfo) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err 
 					{
 						goore := goo.Votes[i]
 						{
-							if goore != nil {
-								pbom := proto.Message(nil)
-								pbom, err = goore.ToPBMessage(cdc)
-								if err != nil {
-									return
-								}
-								pbos[i] = pbom.(*abcipb.VoteInfo)
-								if pbos[i] == nil {
-									pbos[i] = new(abcipb.VoteInfo)
-								}
+							pbom := proto.Message(nil)
+							pbom, err = goore.ToPBMessage(cdc)
+							if err != nil {
+								return
 							}
+							pbos[i] = pbom.(*abcipb.VoteInfo)
 						}
 					}
 				}
@@ -3078,14 +2989,13 @@ func (goo *LastCommitInfo) FromPBMessage(cdc *amino.Codec, msg proto.Message) (e
 				if pbol == 0 {
 					(*goo).Votes = nil
 				} else {
-					var goors = make([]*VoteInfo, pbol)
+					var goors = make([]VoteInfo, pbol)
 					for i := 0; i < pbol; i += 1 {
 						{
 							pboe := pbo.Votes[i]
 							{
 								pboev := pboe
 								if pboev != nil {
-									goors[i] = new(VoteInfo)
 									err = goors[i].FromPBMessage(cdc, pboev)
 									if err != nil {
 										return
@@ -3206,260 +3116,6 @@ func IsVoteInfoReprEmpty(goor VoteInfo) (empty bool) {
 		}
 		{
 			if goor.SignedLastBlock != false {
-				return false
-			}
-		}
-	}
-	return
-}
-func (goo Validator) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
-	var pbo *abcipb.Validator
-	{
-		if IsValidatorReprEmpty(goo) {
-			var pbov *abcipb.Validator
-			msg = pbov
-			return
-		}
-		pbo = new(abcipb.Validator)
-		{
-			goorl := len(goo.Address)
-			if goorl == 0 {
-				pbo.Address = nil
-			} else {
-				var pbos = make([]uint8, goorl)
-				for i := 0; i < goorl; i += 1 {
-					{
-						goore := goo.Address[i]
-						{
-							pbos[i] = byte(goore)
-						}
-					}
-				}
-				pbo.Address = pbos
-			}
-		}
-		{
-			if goo.PubKey != nil {
-				typeUrl := cdc.GetTypeURL(goo.PubKey)
-				bz := []byte(nil)
-				bz, err = cdc.Marshal(goo.PubKey)
-				if err != nil {
-					return
-				}
-				pbo.PubKey = &anypb.Any{TypeUrl: typeUrl, Value: bz}
-			}
-		}
-		{
-			pbo.Power = int64(goo.Power)
-		}
-	}
-	msg = pbo
-	return
-}
-func (goo Validator) EmptyPBMessage(cdc *amino.Codec) (msg proto.Message) {
-	pbo := new(abcipb.Validator)
-	msg = pbo
-	return
-}
-func (goo *Validator) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err error) {
-	var pbo *abcipb.Validator = msg.(*abcipb.Validator)
-	{
-		if pbo != nil {
-			{
-				var goors = [20]uint8{}
-				for i := 0; i < 20; i += 1 {
-					{
-						pboe := pbo.Address[i]
-						{
-							pboev := pboe
-							goors[i] = uint8(uint8(pboev))
-						}
-					}
-				}
-				(*goo).Address = goors
-			}
-			{
-				typeUrl := pbo.PubKey.TypeUrl
-				bz := pbo.PubKey.Value
-				goorp := &(*goo).PubKey
-				err = cdc.UnmarshalAny(typeUrl, bz, goorp)
-				if err != nil {
-					return
-				}
-			}
-			{
-				(*goo).Power = int64(pbo.Power)
-			}
-		}
-	}
-	return
-}
-func (_ Validator) GetTypeURL() (typeURL string) {
-	return "/abci.Validator"
-}
-func IsValidatorReprEmpty(goor Validator) (empty bool) {
-	{
-		empty = true
-		{
-			if len(goor.Address) != 0 {
-				return false
-			}
-		}
-		{
-			if goor.PubKey != nil {
-				return false
-			}
-		}
-		{
-			if goor.Power != 0 {
-				return false
-			}
-		}
-	}
-	return
-}
-func (goo Violation) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
-	var pbo *abcipb.Violation
-	{
-		if IsViolationReprEmpty(goo) {
-			var pbov *abcipb.Violation
-			msg = pbov
-			return
-		}
-		pbo = new(abcipb.Violation)
-		{
-			if goo.Evidence != nil {
-				typeUrl := cdc.GetTypeURL(goo.Evidence)
-				bz := []byte(nil)
-				bz, err = cdc.Marshal(goo.Evidence)
-				if err != nil {
-					return
-				}
-				pbo.Evidence = &anypb.Any{TypeUrl: typeUrl, Value: bz}
-			}
-		}
-		{
-			goorl := len(goo.Validators)
-			if goorl == 0 {
-				pbo.Validators = nil
-			} else {
-				var pbos = make([]*abcipb.Validator, goorl)
-				for i := 0; i < goorl; i += 1 {
-					{
-						goore := goo.Validators[i]
-						{
-							pbom := proto.Message(nil)
-							pbom, err = goore.ToPBMessage(cdc)
-							if err != nil {
-								return
-							}
-							pbos[i] = pbom.(*abcipb.Validator)
-						}
-					}
-				}
-				pbo.Validators = pbos
-			}
-		}
-		{
-			pbo.Height = int64(goo.Height)
-		}
-		{
-			if !amino.IsEmptyTime(goo.Time) {
-				pbo.Time = timestamppb.New(goo.Time)
-			}
-		}
-		{
-			pbo.TotalVotingPower = int64(goo.TotalVotingPower)
-		}
-	}
-	msg = pbo
-	return
-}
-func (goo Violation) EmptyPBMessage(cdc *amino.Codec) (msg proto.Message) {
-	pbo := new(abcipb.Violation)
-	msg = pbo
-	return
-}
-func (goo *Violation) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err error) {
-	var pbo *abcipb.Violation = msg.(*abcipb.Violation)
-	{
-		if pbo != nil {
-			{
-				typeUrl := pbo.Evidence.TypeUrl
-				bz := pbo.Evidence.Value
-				goorp := &(*goo).Evidence
-				err = cdc.UnmarshalAny(typeUrl, bz, goorp)
-				if err != nil {
-					return
-				}
-			}
-			{
-				var pbol int = 0
-				if pbo.Validators != nil {
-					pbol = len(pbo.Validators)
-				}
-				if pbol == 0 {
-					(*goo).Validators = nil
-				} else {
-					var goors = make([]Validator, pbol)
-					for i := 0; i < pbol; i += 1 {
-						{
-							pboe := pbo.Validators[i]
-							{
-								pboev := pboe
-								if pboev != nil {
-									err = goors[i].FromPBMessage(cdc, pboev)
-									if err != nil {
-										return
-									}
-								}
-							}
-						}
-					}
-					(*goo).Validators = goors
-				}
-			}
-			{
-				(*goo).Height = int64(pbo.Height)
-			}
-			{
-				(*goo).Time = pbo.Time.AsTime()
-			}
-			{
-				(*goo).TotalVotingPower = int64(pbo.TotalVotingPower)
-			}
-		}
-	}
-	return
-}
-func (_ Violation) GetTypeURL() (typeURL string) {
-	return "/abci.Violation"
-}
-func IsViolationReprEmpty(goor Violation) (empty bool) {
-	{
-		empty = true
-		{
-			if goor.Evidence != nil {
-				return false
-			}
-		}
-		{
-			if len(goor.Validators) != 0 {
-				return false
-			}
-		}
-		{
-			if goor.Height != 0 {
-				return false
-			}
-		}
-		{
-			if !amino.IsEmptyTime(goor.Time) {
-				return false
-			}
-		}
-		{
-			if goor.TotalVotingPower != 0 {
 				return false
 			}
 		}
