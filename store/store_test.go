@@ -12,15 +12,15 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	db "github.com/tendermint/classic/db"
-	dbm "github.com/tendermint/classic/db"
 
 	cfg "github.com/tendermint/classic/config"
+	db "github.com/tendermint/classic/db"
+	dbm "github.com/tendermint/classic/db"
 	"github.com/tendermint/classic/libs/log"
 	sm "github.com/tendermint/classic/state"
-
 	"github.com/tendermint/classic/types"
 	tmtime "github.com/tendermint/classic/types/time"
+	"github.com/tendermint/go-amino-x"
 )
 
 // A cleanupFunc cleans up any config / test files created for a particular
@@ -41,7 +41,7 @@ func makeTxs(height int64) (txs []types.Tx) {
 }
 
 func makeBlock(height int64, state sm.State, lastCommit *types.Commit) *types.Block {
-	block, _ := state.MakeBlock(height, makeTxs(height), lastCommit, nil, state.Validators.GetProposer().Address)
+	block, _ := state.MakeBlock(height, makeTxs(height), lastCommit, state.Validators.GetProposer().Address)
 	return block
 }
 
@@ -344,7 +344,7 @@ func TestLoadBlockPart(t *testing.T) {
 	require.Contains(t, panicErr.Error(), "unmarshal to types.Part failed")
 
 	// 3. A good block serialized and saved to the DB should be retrievable
-	db.Set(calcBlockPartKey(height, index), cdc.MustMarshal(part1))
+	db.Set(calcBlockPartKey(height, index), amino.MustMarshal(part1))
 	gotPart, _, panicErr := doFn(loadPart)
 	require.Nil(t, panicErr, "an existent and proper block should not panic")
 	require.Nil(t, res, "a properly saved block should return a proper block")
@@ -374,11 +374,11 @@ func TestLoadBlockMeta(t *testing.T) {
 
 	// 3. A good blockMeta serialized and saved to the DB should be retrievable
 	meta := &types.BlockMeta{}
-	db.Set(calcBlockMetaKey(height), cdc.MustMarshal(meta))
+	db.Set(calcBlockMetaKey(height), amino.MustMarshal(meta))
 	gotMeta, _, panicErr := doFn(loadMeta)
 	require.Nil(t, panicErr, "an existent and proper block should not panic")
 	require.Nil(t, res, "a properly saved blockMeta should return a proper blocMeta ")
-	require.Equal(t, cdc.MustMarshal(meta), cdc.MustMarshal(gotMeta),
+	require.Equal(t, amino.MustMarshal(meta), amino.MustMarshal(gotMeta),
 		"expecting successful retrieval of previously saved blockMeta")
 }
 
@@ -394,8 +394,8 @@ func TestBlockFetchAtHeight(t *testing.T) {
 	require.Equal(t, bs.Height(), block.Header.Height, "expecting the new height to be changed")
 
 	blockAtHeight := bs.LoadBlock(bs.Height())
-	bz1 := cdc.MustMarshal(block)
-	bz2 := cdc.MustMarshal(blockAtHeight)
+	bz1 := amino.MustMarshal(block)
+	bz2 := amino.MustMarshal(blockAtHeight)
 	require.Equal(t, bz1, bz2)
 	require.Equal(t, block.Hash(), blockAtHeight.Hash(),
 		"expecting a successful load of the last saved block")
