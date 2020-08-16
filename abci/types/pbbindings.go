@@ -2529,19 +2529,6 @@ func (goo ConsensusParams) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err
 			}
 		}
 		{
-			if goo.Evidence != nil {
-				pbom := proto.Message(nil)
-				pbom, err = goo.Evidence.ToPBMessage(cdc)
-				if err != nil {
-					return
-				}
-				pbo.Evidence = pbom.(*abcipb.EvidenceParams)
-				if pbo.Evidence == nil {
-					pbo.Evidence = new(abcipb.EvidenceParams)
-				}
-			}
-		}
-		{
 			if goo.Validator != nil {
 				pbom := proto.Message(nil)
 				pbom, err = goo.Validator.ToPBMessage(cdc)
@@ -2577,15 +2564,6 @@ func (goo *ConsensusParams) FromPBMessage(cdc *amino.Codec, msg proto.Message) (
 				}
 			}
 			{
-				if pbo.Evidence != nil {
-					(*goo).Evidence = new(EvidenceParams)
-					err = (*goo).Evidence.FromPBMessage(cdc, pbo.Evidence)
-					if err != nil {
-						return
-					}
-				}
-			}
-			{
 				if pbo.Validator != nil {
 					(*goo).Validator = new(ValidatorParams)
 					err = (*goo).Validator.FromPBMessage(cdc, pbo.Validator)
@@ -2606,11 +2584,6 @@ func IsConsensusParamsReprEmpty(goor ConsensusParams) (empty bool) {
 		empty = true
 		{
 			if goor.Block != nil {
-				return false
-			}
-		}
-		{
-			if goor.Evidence != nil {
 				return false
 			}
 		}
@@ -2638,6 +2611,9 @@ func (goo BlockParams) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err err
 			pbo.MaxDataBytes = int64(goo.MaxDataBytes)
 		}
 		{
+			pbo.MaxBlockBytes = int64(goo.MaxBlockBytes)
+		}
+		{
 			pbo.MaxGas = int64(goo.MaxGas)
 		}
 		{
@@ -2661,6 +2637,9 @@ func (goo *BlockParams) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err 
 			}
 			{
 				(*goo).MaxDataBytes = int64(pbo.MaxDataBytes)
+			}
+			{
+				(*goo).MaxBlockBytes = int64(pbo.MaxBlockBytes)
 			}
 			{
 				(*goo).MaxGas = int64(pbo.MaxGas)
@@ -2689,58 +2668,17 @@ func IsBlockParamsReprEmpty(goor BlockParams) (empty bool) {
 			}
 		}
 		{
+			if goor.MaxBlockBytes != 0 {
+				return false
+			}
+		}
+		{
 			if goor.MaxGas != 0 {
 				return false
 			}
 		}
 		{
 			if goor.TimeIotaMS != 0 {
-				return false
-			}
-		}
-	}
-	return
-}
-func (goo EvidenceParams) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
-	var pbo *abcipb.EvidenceParams
-	{
-		if IsEvidenceParamsReprEmpty(goo) {
-			var pbov *abcipb.EvidenceParams
-			msg = pbov
-			return
-		}
-		pbo = new(abcipb.EvidenceParams)
-		{
-			pbo.MaxAge = int64(goo.MaxAge)
-		}
-	}
-	msg = pbo
-	return
-}
-func (goo EvidenceParams) EmptyPBMessage(cdc *amino.Codec) (msg proto.Message) {
-	pbo := new(abcipb.EvidenceParams)
-	msg = pbo
-	return
-}
-func (goo *EvidenceParams) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err error) {
-	var pbo *abcipb.EvidenceParams = msg.(*abcipb.EvidenceParams)
-	{
-		if pbo != nil {
-			{
-				(*goo).MaxAge = int64(pbo.MaxAge)
-			}
-		}
-	}
-	return
-}
-func (_ EvidenceParams) GetTypeURL() (typeURL string) {
-	return "/abci.EvidenceParams"
-}
-func IsEvidenceParamsReprEmpty(goor EvidenceParams) (empty bool) {
-	{
-		empty = true
-		{
-			if goor.MaxAge != 0 {
 				return false
 			}
 		}

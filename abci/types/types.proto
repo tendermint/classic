@@ -155,19 +155,15 @@ message StringError {
 
 message ConsensusParams {
 	BlockParams Block = 1;
-	EvidenceParams Evidence = 2;
-	ValidatorParams Validator = 3;
+	ValidatorParams Validator = 2;
 }
 
 message BlockParams {
 	sint64 MaxTxBytes = 1;
 	sint64 MaxDataBytes = 2;
-	sint64 MaxGas = 3;
-	sint64 TimeIotaMS = 4;
-}
-
-message EvidenceParams {
-	sint64 MaxAge = 1;
+	sint64 MaxBlockBytes = 3;
+	sint64 MaxGas = 4;
+	sint64 TimeIotaMS = 5;
 }
 
 message ValidatorParams {

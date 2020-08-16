@@ -29,9 +29,6 @@ func (params ConsensusParams) Update(params2 ConsensusParams) ConsensusParams {
 	if params2.Block != nil {
 		res.Block = amino.DeepCopy(params2.Block).(*BlockParams)
 	}
-	if params2.Evidence != nil {
-		res.Evidence = amino.DeepCopy(params2.Evidence).(*EvidenceParams)
-	}
 	if params2.Validator != nil {
 		res.Validator = amino.DeepCopy(params2.Validator).(*ValidatorParams)
 	}

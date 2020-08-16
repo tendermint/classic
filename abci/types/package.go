@@ -59,7 +59,6 @@ var Package = amino.RegisterPackage(amino.NewPackage(
 		// misc types
 		ConsensusParams{},
 		BlockParams{},
-		EvidenceParams{},
 		ValidatorParams{},
 		ValidatorUpdate{},
 		LastCommitInfo{},

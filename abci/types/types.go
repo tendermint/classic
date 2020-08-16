@@ -201,10 +201,6 @@ type Header interface {
 	AssertABCIHeader()
 }
 
-type Evidence interface {
-	AssertABCIEvidence()
-}
-
 //----------------------------------------
 // Error types
 
@@ -233,19 +229,15 @@ func (err StringEvent) Event() string {
 // Parameters that need to be negotiated between the app and consensus.
 type ConsensusParams struct {
 	Block     *BlockParams
-	Evidence  *EvidenceParams
 	Validator *ValidatorParams
 }
 
 type BlockParams struct {
-	MaxTxBytes   int64 // must be > 0
-	MaxDataBytes int64 // must be > 0
-	MaxGas       int64 // must be >= -1
-	TimeIotaMS   int64
-}
-
-type EvidenceParams struct {
-	MaxAge int64 // must be > 0
+	MaxTxBytes    int64 // must be > 0
+	MaxDataBytes  int64 // must be > 0
+	MaxBlockBytes int64 // must be > 0
+	MaxGas        int64 // must be >= -1
+	TimeIotaMS    int64
 }
 
 type ValidatorParams struct {
