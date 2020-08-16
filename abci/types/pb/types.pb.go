@@ -1932,7 +1932,7 @@ func (x *VoteInfo) GetSignedLastBlock() bool {
 	return false
 }
 
-type StringEvent struct {
+type EventString struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -1940,8 +1940,8 @@ type StringEvent struct {
 	Value string `protobuf:"bytes,1,opt,name=Value,proto3" json:"Value,omitempty"`
 }
 
-func (x *StringEvent) Reset() {
-	*x = StringEvent{}
+func (x *EventString) Reset() {
+	*x = EventString{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_types_proto_msgTypes[32]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1949,13 +1949,13 @@ func (x *StringEvent) Reset() {
 	}
 }
 
-func (x *StringEvent) String() string {
+func (x *EventString) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*StringEvent) ProtoMessage() {}
+func (*EventString) ProtoMessage() {}
 
-func (x *StringEvent) ProtoReflect() protoreflect.Message {
+func (x *EventString) ProtoReflect() protoreflect.Message {
 	mi := &file_types_proto_msgTypes[32]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1967,12 +1967,12 @@ func (x *StringEvent) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use StringEvent.ProtoReflect.Descriptor instead.
-func (*StringEvent) Descriptor() ([]byte, []int) {
+// Deprecated: Use EventString.ProtoReflect.Descriptor instead.
+func (*EventString) Descriptor() ([]byte, []int) {
 	return file_types_proto_rawDescGZIP(), []int{32}
 }
 
-func (x *StringEvent) GetValue() string {
+func (x *EventString) GetValue() string {
 	if x != nil {
 		return x.Value
 	}
@@ -2316,8 +2316,8 @@ var file_types_proto_rawDesc = []byte{
 	0x18, 0x02, 0x20, 0x01, 0x28, 0x12, 0x52, 0x05, 0x50, 0x6f, 0x77, 0x65, 0x72, 0x12, 0x28, 0x0a,
 	0x0f, 0x53, 0x69, 0x67, 0x6e, 0x65, 0x64, 0x4c, 0x61, 0x73, 0x74, 0x42, 0x6c, 0x6f, 0x63, 0x6b,
 	0x18, 0x03, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0f, 0x53, 0x69, 0x67, 0x6e, 0x65, 0x64, 0x4c, 0x61,
-	0x73, 0x74, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x22, 0x23, 0x0a, 0x0b, 0x53, 0x74, 0x72, 0x69, 0x6e,
-	0x67, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x18,
+	0x73, 0x74, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x22, 0x23, 0x0a, 0x0b, 0x45, 0x76, 0x65, 0x6e, 0x74,
+	0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x12, 0x14, 0x0a, 0x05, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x18,
 	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x22, 0xbc, 0x01, 0x0a,
 	0x0a, 0x4d, 0x6f, 0x63, 0x6b, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x12, 0x18, 0x0a, 0x07, 0x56,
 	0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x56, 0x65,
@@ -2383,7 +2383,7 @@ var file_types_proto_goTypes = []interface{}{
 	(*ValidatorUpdate)(nil),     // 29: abci.ValidatorUpdate
 	(*LastCommitInfo)(nil),      // 30: abci.LastCommitInfo
 	(*VoteInfo)(nil),            // 31: abci.VoteInfo
-	(*StringEvent)(nil),         // 32: abci.StringEvent
+	(*EventString)(nil),         // 32: abci.EventString
 	(*MockHeader)(nil),          // 33: abci.MockHeader
 	(*timestamp.Timestamp)(nil), // 34: google.protobuf.Timestamp
 	(*any.Any)(nil),             // 35: google.protobuf.Any
@@ -2829,7 +2829,7 @@ func file_types_proto_init() {
 			}
 		}
 		file_types_proto_msgTypes[32].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StringEvent); i {
+			switch v := v.(*EventString); i {
 			case 0:
 				return &v.state
 			case 1:

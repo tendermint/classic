@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/tendermint/classic/abci/example/kvstore"
 	abci "github.com/tendermint/classic/abci/types"
 	"github.com/tendermint/classic/crypto/ed25519"
@@ -18,6 +19,7 @@ import (
 	sm "github.com/tendermint/classic/state"
 	"github.com/tendermint/classic/types"
 	tmtime "github.com/tendermint/classic/types/time"
+	"github.com/tendermint/go-amino-x"
 )
 
 var (
@@ -108,7 +110,7 @@ func TestValidateValidatorUpdates(t *testing.T) {
 
 	secpKey := secp256k1.GenPrivKey().PubKey()
 
-	defaultValidatorParams := abci.ValidatorParams{PubKeyTypeURLs: []string{ed25519.PubKeyEd25519{}.GetTypeURL()}}
+	defaultValidatorParams := abci.ValidatorParams{PubKeyTypeURLs: []string{amino.GetTypeURL(ed25519.PubKeyEd25519{})}}
 
 	testCases := []struct {
 		name string
@@ -266,7 +268,7 @@ func TestEndBlockValidatorUpdates(t *testing.T) {
 	defer evsw.Stop()
 	blockExec.SetEventSwitch(evsw)
 
-	updatesSub := evsw.Subscribe("TestEndBlockValidatorUpdates")
+	updatesSub := events.Subscribe(evsw, "TestEndBlockValidatorUpdates")
 	require.NoError(t, err)
 
 	block := makeBlock(state, 1)

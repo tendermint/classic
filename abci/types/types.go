@@ -215,11 +215,11 @@ func (err StringError) Error() string {
 //----------------------------------------
 // Event types
 
-type StringEvent string
+type EventString string
 
-func (_ StringEvent) AssertABCIEvent() {}
+func (_ EventString) AssertABCIEvent() {}
 
-func (err StringEvent) Event() string {
+func (err EventString) Event() string {
 	return string(err)
 }
 

@@ -158,8 +158,8 @@ func TestABCIResponsesSaveLoad2(t *testing.T) {
 					Error: nil,
 					Data:  []byte("Gotcha!"),
 					Events: []abci.Event{
-						types.EventString("a=1"),
-						types.EventString("build=stuff"),
+						abci.EventString("a=1"),
+						abci.EventString("build=stuff"),
 					},
 				}},
 			},
@@ -172,8 +172,8 @@ func TestABCIResponsesSaveLoad2(t *testing.T) {
 					Error: nil,
 					Data:  []byte("Gotcha!"),
 					Events: []abci.Event{
-						types.EventString("a=1"),
-						types.EventString("build=stuff"),
+						abci.EventString("a=1"),
+						abci.EventString("build=stuff"),
 					},
 				},
 			}},
@@ -951,7 +951,7 @@ func TestConsensusParamsChangesSaveLoad(t *testing.T) {
 }
 
 func TestApplyUpdates(t *testing.T) {
-	initParams := makeConsensusParams(1, 2, 3, 4)
+	initParams := makeConsensusParams(1, 2, 3, 3, 4)
 
 	cases := [...]struct {
 		init     abci.ConsensusParams
@@ -963,13 +963,14 @@ func TestApplyUpdates(t *testing.T) {
 		2: {initParams,
 			abci.ConsensusParams{
 				Block: &abci.BlockParams{
-					MaxTxBytes:   44,
-					MaxDataBytes: 55,
-					MaxGas:       66,
-					TimeIotaMS:   77,
+					MaxTxBytes:    44,
+					MaxDataBytes:  55,
+					MaxBlockBytes: 66,
+					MaxGas:        77,
+					TimeIotaMS:    88,
 				},
 			},
-			makeConsensusParams(44, 55, 66, 77)},
+			makeConsensusParams(44, 55, 66, 77, 88)},
 	}
 
 	for i, tc := range cases {

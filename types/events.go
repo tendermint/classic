@@ -7,22 +7,15 @@ import (
 
 // TMEvent implements events.Event.
 type TMEvent interface {
-	abci.Event // TODO: is this necessary? could be interesting...
 	events.Event
 }
 
-func (_ EventNewBlock) AssertABCIEvent()            {}
-func (_ EventNewBlock) AssertEvent()                {}
-func (_ EventNewBlockHeader) AssertABCIEvent()      {}
-func (_ EventNewBlockHeader) AssertEvent()          {}
-func (_ EventTx) AssertABCIEvent()                  {}
-func (_ EventTx) AssertEvent()                      {}
-func (_ EventVote) AssertABCIEvent()                {}
-func (_ EventVote) AssertEvent()                    {}
-func (_ EventString) AssertABCIEvent()              {}
-func (_ EventString) AssertEvent()                  {}
-func (_ EventValidatorSetUpdates) AssertABCIEvent() {}
-func (_ EventValidatorSetUpdates) AssertEvent()     {}
+func (_ EventNewBlock) AssertEvent()            {}
+func (_ EventNewBlockHeader) AssertEvent()      {}
+func (_ EventTx) AssertEvent()                  {}
+func (_ EventVote) AssertEvent()                {}
+func (_ EventString) AssertEvent()              {}
+func (_ EventValidatorSetUpdates) AssertEvent() {}
 
 // Most event messages are basic types (a block, a transaction)
 // but some (an input to a call tx or a receive) are more exotic

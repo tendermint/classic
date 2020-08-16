@@ -87,7 +87,7 @@ func (app *KVStoreApplication) DeliverTx(req abci.RequestDeliverTx) (res abci.Re
 	app.state.db.Set(prefixKey(key), value)
 	app.state.Size += 1
 
-	events := []abci.Event{abci.StringEvent(`{"creator":"Cosmoshi Netowoko"}`)}
+	events := []abci.Event{abci.EventString(`{"creator":"Cosmoshi Netowoko"}`)}
 
 	res.Events = events
 	return res

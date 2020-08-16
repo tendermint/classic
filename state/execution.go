@@ -427,7 +427,7 @@ func fireEvents(logger log.Logger, evsw events.EventSwitch, block *types.Block, 
 	})
 
 	for i, tx := range block.Data.Txs {
-		evsw.FireEvent(types.EventTx{TxResult: types.TxResult{
+		evsw.FireEvent(types.EventTx{Result: types.TxResult{
 			Height: block.Height,
 			Index:  uint32(i),
 			Tx:     tx,

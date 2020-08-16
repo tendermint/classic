@@ -128,15 +128,16 @@ func genValSet(size int) *types.ValidatorSet {
 }
 
 func makeConsensusParams( // XXX search and replace
-	maxTxBytes, maxDataBytes, maxGas int64,
+	maxTxBytes, maxDataBytes, maxBlockBytes, maxGas int64,
 	timeIotaMS int64,
 ) abci.ConsensusParams {
 	return abci.ConsensusParams{
 		Block: &abci.BlockParams{
-			MaxTxBytes:   maxTxBytes,
-			MaxDataBytes: maxDataBytes,
-			MaxGas:       maxGas,
-			TimeIotaMS:   timeIotaMS,
+			MaxTxBytes:    maxTxBytes,
+			MaxDataBytes:  maxDataBytes,
+			MaxBlockBytes: maxBlockBytes,
+			MaxGas:        maxGas,
+			TimeIotaMS:    timeIotaMS,
 		},
 	}
 }
