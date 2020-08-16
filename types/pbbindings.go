@@ -1722,11 +1722,11 @@ func (goo EventTx) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) 
 		pbo = new(typespb.EventTx)
 		{
 			pbom := proto.Message(nil)
-			pbom, err = goo.TxResult.ToPBMessage(cdc)
+			pbom, err = goo.Result.ToPBMessage(cdc)
 			if err != nil {
 				return
 			}
-			pbo.TxResult = pbom.(*typespb.TxResult)
+			pbo.Result = pbom.(*typespb.TxResult)
 		}
 	}
 	msg = pbo
@@ -1742,8 +1742,8 @@ func (goo *EventTx) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err erro
 	{
 		if pbo != nil {
 			{
-				if pbo.TxResult != nil {
-					err = (*goo).TxResult.FromPBMessage(cdc, pbo.TxResult)
+				if pbo.Result != nil {
+					err = (*goo).Result.FromPBMessage(cdc, pbo.Result)
 					if err != nil {
 						return
 					}
@@ -1760,255 +1760,7 @@ func IsEventTxReprEmpty(goor EventTx) (empty bool) {
 	{
 		empty = true
 		{
-			e := IsTxResultReprEmpty(goor.TxResult)
-			if e == false {
-				return false
-			}
-		}
-	}
-	return
-}
-func (goo EventRoundState) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
-	var pbo *typespb.EventRoundState
-	{
-		if IsEventRoundStateReprEmpty(goo) {
-			var pbov *typespb.EventRoundState
-			msg = pbov
-			return
-		}
-		pbo = new(typespb.EventRoundState)
-		{
-			pbo.Height = int64(goo.Height)
-		}
-		{
-			pbo.Round = int64(goo.Round)
-		}
-		{
-			pbo.Step = string(goo.Step)
-		}
-	}
-	msg = pbo
-	return
-}
-func (goo EventRoundState) EmptyPBMessage(cdc *amino.Codec) (msg proto.Message) {
-	pbo := new(typespb.EventRoundState)
-	msg = pbo
-	return
-}
-func (goo *EventRoundState) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err error) {
-	var pbo *typespb.EventRoundState = msg.(*typespb.EventRoundState)
-	{
-		if pbo != nil {
-			{
-				(*goo).Height = int64(pbo.Height)
-			}
-			{
-				(*goo).Round = int(int(pbo.Round))
-			}
-			{
-				(*goo).Step = string(pbo.Step)
-			}
-		}
-	}
-	return
-}
-func (_ EventRoundState) GetTypeURL() (typeURL string) {
-	return "/tm.EventRoundState"
-}
-func IsEventRoundStateReprEmpty(goor EventRoundState) (empty bool) {
-	{
-		empty = true
-		{
-			if goor.Height != 0 {
-				return false
-			}
-		}
-		{
-			if goor.Round != 0 {
-				return false
-			}
-		}
-		{
-			if goor.Step != "" {
-				return false
-			}
-		}
-	}
-	return
-}
-func (goo EventNewRound) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
-	var pbo *typespb.EventNewRound
-	{
-		if IsEventNewRoundReprEmpty(goo) {
-			var pbov *typespb.EventNewRound
-			msg = pbov
-			return
-		}
-		pbo = new(typespb.EventNewRound)
-		{
-			pbo.Height = int64(goo.Height)
-		}
-		{
-			pbo.Round = int64(goo.Round)
-		}
-		{
-			pbo.Step = string(goo.Step)
-		}
-		{
-			pbom := proto.Message(nil)
-			pbom, err = goo.Proposer.ToPBMessage(cdc)
-			if err != nil {
-				return
-			}
-			pbo.Proposer = pbom.(*typespb.Validator)
-		}
-	}
-	msg = pbo
-	return
-}
-func (goo EventNewRound) EmptyPBMessage(cdc *amino.Codec) (msg proto.Message) {
-	pbo := new(typespb.EventNewRound)
-	msg = pbo
-	return
-}
-func (goo *EventNewRound) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err error) {
-	var pbo *typespb.EventNewRound = msg.(*typespb.EventNewRound)
-	{
-		if pbo != nil {
-			{
-				(*goo).Height = int64(pbo.Height)
-			}
-			{
-				(*goo).Round = int(int(pbo.Round))
-			}
-			{
-				(*goo).Step = string(pbo.Step)
-			}
-			{
-				if pbo.Proposer != nil {
-					err = (*goo).Proposer.FromPBMessage(cdc, pbo.Proposer)
-					if err != nil {
-						return
-					}
-				}
-			}
-		}
-	}
-	return
-}
-func (_ EventNewRound) GetTypeURL() (typeURL string) {
-	return "/tm.EventNewRound"
-}
-func IsEventNewRoundReprEmpty(goor EventNewRound) (empty bool) {
-	{
-		empty = true
-		{
-			if goor.Height != 0 {
-				return false
-			}
-		}
-		{
-			if goor.Round != 0 {
-				return false
-			}
-		}
-		{
-			if goor.Step != "" {
-				return false
-			}
-		}
-		{
-			e := IsValidatorReprEmpty(goor.Proposer)
-			if e == false {
-				return false
-			}
-		}
-	}
-	return
-}
-func (goo EventCompleteProposal) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
-	var pbo *typespb.EventCompleteProposal
-	{
-		if IsEventCompleteProposalReprEmpty(goo) {
-			var pbov *typespb.EventCompleteProposal
-			msg = pbov
-			return
-		}
-		pbo = new(typespb.EventCompleteProposal)
-		{
-			pbo.Height = int64(goo.Height)
-		}
-		{
-			pbo.Round = int64(goo.Round)
-		}
-		{
-			pbo.Step = string(goo.Step)
-		}
-		{
-			pbom := proto.Message(nil)
-			pbom, err = goo.BlockID.ToPBMessage(cdc)
-			if err != nil {
-				return
-			}
-			pbo.BlockID = pbom.(*typespb.BlockID)
-		}
-	}
-	msg = pbo
-	return
-}
-func (goo EventCompleteProposal) EmptyPBMessage(cdc *amino.Codec) (msg proto.Message) {
-	pbo := new(typespb.EventCompleteProposal)
-	msg = pbo
-	return
-}
-func (goo *EventCompleteProposal) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err error) {
-	var pbo *typespb.EventCompleteProposal = msg.(*typespb.EventCompleteProposal)
-	{
-		if pbo != nil {
-			{
-				(*goo).Height = int64(pbo.Height)
-			}
-			{
-				(*goo).Round = int(int(pbo.Round))
-			}
-			{
-				(*goo).Step = string(pbo.Step)
-			}
-			{
-				if pbo.BlockID != nil {
-					err = (*goo).BlockID.FromPBMessage(cdc, pbo.BlockID)
-					if err != nil {
-						return
-					}
-				}
-			}
-		}
-	}
-	return
-}
-func (_ EventCompleteProposal) GetTypeURL() (typeURL string) {
-	return "/tm.EventCompleteProposal"
-}
-func IsEventCompleteProposalReprEmpty(goor EventCompleteProposal) (empty bool) {
-	{
-		empty = true
-		{
-			if goor.Height != 0 {
-				return false
-			}
-		}
-		{
-			if goor.Round != 0 {
-				return false
-			}
-		}
-		{
-			if goor.Step != "" {
-				return false
-			}
-		}
-		{
-			e := IsBlockIDReprEmpty(goor.BlockID)
+			e := IsTxResultReprEmpty(goor.Result)
 			if e == false {
 				return false
 			}
@@ -2074,6 +1826,43 @@ func IsEventVoteReprEmpty(goor EventVote) (empty bool) {
 			if goor.Vote != nil {
 				return false
 			}
+		}
+	}
+	return
+}
+func (goo EventString) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
+	var pbo *typespb.EventString
+	{
+		if IsEventStringReprEmpty(goo) {
+			var pbov *typespb.EventString
+			msg = pbov
+			return
+		}
+		pbo = &typespb.EventString{Value: string(goo)}
+	}
+	msg = pbo
+	return
+}
+func (goo EventString) EmptyPBMessage(cdc *amino.Codec) (msg proto.Message) {
+	pbo := new(typespb.EventString)
+	msg = pbo
+	return
+}
+func (goo *EventString) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err error) {
+	var pbo *typespb.EventString = msg.(*typespb.EventString)
+	{
+		*goo = EventString(pbo.Value)
+	}
+	return
+}
+func (_ EventString) GetTypeURL() (typeURL string) {
+	return "/tm.EventString"
+}
+func IsEventStringReprEmpty(goor EventString) (empty bool) {
+	{
+		empty = true
+		if goor != "" {
+			return false
 		}
 	}
 	return
@@ -2162,43 +1951,6 @@ func IsEventValidatorSetUpdatesReprEmpty(goor EventValidatorSetUpdates) (empty b
 			if len(goor.ValidatorUpdates) != 0 {
 				return false
 			}
-		}
-	}
-	return
-}
-func (goo EventString) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
-	var pbo *typespb.EventString
-	{
-		if IsEventStringReprEmpty(goo) {
-			var pbov *typespb.EventString
-			msg = pbov
-			return
-		}
-		pbo = &typespb.EventString{Value: string(goo)}
-	}
-	msg = pbo
-	return
-}
-func (goo EventString) EmptyPBMessage(cdc *amino.Codec) (msg proto.Message) {
-	pbo := new(typespb.EventString)
-	msg = pbo
-	return
-}
-func (goo *EventString) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err error) {
-	var pbo *typespb.EventString = msg.(*typespb.EventString)
-	{
-		*goo = EventString(pbo.Value)
-	}
-	return
-}
-func (_ EventString) GetTypeURL() (typeURL string) {
-	return "/tm.EventString"
-}
-func IsEventStringReprEmpty(goor EventString) (empty bool) {
-	{
-		empty = true
-		if goor != "" {
-			return false
 		}
 	}
 	return

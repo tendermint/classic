@@ -28,7 +28,6 @@ var (
 func DefaultConsensusParams() abci.ConsensusParams {
 	return abci.ConsensusParams{
 		DefaultBlockParams(),
-		DefaultEvidenceParams(),
 		DefaultValidatorParams(),
 	}
 }
@@ -38,12 +37,6 @@ func DefaultBlockParams() *abci.BlockParams {
 		MaxTxBytes: 22020096, // 21MB
 		MaxGas:     -1,
 		TimeIotaMS: 1000, // 1s
-	}
-}
-
-func DefaultEvidenceParams() *abci.EvidenceParams {
-	return &abci.EvidenceParams{
-		MaxAge: 100000, // 27.8 hrs at 1block/s
 	}
 }
 
@@ -71,11 +64,6 @@ func ValidateConsensusParams(params abci.ConsensusParams) error {
 	if params.Block.TimeIotaMS <= 0 {
 		return errors.Errorf("Block.TimeIotaMS must be greater than 0. Got %v",
 			params.Block.TimeIotaMS)
-	}
-
-	if params.Evidence.MaxAge <= 0 {
-		return errors.Errorf("EvidenceParams.MaxAge must be greater than 0. Got %d",
-			params.Evidence.MaxAge)
 	}
 
 	if len(params.Validator.PubKeyTypeURLs) == 0 {

@@ -95,39 +95,19 @@ message EventNewBlockHeader {
 }
 
 message EventTx {
-	TxResult TxResult = 1;
-}
-
-message EventRoundState {
-	sint64 Height = 1;
-	sint64 Round = 2;
-	string Step = 3;
-}
-
-message EventNewRound {
-	sint64 Height = 1;
-	sint64 Round = 2;
-	string Step = 3;
-	Validator Proposer = 4;
-}
-
-message EventCompleteProposal {
-	sint64 Height = 1;
-	sint64 Round = 2;
-	string Step = 3;
-	BlockID BlockID = 4;
+	TxResult Result = 1;
 }
 
 message EventVote {
 	Vote Vote = 1;
 }
 
-message EventValidatorSetUpdates {
-	repeated abci.ValidatorUpdate ValidatorUpdates = 1;
-}
-
 message EventString {
 	string Value = 1;
+}
+
+message EventValidatorSetUpdates {
+	repeated abci.ValidatorUpdate ValidatorUpdates = 1;
 }
 
 message DuplicateVoteEvidence {

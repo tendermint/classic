@@ -67,7 +67,7 @@ var Package = amino.RegisterPackage(amino.NewPackage(
 		//Violation{},
 
 		// events
-		SimpleEvent(""),
+		StringEvent(""),
 
 		// mocks
 		MockHeader{},

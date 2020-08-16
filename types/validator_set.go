@@ -345,26 +345,26 @@ func processChanges(origChanges []*Validator) (updates, removals []*Validator, e
 	var prevAddr Address
 
 	// Scan changes by address and append valid validators to updates or removals lists.
-	for _, valUpdate := range changes {
-		if valUpdate.Address == prevAddr {
-			err = fmt.Errorf("duplicate entry %v in %v", valUpdate, changes)
+	for _, update := range changes {
+		if update.Address == prevAddr {
+			err = fmt.Errorf("duplicate entry %v in %v", update, changes)
 			return nil, nil, err
 		}
-		if valUpdate.VotingPower < 0 {
-			err = fmt.Errorf("voting power can't be negative: %v", valUpdate)
+		if update.VotingPower < 0 {
+			err = fmt.Errorf("voting power can't be negative: %v", update)
 			return nil, nil, err
 		}
-		if valUpdate.VotingPower > MaxTotalVotingPower {
+		if update.VotingPower > MaxTotalVotingPower {
 			err = fmt.Errorf("to prevent clipping/ overflow, voting power can't be higher than %v: %v ",
-				MaxTotalVotingPower, valUpdate)
+				MaxTotalVotingPower, update)
 			return nil, nil, err
 		}
-		if valUpdate.VotingPower == 0 {
-			removals = append(removals, valUpdate)
+		if update.VotingPower == 0 {
+			removals = append(removals, update)
 		} else {
-			updates = append(updates, valUpdate)
+			updates = append(updates, update)
 		}
-		prevAddr = valUpdate.Address
+		prevAddr = update.Address
 	}
 	return updates, removals, err
 }
@@ -384,22 +384,22 @@ func verifyUpdates(updates []*Validator, vals *ValidatorSet) (updatedTotalVoting
 
 	updatedTotalVotingPower = vals.TotalVotingPower()
 
-	for _, valUpdate := range updates {
-		address := valUpdate.Address
+	for _, update := range updates {
+		address := update.Address
 		_, val := vals.GetByAddress(address)
 		if val == nil {
 			// New validator, add its voting power the the total.
-			updatedTotalVotingPower += valUpdate.VotingPower
+			updatedTotalVotingPower += update.VotingPower
 			numNewValidators++
 		} else {
 			// Updated validator, add the difference in power to the total.
-			updatedTotalVotingPower += valUpdate.VotingPower - val.VotingPower
+			updatedTotalVotingPower += update.VotingPower - val.VotingPower
 		}
 		overflow := updatedTotalVotingPower > MaxTotalVotingPower
 		if overflow {
 			err = fmt.Errorf(
 				"failed to add/update validator %v, total voting power would exceed the max allowed %v",
-				valUpdate, MaxTotalVotingPower)
+				update, MaxTotalVotingPower)
 			return 0, 0, err
 		}
 	}
@@ -414,8 +414,8 @@ func verifyUpdates(updates []*Validator, vals *ValidatorSet) (updatedTotalVoting
 // No changes are made to the validator set 'vals'.
 func computeNewPriorities(updates []*Validator, vals *ValidatorSet, updatedTotalVotingPower int64) {
 
-	for _, valUpdate := range updates {
-		address := valUpdate.Address
+	for _, update := range updates {
+		address := update.Address
 		_, val := vals.GetByAddress(address)
 		if val == nil {
 			// add val
@@ -426,9 +426,9 @@ func computeNewPriorities(updates []*Validator, vals *ValidatorSet, updatedTotal
 			// not exceed the bounds of int64.
 			//
 			// Compute ProposerPriority = -1.125*totalVotingPower == -(updatedVotingPower + (updatedVotingPower >> 3)).
-			valUpdate.ProposerPriority = -(updatedTotalVotingPower + (updatedTotalVotingPower >> 3))
+			update.ProposerPriority = -(updatedTotalVotingPower + (updatedTotalVotingPower >> 3))
 		} else {
-			valUpdate.ProposerPriority = val.ProposerPriority
+			update.ProposerPriority = val.ProposerPriority
 		}
 	}
 
@@ -478,8 +478,8 @@ func (vals *ValidatorSet) applyUpdates(updates []*Validator) {
 // No changes are made to the validator set 'vals'.
 func verifyRemovals(deletes []*Validator, vals *ValidatorSet) error {
 
-	for _, valUpdate := range deletes {
-		address := valUpdate.Address
+	for _, update := range deletes {
+		address := update.Address
 		_, val := vals.GetByAddress(address)
 		if val == nil {
 			return fmt.Errorf("failed to find validator %X to remove", address)
@@ -601,14 +601,38 @@ func (vals *ValidatorSet) UpdateWithChangeSet(changes []*Validator) error {
 	return vals.updateWithChangeSet(changes, true)
 }
 
+func NewValidatorSetFromABCIValidatorUpdates(updates []abci.ValidatorUpdate) *ValidatorSet {
+	vals := ABCIValidatorUpdatesToValidators(updates)
+	return NewValidatorSet(vals)
+}
+
+func ABCIValidatorUpdatesToValidators(updates []abci.ValidatorUpdate) (vals []*Validator) {
+	vals = make([]*Validator, len(updates))
+	for i, update := range updates {
+		vals[i] = NewValidatorFromABCIValidatorUpdate(update)
+	}
+	return
+}
+
 // Same as UpdateWithChangeSet, but with abci.ValidatorUpdate.
 // The ProposerPriority gets set to 0 for new/existing validators.
-func (vals *ValidatorSet) UpdateWithABCIValidatorUpdates(valUpdates []abci.ValidatorUpdate) error {
-	changes := make([]*Validator, len(valUpdates))
-	for i, valUpdate := range valUpdates {
-		changes[i] = NewValidatorFromABCIValidatorUpdate(valUpdate)
+func (vals *ValidatorSet) UpdateWithABCIValidatorUpdates(updates []abci.ValidatorUpdate) error {
+	changes := make([]*Validator, len(updates))
+	for i, update := range updates {
+		changes[i] = NewValidatorFromABCIValidatorUpdate(update)
 	}
 	return vals.UpdateWithChangeSet(changes)
+}
+
+func (vals *ValidatorSet) ABCIValidatorUpdates() (updates []abci.ValidatorUpdate) {
+	if vals == nil {
+		return nil
+	}
+	updates = make([]abci.ValidatorUpdate, len(vals.Validators))
+	for i, val := range vals.Validators {
+		updates[i] = val.ABCIValidatorUpdate()
+	}
+	return
 }
 
 // Verify that +2/3 of the set had signed the given signBytes.

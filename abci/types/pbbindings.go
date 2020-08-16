@@ -3060,35 +3060,35 @@ func IsVoteInfoReprEmpty(goor VoteInfo) (empty bool) {
 	}
 	return
 }
-func (goo SimpleEvent) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
-	var pbo *abcipb.SimpleEvent
+func (goo StringEvent) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error) {
+	var pbo *abcipb.StringEvent
 	{
-		if IsSimpleEventReprEmpty(goo) {
-			var pbov *abcipb.SimpleEvent
+		if IsStringEventReprEmpty(goo) {
+			var pbov *abcipb.StringEvent
 			msg = pbov
 			return
 		}
-		pbo = &abcipb.SimpleEvent{Value: string(goo)}
+		pbo = &abcipb.StringEvent{Value: string(goo)}
 	}
 	msg = pbo
 	return
 }
-func (goo SimpleEvent) EmptyPBMessage(cdc *amino.Codec) (msg proto.Message) {
-	pbo := new(abcipb.SimpleEvent)
+func (goo StringEvent) EmptyPBMessage(cdc *amino.Codec) (msg proto.Message) {
+	pbo := new(abcipb.StringEvent)
 	msg = pbo
 	return
 }
-func (goo *SimpleEvent) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err error) {
-	var pbo *abcipb.SimpleEvent = msg.(*abcipb.SimpleEvent)
+func (goo *StringEvent) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err error) {
+	var pbo *abcipb.StringEvent = msg.(*abcipb.StringEvent)
 	{
-		*goo = SimpleEvent(pbo.Value)
+		*goo = StringEvent(pbo.Value)
 	}
 	return
 }
-func (_ SimpleEvent) GetTypeURL() (typeURL string) {
-	return "/abci.SimpleEvent"
+func (_ StringEvent) GetTypeURL() (typeURL string) {
+	return "/abci.StringEvent"
 }
-func IsSimpleEventReprEmpty(goor SimpleEvent) (empty bool) {
+func IsStringEventReprEmpty(goor StringEvent) (empty bool) {
 	{
 		empty = true
 		if goor != "" {

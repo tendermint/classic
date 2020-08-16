@@ -35,12 +35,9 @@ var Package = amino.RegisterPackage(amino.NewPackage(
 		EventNewBlock{},
 		EventNewBlockHeader{},
 		EventTx{},
-		EventRoundState{},
-		EventNewRound{},
-		EventCompleteProposal{},
 		EventVote{},
-		EventValidatorSetUpdates{},
 		EventString(""),
+		EventValidatorSetUpdates{},
 
 		// Evidence types
 		DuplicateVoteEvidence{},

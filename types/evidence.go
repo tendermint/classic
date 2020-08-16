@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
-	"github.com/tendermint/classic/abci/types"
 	"github.com/tendermint/classic/crypto/tmhash"
 
 	"github.com/tendermint/classic/crypto"
@@ -53,7 +52,6 @@ func (err *ErrEvidenceOverflow) Error() string {
 
 // Evidence represents any provable malicious activity by a validator
 type Evidence interface {
-	abci.Evidence
 	Bytes() []byte                                     // bytes which compromise the evidence
 	Hash() []byte                                      // hash of the evidence
 	Verify(chainID string, pubKey crypto.PubKey) error // verify the evidence
