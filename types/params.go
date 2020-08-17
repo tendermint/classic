@@ -34,9 +34,10 @@ func DefaultConsensusParams() abci.ConsensusParams {
 
 func DefaultBlockParams() *abci.BlockParams {
 	return &abci.BlockParams{
-		MaxTxBytes: 22020096, // 21MB
-		MaxGas:     -1,
-		TimeIotaMS: 1000, // 1s
+		MaxTxBytes:   1024 * 1024, // 1MB
+		MaxDataBytes: 22020096,    // 21MB
+		MaxGas:       -1,
+		TimeIotaMS:   1000, // 1s
 	}
 }
 

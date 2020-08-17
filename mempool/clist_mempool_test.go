@@ -30,6 +30,8 @@ import (
 // test.
 type cleanupFunc func()
 
+const testMaxTxBytes int64 = 1024
+
 func newMempoolWithApp(cc proxy.ClientCreator) (*CListMempool, cleanupFunc) {
 	return newMempoolWithAppAndConfig(cc, cfg.ResetTestRoot("mempool_test"))
 }
@@ -41,7 +43,7 @@ func newMempoolWithAppAndConfig(cc proxy.ClientCreator, config *cfg.Config) (*CL
 	if err != nil {
 		panic(err)
 	}
-	mempool := NewCListMempool(config.Mempool, appConnMem, 0)
+	mempool := NewCListMempool(config.Mempool, appConnMem, 0, testMaxTxBytes)
 	mempool.SetLogger(log.TestingLogger())
 	return mempool, func() { os.RemoveAll(config.RootDir) }
 }
@@ -64,7 +66,7 @@ func ensureFire(t *testing.T, ch <-chan struct{}, timeoutMS int) {
 	}
 }
 
-func checkTxs(t *testing.T, mempool Mempool, count int, peerID uint16) types.Txs {
+func checkTxs(t *testing.T, mempool Mempool, count int, peerID uint16, failOnCheckTxError bool) types.Txs {
 	txs := make(types.Txs, count)
 	txInfo := TxInfo{SenderID: peerID}
 	for i := 0; i < count; i++ {
@@ -75,13 +77,11 @@ func checkTxs(t *testing.T, mempool Mempool, count int, peerID uint16) types.Txs
 			t.Error(err)
 		}
 		if err := mempool.CheckTxWithInfo(txBytes, nil, txInfo); err != nil {
-			// Skip invalid txs.
-			// TestMempoolFilters will fail otherwise. It asserts a number of txs
-			// returned.
-			if IsPreCheckError(err) {
+			if failOnCheckTxError {
+				t.Fatalf("CheckTx failed: %v while checking #%d tx", err, i)
+			} else {
 				continue
 			}
-			t.Fatalf("CheckTx failed: %v while checking #%d tx", err, i)
 		}
 	}
 	return txs
@@ -94,7 +94,7 @@ func TestReapMaxBytesMaxGas(t *testing.T) {
 	defer cleanup()
 
 	// Ensure gas calculation behaves as expected
-	checkTxs(t, mempool, 1, UnknownPeerID)
+	checkTxs(t, mempool, 1, UnknownPeerID, true)
 	tx0 := mempool.TxsFront().Value.(*mempoolTx)
 	// assert that kv store has gas wanted = 1.
 	require.Equal(t, app.CheckTx(abci.RequestCheckTx{Tx: tx0.tx}).GasWanted, int64(1), "KVStore had a gas value neq to 1")
@@ -111,12 +111,12 @@ func TestReapMaxBytesMaxGas(t *testing.T) {
 		maxGas         int64
 		expectedNumTxs int
 	}{
-		0:  {20, -1, -1, 20},
-		1:  {20, -1, 0, 0},
-		2:  {20, -1, 10, 10},
-		3:  {20, -1, 30, 20},
-		4:  {20, 0, -1, 0},
-		5:  {20, 0, 10, 0},
+		0:  {20, 1e6, -1, 20},
+		1:  {20, 1e6, 0, 0},
+		2:  {20, 1e6, 10, 10},
+		3:  {20, 1e6, 30, 20},
+		4:  {20, 1, -1, 0},
+		5:  {20, 1, 10, 0},
 		6:  {20, 10, 10, 0},
 		7:  {20, 20, 10, 1},
 		8:  {20, 200, -1, 10},
@@ -128,7 +128,7 @@ func TestReapMaxBytesMaxGas(t *testing.T) {
 		14: {20, 20000, 30, 20},
 	}
 	for tcIndex, tt := range tests {
-		checkTxs(t, mempool, tt.numTxsToCreate, UnknownPeerID)
+		checkTxs(t, mempool, tt.numTxsToCreate, UnknownPeerID, false)
 		got := mempool.ReapMaxBytesMaxGas(tt.maxDataBytes, tt.maxGas)
 		assert.Equal(t, tt.expectedNumTxs, len(got), "Got %d txs, expected %d, tc #%d",
 			len(got), tt.expectedNumTxs, tcIndex)
@@ -143,34 +143,33 @@ func TestMempoolFilters(t *testing.T) {
 	defer cleanup()
 	emptyTxArr := []types.Tx{[]byte{}}
 
-	nopPreFilter := func(tx types.Tx) error { return nil }
 	nopPostFilter := func(tx types.Tx, res abci.ResponseCheckTx) error { return nil }
 
 	// each table driven test creates numTxsToCreate txs with checkTx, and at the end clears all remaining txs.
-	// each tx has 20 bytes + amino overhead = 21 bytes, 1 gas
+	// each tx has 20 bytes and 1 gas
 	tests := []struct {
 		numTxsToCreate int
-		preFilter      PreCheckFunc
+		maxTxBytes     int64
 		postFilter     PostCheckFunc
 		expectedNumTxs int
 	}{
-		{10, nopPreFilter, nopPostFilter, 10},
-		{10, PreCheckMaxTxBytes(10), nopPostFilter, 0},
-		{10, PreCheckMaxTxBytes(19), nopPostFilter, 0},
-		{10, PreCheckMaxTxBytes(20), nopPostFilter, 10},
-		{10, PreCheckMaxTxBytes(21), nopPostFilter, 10},
-		{10, nopPreFilter, PostCheckMaxGas(-1), 10},
-		{10, nopPreFilter, PostCheckMaxGas(0), 0},
-		{10, nopPreFilter, PostCheckMaxGas(1), 10},
-		{10, nopPreFilter, PostCheckMaxGas(3000), 10},
-		{10, PreCheckMaxTxBytes(10), PostCheckMaxGas(20), 0},
-		{10, PreCheckMaxTxBytes(30), PostCheckMaxGas(20), 10},
-		{10, PreCheckMaxTxBytes(20), PostCheckMaxGas(1), 10},
-		{10, PreCheckMaxTxBytes(20), PostCheckMaxGas(0), 0},
+		{10, 1024, nopPostFilter, 10},
+		{10, 10, nopPostFilter, 0},
+		{10, 19, nopPostFilter, 0},
+		{10, 20, nopPostFilter, 10},
+		{10, 21, nopPostFilter, 10},
+		{10, 1024, PostCheckMaxGas(-1), 10},
+		{10, 1024, PostCheckMaxGas(0), 0},
+		{10, 1024, PostCheckMaxGas(1), 10},
+		{10, 1024, PostCheckMaxGas(3000), 10},
+		{10, 10, PostCheckMaxGas(20), 0},
+		{10, 30, PostCheckMaxGas(20), 10},
+		{10, 20, PostCheckMaxGas(1), 10},
+		{10, 20, PostCheckMaxGas(0), 0},
 	}
 	for tcIndex, tt := range tests {
-		mempool.Update(1, emptyTxArr, abciResponses(len(emptyTxArr), nil), tt.preFilter, tt.postFilter)
-		checkTxs(t, mempool, tt.numTxsToCreate, UnknownPeerID)
+		mempool.Update(1, emptyTxArr, abciResponses(len(emptyTxArr), nil), nil, tt.postFilter, tt.maxTxBytes)
+		checkTxs(t, mempool, tt.numTxsToCreate, UnknownPeerID, false)
 		require.Equal(t, tt.expectedNumTxs, mempool.Size(), "mempool had the incorrect size, on test case %d", tcIndex)
 		mempool.Flush()
 	}
@@ -184,7 +183,7 @@ func TestMempoolUpdate(t *testing.T) {
 
 	// 1. Adds valid txs to the cache
 	{
-		mempool.Update(1, []types.Tx{[]byte{0x01}}, abciResponses(1, nil), nil, nil)
+		mempool.Update(1, []types.Tx{[]byte{0x01}}, abciResponses(1, nil), nil, nil, 0)
 		err := mempool.CheckTx([]byte{0x01}, nil)
 		if assert.Error(t, err) {
 			assert.Equal(t, ErrTxInCache, err)
@@ -195,7 +194,7 @@ func TestMempoolUpdate(t *testing.T) {
 	{
 		err := mempool.CheckTx([]byte{0x02}, nil)
 		require.NoError(t, err)
-		mempool.Update(1, []types.Tx{[]byte{0x02}}, abciResponses(1, nil), nil, nil)
+		mempool.Update(1, []types.Tx{[]byte{0x02}}, abciResponses(1, nil), nil, nil, 0)
 		assert.Zero(t, mempool.Size())
 	}
 
@@ -203,7 +202,7 @@ func TestMempoolUpdate(t *testing.T) {
 	{
 		err := mempool.CheckTx([]byte{0x03}, nil)
 		require.NoError(t, err)
-		mempool.Update(1, []types.Tx{[]byte{0x03}}, abciResponses(1, abci.StringError("1")), nil, nil)
+		mempool.Update(1, []types.Tx{[]byte{0x03}}, abciResponses(1, abci.StringError("1")), nil, nil, 0)
 		assert.Zero(t, mempool.Size())
 
 		err = mempool.CheckTx([]byte{0x03}, nil)
@@ -224,7 +223,7 @@ func TestTxsAvailable(t *testing.T) {
 	ensureNoFire(t, mempool.TxsAvailable(), timeoutMS)
 
 	// send a bunch of txs, it should only fire once
-	txs := checkTxs(t, mempool, 100, UnknownPeerID)
+	txs := checkTxs(t, mempool, 100, UnknownPeerID, true)
 	ensureFire(t, mempool.TxsAvailable(), timeoutMS)
 	ensureNoFire(t, mempool.TxsAvailable(), timeoutMS)
 
@@ -232,25 +231,25 @@ func TestTxsAvailable(t *testing.T) {
 	// it should fire once now for the new height
 	// since there are still txs left
 	committedTxs, txs := txs[:50], txs[50:]
-	if err := mempool.Update(1, committedTxs, abciResponses(len(committedTxs), nil), nil, nil); err != nil {
+	if err := mempool.Update(1, committedTxs, abciResponses(len(committedTxs), nil), nil, nil, 0); err != nil {
 		t.Error(err)
 	}
 	ensureFire(t, mempool.TxsAvailable(), timeoutMS)
 	ensureNoFire(t, mempool.TxsAvailable(), timeoutMS)
 
 	// send a bunch more txs. we already fired for this height so it shouldnt fire again
-	moreTxs := checkTxs(t, mempool, 50, UnknownPeerID)
+	moreTxs := checkTxs(t, mempool, 50, UnknownPeerID, true)
 	ensureNoFire(t, mempool.TxsAvailable(), timeoutMS)
 
 	// now call update with all the txs. it should not fire as there are no txs left
 	committedTxs = append(txs, moreTxs...) //nolint: gocritic
-	if err := mempool.Update(2, committedTxs, abciResponses(len(committedTxs), nil), nil, nil); err != nil {
+	if err := mempool.Update(2, committedTxs, abciResponses(len(committedTxs), nil), nil, nil, 0); err != nil {
 		t.Error(err)
 	}
 	ensureNoFire(t, mempool.TxsAvailable(), timeoutMS)
 
 	// send a bunch more txs, it should only fire once
-	checkTxs(t, mempool, 100, UnknownPeerID)
+	checkTxs(t, mempool, 100, UnknownPeerID, true)
 	ensureFire(t, mempool.TxsAvailable(), timeoutMS)
 	ensureNoFire(t, mempool.TxsAvailable(), timeoutMS)
 }
@@ -303,7 +302,7 @@ func TestSerialReap(t *testing.T) {
 			binary.BigEndian.PutUint64(txBytes, uint64(i))
 			txs = append(txs, txBytes)
 		}
-		if err := mempool.Update(0, txs, abciResponses(len(txs), nil), nil, nil); err != nil {
+		if err := mempool.Update(0, txs, abciResponses(len(txs), nil), nil, nil, 0); err != nil {
 			t.Error(err)
 		}
 	}
@@ -418,7 +417,10 @@ func TestMempoolMaxMsgSize(t *testing.T) {
 	mempl, cleanup := newMempoolWithApp(cc)
 	defer cleanup()
 
-	maxTxSize := mempl.config.MaxTxBytes
+	maxTxSize := int(mempl.MaxTxBytes())
+	if maxTxSize < 1024 {
+		panic("expected some default greater than or equal to 1024")
+	}
 
 	testCases := []struct {
 		len int
@@ -426,8 +428,8 @@ func TestMempoolMaxMsgSize(t *testing.T) {
 	}{
 		// check small txs. no error
 		{10, false},
+		{100, false},
 		{1000, false},
-		{1000000, false},
 
 		// check around maxTxSize
 		// changes from no error to error
@@ -448,17 +450,17 @@ func TestMempoolMaxMsgSize(t *testing.T) {
 			require.NoError(t, err, caseString)
 		} else {
 			require.True(t, len(tx) > maxTxSize, caseString)
-			require.Equal(t, err, ErrTxTooLarge{maxTxSize, testCase.len}, caseString)
+			require.Equal(t, err, ErrTxTooLarge{int64(maxTxSize), int64(testCase.len)}, caseString)
 		}
 	}
 
 }
 
-func TestMempoolTxsBytes(t *testing.T) {
+func TestMempoolMaxPendingTxsBytes(t *testing.T) {
 	app := kvstore.NewKVStoreApplication()
 	cc := proxy.NewLocalClientCreator(app)
 	config := cfg.ResetTestRoot("mempool_test")
-	config.Mempool.MaxTxsBytes = 10
+	config.Mempool.MaxPendingTxsBytes = 10
 	mempool, cleanup := newMempoolWithAppAndConfig(cc, config)
 	defer cleanup()
 
@@ -471,7 +473,7 @@ func TestMempoolTxsBytes(t *testing.T) {
 	assert.EqualValues(t, 1, mempool.TxsBytes())
 
 	// 3. zero again after tx is removed by Update
-	mempool.Update(1, []types.Tx{[]byte{0x01}}, abciResponses(1, nil), nil, nil)
+	mempool.Update(1, []types.Tx{[]byte{0x01}}, abciResponses(1, nil), nil, nil, 0)
 	assert.EqualValues(t, 0, mempool.TxsBytes())
 
 	// 4. zero after Flush
@@ -482,7 +484,7 @@ func TestMempoolTxsBytes(t *testing.T) {
 	mempool.Flush()
 	assert.EqualValues(t, 0, mempool.TxsBytes())
 
-	// 5. ErrMempoolIsFull is returned when/if MaxTxsBytes limit is reached.
+	// 5. ErrMempoolIsFull is returned when/if MaxPendingTxsBytes limit is reached.
 	err = mempool.CheckTx([]byte{0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04}, nil)
 	require.NoError(t, err)
 	err = mempool.CheckTx([]byte{0x05}, nil)
@@ -516,7 +518,7 @@ func TestMempoolTxsBytes(t *testing.T) {
 	require.NotEmpty(t, res2.Data)
 
 	// Pretend like we committed nothing so txBytes gets rechecked and removed.
-	mempool.Update(1, []types.Tx{}, abciResponses(0, nil), nil, nil)
+	mempool.Update(1, []types.Tx{}, abciResponses(0, nil), nil, nil, 0)
 	assert.EqualValues(t, 0, mempool.TxsBytes())
 }
 

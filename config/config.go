@@ -631,14 +631,13 @@ func DefaultFuzzConnConfig() *FuzzConnConfig {
 
 // MempoolConfig defines the configuration options for the Tendermint mempool
 type MempoolConfig struct {
-	RootDir     string `mapstructure:"home"`
-	Recheck     bool   `mapstructure:"recheck"`
-	Broadcast   bool   `mapstructure:"broadcast"`
-	WalPath     string `mapstructure:"wal_dir"`
-	Size        int    `mapstructure:"size"`
-	MaxTxsBytes int64  `mapstructure:"max_txs_bytes"`
-	CacheSize   int    `mapstructure:"cache_size"`
-	MaxTxBytes  int    `mapstructure:"max_tx_bytes"`
+	RootDir            string `mapstructure:"home"`
+	Recheck            bool   `mapstructure:"recheck"`
+	Broadcast          bool   `mapstructure:"broadcast"`
+	WalPath            string `mapstructure:"wal_dir"`
+	Size               int    `mapstructure:"size"`
+	MaxPendingTxsBytes int64  `mapstructure:"max_pending_txs_bytes"`
+	CacheSize          int    `mapstructure:"cache_size"`
 }
 
 // DefaultMempoolConfig returns a default configuration for the Tendermint mempool
@@ -649,10 +648,9 @@ func DefaultMempoolConfig() *MempoolConfig {
 		WalPath:   "",
 		// Each signature verification takes .5ms, Size reduced until we implement
 		// ABCI Recheck
-		Size:        5000,
-		MaxTxsBytes: 1024 * 1024 * 1024, // 1GB
-		CacheSize:   10000,
-		MaxTxBytes:  1024 * 1024, // 1MB
+		Size:               5000,
+		MaxPendingTxsBytes: 1024 * 1024 * 1024, // 1GB
+		CacheSize:          10000,
 	}
 }
 
@@ -679,14 +677,11 @@ func (cfg *MempoolConfig) ValidateBasic() error {
 	if cfg.Size < 0 {
 		return errors.New("size can't be negative")
 	}
-	if cfg.MaxTxsBytes < 0 {
+	if cfg.MaxPendingTxsBytes < 0 {
 		return errors.New("max_txs_bytes can't be negative")
 	}
 	if cfg.CacheSize < 0 {
 		return errors.New("cache_size can't be negative")
-	}
-	if cfg.MaxTxBytes < 0 {
-		return errors.New("max_tx_bytes can't be negative")
 	}
 	return nil
 }

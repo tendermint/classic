@@ -31,11 +31,13 @@ import (
 type CListMempool struct {
 	config *cfg.MempoolConfig
 
-	proxyMtx     sync.Mutex
+	mtx          sync.Mutex
 	proxyAppConn proxy.AppConnMempool
 	txs          *clist.CList // concurrent linked-list of good txs
 	preCheck     PreCheckFunc
 	postCheck    PostCheckFunc
+	height       int64 // the last block Update()'d to
+	maxTxBytes   int64
 
 	// Track whether we're rechecking txs.
 	// These are not protected by a mutex and are expected to be mutated
@@ -52,7 +54,6 @@ type CListMempool struct {
 	txsMap sync.Map
 
 	// Atomic integers
-	height     int64 // the last block Update()'d to
 	txsBytes   int64 // total size of mempool, in bytes
 	rechecking int32 // for re-checking filtered txs on Update()
 
@@ -78,13 +79,18 @@ func NewCListMempool(
 	config *cfg.MempoolConfig,
 	proxyAppConn proxy.AppConnMempool,
 	height int64,
+	maxTxBytes int64,
 	options ...CListMempoolOption,
 ) *CListMempool {
+	if maxTxBytes < 0 {
+		panic("maxTxBytes must be positive")
+	}
 	mempool := &CListMempool{
 		config:        config,
 		proxyAppConn:  proxyAppConn,
 		txs:           clist.New(),
 		height:        height,
+		maxTxBytes:    maxTxBytes,
 		rechecking:    0,
 		recheckCursor: nil,
 		recheckEnd:    nil,
@@ -146,8 +152,8 @@ func (mem *CListMempool) InitWAL() {
 }
 
 func (mem *CListMempool) CloseWAL() {
-	mem.proxyMtx.Lock()
-	defer mem.proxyMtx.Unlock()
+	mem.mtx.Lock()
+	defer mem.mtx.Unlock()
 
 	if err := mem.wal.Close(); err != nil {
 		mem.logger.Error("Error closing WAL", "err", err)
@@ -156,15 +162,21 @@ func (mem *CListMempool) CloseWAL() {
 }
 
 func (mem *CListMempool) Lock() {
-	mem.proxyMtx.Lock()
+	mem.mtx.Lock()
 }
 
 func (mem *CListMempool) Unlock() {
-	mem.proxyMtx.Unlock()
+	mem.mtx.Unlock()
 }
 
 func (mem *CListMempool) Size() int {
 	return mem.txs.Len()
+}
+
+func (mem *CListMempool) MaxTxBytes() int64 {
+	mem.mtx.Lock()
+	defer mem.mtx.Unlock()
+	return mem.maxTxBytes
 }
 
 func (mem *CListMempool) TxsBytes() int64 {
@@ -176,8 +188,8 @@ func (mem *CListMempool) FlushAppConn() error {
 }
 
 func (mem *CListMempool) Flush() {
-	mem.proxyMtx.Lock()
-	defer mem.proxyMtx.Unlock()
+	mem.mtx.Lock()
+	defer mem.mtx.Unlock()
 
 	mem.cache.Reset()
 
@@ -213,32 +225,33 @@ func (mem *CListMempool) CheckTx(tx types.Tx, cb func(abci.Response)) (err error
 }
 
 func (mem *CListMempool) CheckTxWithInfo(tx types.Tx, cb func(abci.Response), txInfo TxInfo) (err error) {
-	mem.proxyMtx.Lock()
+	mem.mtx.Lock()
 	// use defer to unlock mutex because application (*local client*) might panic
-	defer mem.proxyMtx.Unlock()
+	defer mem.mtx.Unlock()
 
 	var (
 		memSize  = mem.Size()
 		txsBytes = mem.TxsBytes()
 		txSize   = len(tx)
 	)
+
+	// Check max pending txs bytes
 	if memSize >= mem.config.Size ||
-		int64(txSize)+txsBytes > mem.config.MaxTxsBytes {
+		int64(txSize)+txsBytes > mem.config.MaxPendingTxsBytes {
 		return ErrMempoolIsFull{
 			memSize, mem.config.Size,
-			txsBytes, mem.config.MaxTxsBytes}
+			txsBytes, mem.config.MaxPendingTxsBytes}
 	}
 
-	// The size of the corresponding amino-encoded TxMessage
-	// can't be larger than the maxMsgSize, otherwise we can't
-	// relay it to peers.
-	if txSize > mem.config.MaxTxBytes {
-		return ErrTxTooLarge{mem.config.MaxTxBytes, txSize}
+	// Check max tx bytes
+	if int64(txSize) > mem.maxTxBytes {
+		return ErrTxTooLarge{mem.maxTxBytes, int64(txSize)}
 	}
 
+	// Check custom preCheck function
 	if mem.preCheck != nil {
 		if err := mem.preCheck(tx); err != nil {
-			return ErrPreCheck{err}
+			return err
 		}
 	}
 
@@ -296,13 +309,13 @@ func (mem *CListMempool) CheckTxWithInfo(tx types.Tx, cb func(abci.Response), tx
 func (mem *CListMempool) globalCb(req abci.Request, res abci.Response) {
 	if mem.recheckCursor == nil {
 		return
+	} else {
+		mem.metrics.RecheckTimes.Add(1)
+		mem.resCbRecheck(req, res)
+
+		// update metrics
+		mem.metrics.Size.Set(float64(mem.Size()))
 	}
-
-	mem.metrics.RecheckTimes.Add(1)
-	mem.resCbRecheck(req, res)
-
-	// update metrics
-	mem.metrics.Size.Set(float64(mem.Size()))
 }
 
 // Request specific callback that should be set on individual reqRes objects
@@ -459,9 +472,13 @@ func (mem *CListMempool) notifyTxsAvailable() {
 	}
 }
 
-func (mem *CListMempool) ReapMaxBytesMaxGas(maxBytes, maxGas int64) types.Txs {
-	mem.proxyMtx.Lock()
-	defer mem.proxyMtx.Unlock()
+func (mem *CListMempool) ReapMaxBytesMaxGas(maxDataBytes, maxGas int64) types.Txs {
+	mem.mtx.Lock()
+	defer mem.mtx.Unlock()
+
+	if maxDataBytes == 0 {
+		panic("ReapMaxBytesMaxGas requires maxDataBytes > 0")
+	}
 
 	for atomic.LoadInt32(&mem.rechecking) > 0 {
 		// TODO: Something better?
@@ -477,7 +494,7 @@ func (mem *CListMempool) ReapMaxBytesMaxGas(maxBytes, maxGas int64) types.Txs {
 	for e := mem.txs.Front(); e != nil; e = e.Next() {
 		memTx := e.Value.(*mempoolTx)
 		// Check total size requirement
-		if maxBytes > -1 && totalBytes+int64(len(memTx.tx)) > maxBytes {
+		if maxDataBytes > -1 && totalBytes+int64(len(memTx.tx)) > maxDataBytes {
 			return txs
 		}
 		totalBytes += int64(len(memTx.tx))
@@ -496,8 +513,8 @@ func (mem *CListMempool) ReapMaxBytesMaxGas(maxBytes, maxGas int64) types.Txs {
 }
 
 func (mem *CListMempool) ReapMaxTxs(max int) types.Txs {
-	mem.proxyMtx.Lock()
-	defer mem.proxyMtx.Unlock()
+	mem.mtx.Lock()
+	defer mem.mtx.Unlock()
 
 	if max < 0 {
 		max = mem.txs.Len()
@@ -522,6 +539,7 @@ func (mem *CListMempool) Update(
 	deliverTxResponses []abci.ResponseDeliverTx,
 	preCheck PreCheckFunc,
 	postCheck PostCheckFunc,
+	maxTxBytes int64,
 ) error {
 	// Set height
 	mem.height = height
@@ -532,6 +550,9 @@ func (mem *CListMempool) Update(
 	}
 	if postCheck != nil {
 		mem.postCheck = postCheck
+	}
+	if maxTxBytes != 0 {
+		mem.maxTxBytes = maxTxBytes
 	}
 
 	for i, tx := range txs {
@@ -591,6 +612,19 @@ func (mem *CListMempool) recheckTxs() {
 	// NOTE: globalCb may be called concurrently.
 	for e := mem.txs.Front(); e != nil; e = e.Next() {
 		memTx := e.Value.(*mempoolTx)
+		// check tx size
+		if int64(len(memTx.tx)) > mem.maxTxBytes {
+			mem.removeTx(memTx.tx, e, false)
+			continue
+		}
+		// run precheck
+		if mem.preCheck != nil {
+			if err := mem.preCheck(memTx.tx); err != nil {
+				mem.removeTx(memTx.tx, e, false)
+				continue
+			}
+		}
+		// run proxy app checktx
 		mem.proxyAppConn.CheckTxAsync(abci.RequestCheckTx{
 			Tx:   memTx.tx,
 			Type: abci.CheckTxTypeRecheck,

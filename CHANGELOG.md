@@ -9,6 +9,7 @@
 * Replace amino with amino-x (in progress).
 * Remove alternative implementations (of blockchain reactor).
 * Remove GRPC and non-amino proto usage.
+* Mempool has MaxTxBytes property (not config).
 
 ## v0.32.7
 

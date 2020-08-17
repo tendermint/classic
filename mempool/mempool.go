@@ -43,7 +43,7 @@ type Mempool interface {
 	// Update informs the mempool that the given txs were committed and can be discarded.
 	// NOTE: this should be called *after* block is committed by consensus.
 	// NOTE: unsafe; Lock/Unlock must be managed by caller
-	Update(blockHeight int64, blockTxs types.Txs, deliverTxResponses []abci.ResponseDeliverTx, newPreFn PreCheckFunc, newPostFn PostCheckFunc) error
+	Update(blockHeight int64, blockTxs types.Txs, deliverTxResponses []abci.ResponseDeliverTx, newPreFn PreCheckFunc, newPostFn PostCheckFunc, maxTxBytes int64) error
 
 	// FlushAppConn flushes the mempool connection to ensure async reqResCb calls are
 	// done. E.g. from CheckTx.
@@ -66,6 +66,9 @@ type Mempool interface {
 
 	// TxsBytes returns the total size of all txs in the mempool.
 	TxsBytes() int64
+
+	// Maximum allowable tx size.
+	MaxTxBytes() int64
 
 	// InitWAL creates a directory for the WAL file and opens a file itself.
 	InitWAL()
@@ -96,20 +99,6 @@ type TxInfo struct {
 }
 
 //--------------------------------------------------------------------------------
-
-// PreCheckMaxTxBytes checks that the size of the transaction is smaller or
-// equal to the expected maxBytes.  It is a rough calculation that doesn't take
-// into account encoding overhead etc.
-func PreCheckMaxTxBytes(maxBytes int64) PreCheckFunc {
-	return func(tx types.Tx) error {
-		txSize := int64(len(tx))
-		if txSize > maxBytes {
-			return fmt.Errorf("Tx size (including amino overhead) is too big: %d, max: %d",
-				txSize, maxBytes)
-		}
-		return nil
-	}
-}
 
 // PostCheckMaxGas checks that the wanted gas is smaller or equal to the passed
 // maxGas. Returns nil if maxGas is -1.

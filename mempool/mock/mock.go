@@ -30,6 +30,7 @@ func (Mempool) Update(
 	_ []abci.ResponseDeliverTx,
 	_ mempl.PreCheckFunc,
 	_ mempl.PostCheckFunc,
+	_ int64,
 ) error {
 	return nil
 }
@@ -37,6 +38,7 @@ func (Mempool) Flush()                        {}
 func (Mempool) FlushAppConn() error           { return nil }
 func (Mempool) TxsAvailable() <-chan struct{} { return make(chan struct{}) }
 func (Mempool) EnableTxsAvailable()           {}
+func (Mempool) MaxTxBytes() int64             { return 0 }
 func (Mempool) TxsBytes() int64               { return 0 }
 
 func (Mempool) TxsFront() *clist.CElement    { return nil }

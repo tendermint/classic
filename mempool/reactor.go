@@ -256,10 +256,6 @@ func (memR *Reactor) broadcastTxRoutine(peer p2p.Peer) {
 type MempoolMessage interface{}
 
 func (memR *Reactor) decodeMsg(bz []byte) (msg MempoolMessage, err error) {
-	maxMsgSize := memR.config.MaxTxBytes
-	if l := len(bz); l > maxMsgSize {
-		return msg, ErrTxTooLarge{maxMsgSize, l}
-	}
 	err = amino.Unmarshal(bz, &msg)
 	return
 }

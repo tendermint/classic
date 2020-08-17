@@ -110,9 +110,8 @@ func TestMempoolConfigValidateBasic(t *testing.T) {
 
 	fieldsToTest := []string{
 		"Size",
-		"MaxTxsBytes",
+		"MaxPendingTxsBytes",
 		"CacheSize",
-		"MaxTxBytes",
 	}
 
 	for _, fieldName := range fieldsToTest {

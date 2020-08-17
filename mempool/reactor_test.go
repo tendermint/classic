@@ -129,7 +129,7 @@ func TestReactorBroadcastTxMessage(t *testing.T) {
 
 	// send a bunch of txs to the first reactor's mempool
 	// and wait for them all to be received in the others
-	txs := checkTxs(t, reactors[0].mempool, NUM_TXS, UnknownPeerID)
+	txs := checkTxs(t, reactors[0].mempool, NUM_TXS, UnknownPeerID, true)
 	waitForTxsOnReactors(t, txs, reactors)
 }
 
@@ -145,7 +145,7 @@ func TestReactorNoBroadcastToSender(t *testing.T) {
 
 	// send a bunch of txs to the first reactor's mempool, claiming it came from peer
 	// ensure peer gets no txs
-	checkTxs(t, reactors[0].mempool, NUM_TXS, 1)
+	checkTxs(t, reactors[0].mempool, NUM_TXS, 1, true)
 	ensureNoTxs(t, reactors[1], 100*time.Millisecond)
 }
 
