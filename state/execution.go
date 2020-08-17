@@ -210,6 +210,7 @@ func (blockExec *BlockExecutor) Commit(
 		deliverTxResponses,
 		TxPreCheck(state),
 		TxPostCheck(state),
+		state.ConsensusParams.Block.MaxTxBytes,
 	)
 
 	return res.Data, err

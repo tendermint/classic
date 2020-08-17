@@ -2,13 +2,13 @@ package state
 
 import (
 	mempl "github.com/tendermint/classic/mempool"
+	"github.com/tendermint/classic/types"
 )
 
 // TxPreCheck returns a function to filter transactions before processing.
-// The function limits the size of a transaction.
+// The function does nothing yet.
 func TxPreCheck(state State) mempl.PreCheckFunc {
-	max := state.ConsensusParams.Block.MaxTxBytes
-	return mempl.PreCheckMaxTxBytes(max)
+	return func(types.Tx) error { return nil }
 }
 
 // TxPostCheck returns a function to filter transactions after processing.

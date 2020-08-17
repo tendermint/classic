@@ -36,7 +36,6 @@ type EventSwitch interface {
 
 	// Multiple callbacks can be registered for each listener.
 	AddListener(listenerID string, cb EventCallback)
-	Subscribe(listenerID string) <-chan Event
 	// Removes all callbacks for listener.
 	RemoveListener(listenerID string)
 }
@@ -79,33 +78,6 @@ func (evsw *eventSwitch) AddListener(listenerID string, cb EventCallback) {
 	evsw.mtx.Lock()
 	evsw.listeners = append(evsw.listeners, listenCell{listenerID, cb})
 	evsw.mtx.Unlock()
-}
-
-// Returns a synchronous event emitter.
-func (evsw *eventSwitch) Subscribe(listenerID string) <-chan Event {
-	ch := make(chan Event, 0) // synchronous
-	return evsw.SubscribeOn(listenerID, ch)
-}
-
-// Like Subscribe, but lets the caller construct a channel.  If the capacity of
-// the provided channel is 0, it will be called synchronously; otherwise, it
-// will drop when the capacity is reached and a select doesn't immediately
-// send.
-func (evsw *eventSwitch) SubscribeOn(listenerID string, ch chan Event) <-chan Event {
-	evsw.AddListener(listenerID, func(event Event) {
-		// NOTE: This callback must not block.
-		if cap(ch) == 0 {
-			ch <- event // synchronous
-		} else {
-			select {
-			case ch <- event:
-			default: // async
-				evsw.RemoveListener(listenerID) // TODO log
-				close(ch)
-			}
-		}
-	})
-	return ch
 }
 
 func (evsw *eventSwitch) RemoveListener(listenerID string) {
