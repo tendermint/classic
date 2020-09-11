@@ -15,6 +15,7 @@ import (
 	cfg "github.com/tendermint/classic/config"
 	db "github.com/tendermint/classic/db"
 	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/classic/libs/events"
 	"github.com/tendermint/classic/libs/log"
 	"github.com/tendermint/classic/mempool/mock"
 	"github.com/tendermint/classic/privval"
@@ -32,6 +33,7 @@ func WALGenerateNBlocks(t *testing.T, wr io.Writer, numBlocks int) (err error) {
 	config := getConfig(t)
 
 	app := kvstore.NewPersistentKVStoreApplication(filepath.Join(config.DBDir(), "wal_generator"))
+	defer app.Close()
 
 	logger := log.TestingLogger().With("wal_generator", "wal_generator")
 	logger.Info("generating WAL (last height msg excluded)", "numBlocks", numBlocks)
@@ -53,7 +55,7 @@ func WALGenerateNBlocks(t *testing.T, wr io.Writer, numBlocks int) (err error) {
 	if err != nil {
 		return errors.Wrap(err, "failed to make genesis state")
 	}
-	state.Version.Consensus.App = kvstore.ProtocolVersion
+	state.AppVersion = kvstore.AppVersion
 	sm.SaveState(stateDB, state)
 	blockStore := store.NewBlockStore(blockStoreDB)
 
@@ -64,18 +66,17 @@ func WALGenerateNBlocks(t *testing.T, wr io.Writer, numBlocks int) (err error) {
 	}
 	defer proxyApp.Stop()
 
-	eventBus := types.NewEventBus()
-	eventBus.SetLogger(logger.With("module", "events"))
-	if err := eventBus.Start(); err != nil {
+	evsw := events.NewEventSwitch()
+	evsw.SetLogger(logger.With("module", "events"))
+	if err := evsw.Start(); err != nil {
 		return errors.Wrap(err, "failed to start event bus")
 	}
-	defer eventBus.Stop()
+	defer evsw.Stop()
 	mempool := mock.Mempool{}
-	evpool := sm.MockEvidencePool{}
-	blockExec := sm.NewBlockExecutor(stateDB, log.TestingLogger(), proxyApp.Consensus(), mempool, evpool)
-	consensusState := NewConsensusState(config.Consensus, state.Copy(), blockExec, blockStore, mempool, evpool)
+	blockExec := sm.NewBlockExecutor(stateDB, log.TestingLogger(), proxyApp.Consensus(), mempool)
+	consensusState := NewConsensusState(config.Consensus, state.Copy(), blockExec, blockStore, mempool)
 	consensusState.SetLogger(logger)
-	consensusState.SetEventBus(eventBus)
+	consensusState.SetEventSwitch(evsw)
 	if privValidator != nil {
 		consensusState.SetPrivValidator(privValidator)
 	}

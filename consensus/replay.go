@@ -15,12 +15,13 @@ import (
 	//auto "github.com/tendermint/classic/libs/autofile"
 	dbm "github.com/tendermint/classic/db"
 
+	cstypes "github.com/tendermint/classic/consensus/types"
+	"github.com/tendermint/classic/libs/events"
 	"github.com/tendermint/classic/libs/log"
 	"github.com/tendermint/classic/mempool/mock"
 	"github.com/tendermint/classic/proxy"
 	sm "github.com/tendermint/classic/state"
 	"github.com/tendermint/classic/types"
-	"github.com/tendermint/classic/version"
 )
 
 var crc32c = crc32.MakeTable(crc32.Castagnoli)
@@ -42,7 +43,7 @@ var crc32c = crc32.MakeTable(crc32.Castagnoli)
 // Unmarshal and apply a single message to the consensus state as if it were
 // received in receiveRoutine.  Lines that start with "#" are ignored.
 // NOTE: receiveRoutine should not be running.
-func (cs *ConsensusState) readReplayMessage(msg *TimedWALMessage, newStepSub types.Subscription) error {
+func (cs *ConsensusState) readReplayMessage(msg *TimedWALMessage, newStepSub <-chan events.Event) error {
 	// Skip meta messages which exist for demarcating boundaries.
 	if _, ok := msg.Msg.(EndHeightMessage); ok {
 		return nil
@@ -50,21 +51,22 @@ func (cs *ConsensusState) readReplayMessage(msg *TimedWALMessage, newStepSub typ
 
 	// for logging
 	switch m := msg.Msg.(type) {
-	case types.EventDataRoundState:
+	case newRoundStepInfo:
 		cs.Logger.Info("Replay: New Step", "height", m.Height, "round", m.Round, "step", m.Step)
 		// these are playback checks
 		ticker := time.After(time.Second * 2)
 		if newStepSub != nil {
 			select {
-			case stepMsg := <-newStepSub.Out():
-				m2 := stepMsg.Data().(types.EventDataRoundState)
+			case stepMsg, ok := <-newStepSub:
+				if !ok {
+					return fmt.Errorf("Failed to read off newStepSub. newStepSub was cancelled")
+				}
+				m2 := stepMsg.(cstypes.EventNewRoundStep)
 				if m.Height != m2.Height || m.Round != m2.Round || m.Step != m2.Step {
 					return fmt.Errorf("RoundState mismatch. Got %v; Expected %v", m2, m)
 				}
-			case <-newStepSub.Cancelled():
-				return fmt.Errorf("Failed to read off newStepSub.Out(). newStepSub was cancelled")
 			case <-ticker:
-				return fmt.Errorf("Failed to read off newStepSub.Out()")
+				return fmt.Errorf("Failed to read off newStepSub.")
 			}
 		}
 	case msgInfo:
@@ -201,7 +203,7 @@ type Handshaker struct {
 	stateDB      dbm.DB
 	initialState sm.State
 	store        sm.BlockStore
-	eventBus     types.BlockEventPublisher
+	evsw         events.EventSwitch
 	genDoc       *types.GenesisDoc
 	logger       log.Logger
 
@@ -215,7 +217,7 @@ func NewHandshaker(stateDB dbm.DB, state sm.State,
 		stateDB:      stateDB,
 		initialState: state,
 		store:        store,
-		eventBus:     types.NopEventBus{},
+		evsw:         events.NilEventSwitch(),
 		genDoc:       genDoc,
 		logger:       log.NewNopLogger(),
 		nBlocks:      0,
@@ -226,10 +228,10 @@ func (h *Handshaker) SetLogger(l log.Logger) {
 	h.logger = l
 }
 
-// SetEventBus - sets the event bus for publishing block related events.
-// If not called, it defaults to types.NopEventBus.
-func (h *Handshaker) SetEventBus(eventBus types.BlockEventPublisher) {
-	h.eventBus = eventBus
+// SetEventSwitch - sets the event bus for publishing block related events.
+// If not called, it defaults to types.NopEventSwitch.
+func (h *Handshaker) SetEventSwitch(evsw events.EventSwitch) {
+	h.evsw = evsw
 }
 
 // NBlocks returns the number of blocks applied to the state.
@@ -241,7 +243,7 @@ func (h *Handshaker) NBlocks() int {
 func (h *Handshaker) Handshake(proxyApp proxy.AppConns) error {
 
 	// Handshake is done via ABCI Info on the query conn.
-	res, err := proxyApp.Query().InfoSync(proxy.RequestInfo)
+	res, err := proxyApp.Query().InfoSync(abci.RequestInfo{})
 	if err != nil {
 		return fmt.Errorf("Error calling Info: %v", err)
 	}
@@ -255,13 +257,13 @@ func (h *Handshaker) Handshake(proxyApp proxy.AppConns) error {
 	h.logger.Info("ABCI Handshake App Info",
 		"height", blockHeight,
 		"hash", fmt.Sprintf("%X", appHash),
-		"software-version", res.Version,
-		"protocol-version", res.AppVersion,
+		"abci-version", res.ABCIVersion,
+		"app-version", res.AppVersion,
 	)
 
 	// Set AppVersion on the state.
-	if h.initialState.Version.Consensus.App != version.Protocol(res.AppVersion) {
-		h.initialState.Version.Consensus.App = version.Protocol(res.AppVersion)
+	if h.initialState.AppVersion != res.AppVersion {
+		h.initialState.AppVersion = res.AppVersion
 		sm.SaveState(h.stateDB, h.initialState)
 	}
 
@@ -299,12 +301,12 @@ func (h *Handshaker) ReplayBlocks(
 			validators[i] = types.NewValidator(val.PubKey, val.Power)
 		}
 		validatorSet := types.NewValidatorSet(validators)
-		nextVals := types.TM2PB.ValidatorUpdates(validatorSet)
-		csParams := types.TM2PB.ConsensusParams(h.genDoc.ConsensusParams)
+		nextVals := validatorSet.ABCIValidatorUpdates()
+		csParams := h.genDoc.ConsensusParams
 		req := abci.RequestInitChain{
 			Time:            h.genDoc.GenesisTime,
-			ChainId:         h.genDoc.ChainID,
-			ConsensusParams: csParams,
+			ChainID:         h.genDoc.ChainID,
+			ConsensusParams: &csParams,
 			Validators:      nextVals,
 			AppStateBytes:   h.genDoc.AppState,
 		}
@@ -316,19 +318,16 @@ func (h *Handshaker) ReplayBlocks(
 		if stateBlockHeight == 0 { //we only update state when we are in initial state
 			// If the app returned validators or consensus params, update the state.
 			if len(res.Validators) > 0 {
-				vals, err := types.PB2TM.ValidatorUpdates(res.Validators)
-				if err != nil {
-					return nil, err
-				}
-				state.Validators = types.NewValidatorSet(vals)
-				state.NextValidators = types.NewValidatorSet(vals)
+				vals := types.NewValidatorSetFromABCIValidatorUpdates(res.Validators)
+				state.Validators = vals
+				state.NextValidators = vals.Copy()
 			} else if len(h.genDoc.Validators) == 0 {
 				// If validator set is not set in genesis and still empty after InitChain, exit.
 				return nil, fmt.Errorf("validator set is nil in genesis and still empty after InitChain")
 			}
 
 			if res.ConsensusParams != nil {
-				state.ConsensusParams = state.ConsensusParams.Update(res.ConsensusParams)
+				state.ConsensusParams = state.ConsensusParams.Update(*res.ConsensusParams)
 			}
 			sm.SaveState(h.stateDB, state)
 		}
@@ -456,8 +455,8 @@ func (h *Handshaker) replayBlock(state sm.State, height int64, proxyApp proxy.Ap
 	block := h.store.LoadBlock(height)
 	meta := h.store.LoadBlockMeta(height)
 
-	blockExec := sm.NewBlockExecutor(h.stateDB, h.logger, proxyApp, mock.Mempool{}, sm.MockEvidencePool{})
-	blockExec.SetEventBus(h.eventBus)
+	blockExec := sm.NewBlockExecutor(h.stateDB, h.logger, proxyApp, mock.Mempool{})
+	blockExec.SetEventSwitch(h.evsw)
 
 	var err error
 	state, err = blockExec.ApplyBlock(state, meta.BlockID, block)
@@ -518,19 +517,17 @@ type mockProxyApp struct {
 }
 
 func (mock *mockProxyApp) DeliverTx(req abci.RequestDeliverTx) abci.ResponseDeliverTx {
-	r := mock.abciResponses.DeliverTx[mock.txCount]
+	r := mock.abciResponses.DeliverTxs[mock.txCount]
 	mock.txCount++
-	if r == nil { //it could be nil because of amino unMarshall, it will cause an empty ResponseDeliverTx to become nil
-		return abci.ResponseDeliverTx{}
-	}
-	return *r
+	return r
 }
 
 func (mock *mockProxyApp) EndBlock(req abci.RequestEndBlock) abci.ResponseEndBlock {
 	mock.txCount = 0
-	return *mock.abciResponses.EndBlock
+	return mock.abciResponses.EndBlock
 }
 
-func (mock *mockProxyApp) Commit() abci.ResponseCommit {
-	return abci.ResponseCommit{Data: mock.appHash}
+func (mock *mockProxyApp) Commit() (res abci.ResponseCommit) {
+	res.Data = mock.appHash
+	return
 }

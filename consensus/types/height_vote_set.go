@@ -8,6 +8,7 @@ import (
 
 	"github.com/tendermint/classic/p2p"
 	"github.com/tendermint/classic/types"
+	"github.com/tendermint/go-amino-x"
 )
 
 type RoundVoteSet struct {
@@ -230,7 +231,7 @@ func (hvs *HeightVoteSet) MarshalJSON() ([]byte, error) {
 	defer hvs.mtx.Unlock()
 
 	allVotes := hvs.toAllRoundVotes()
-	return cdc.MarshalJSON(allVotes)
+	return amino.MarshalJSON(allVotes)
 }
 
 func (hvs *HeightVoteSet) toAllRoundVotes() []roundVotes {

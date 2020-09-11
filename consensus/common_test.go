@@ -2,7 +2,6 @@ package consensus
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -22,9 +21,11 @@ import (
 	abci "github.com/tendermint/classic/abci/types"
 	cfg "github.com/tendermint/classic/config"
 	cstypes "github.com/tendermint/classic/consensus/types"
+	"github.com/tendermint/classic/crypto"
+	dbm "github.com/tendermint/classic/db"
 	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/classic/libs/events"
 	"github.com/tendermint/classic/libs/log"
-	tmpubsub "github.com/tendermint/classic/libs/pubsub"
 	mempl "github.com/tendermint/classic/mempool"
 	"github.com/tendermint/classic/p2p"
 	"github.com/tendermint/classic/privval"
@@ -32,7 +33,6 @@ import (
 	"github.com/tendermint/classic/store"
 	"github.com/tendermint/classic/types"
 	tmtime "github.com/tendermint/classic/types/time"
-	dbm "github.com/tendermint/classic/db"
 )
 
 const (
@@ -46,7 +46,7 @@ type cleanupFunc func()
 // genesis, chain_id, priv_val
 var config *cfg.Config // NOTE: must be reset for each _test.go file
 var consensusReplayConfig *cfg.Config
-var ensureTimeout = time.Millisecond * 100
+var ensureTimeout = time.Millisecond * 1000
 
 func ensureDir(dir string, mode os.FileMode) {
 	if err := cmn.EnsureDir(dir, mode); err != nil {
@@ -128,7 +128,7 @@ func (vss ValidatorStubsByAddress) Len() int {
 }
 
 func (vss ValidatorStubsByAddress) Less(i, j int) bool {
-	return bytes.Compare(vss[i].GetPubKey().Address(), vss[j].GetPubKey().Address()) == -1
+	return vss[i].GetPubKey().Address().Compare(vss[j].GetPubKey().Address()) == -1
 }
 
 func (vss ValidatorStubsByAddress) Swap(i, j int) {
@@ -142,18 +142,19 @@ func (vss ValidatorStubsByAddress) Swap(i, j int) {
 //-------------------------------------------------------------------------------
 // Functions for transitioning the consensus state
 
-func startTestRound(cs *ConsensusState, height int64, round int) {
-	cs.enterNewRound(height, round)
-	cs.startRoutines(0)
+func startFrom(cs *ConsensusState, height int64, round int) {
+	go func() {
+		cs.enterNewRound(height, round)
+		cs.StartWithoutWALCatchup()
+	}()
 }
 
-// Create proposal block from cs1 but sign it with vs.
-func decideProposal(cs1 *ConsensusState, vs *validatorStub, height int64, round int) (proposal *types.Proposal, block *types.Block) {
-	cs1.mtx.Lock()
-	block, blockParts := cs1.createProposalBlock()
-	validRound := cs1.ValidRound
-	chainID := cs1.state.ChainID
-	cs1.mtx.Unlock()
+// Create proposal block from cs but sign it with vs.
+// NOTE: assumes cs already locked via mutex (perhaps via debugger).
+func decideProposal(cs *ConsensusState, vs *validatorStub, height int64, round int) (proposal *types.Proposal, block *types.Block) {
+	block, blockParts := cs.createProposalBlock()
+	validRound := cs.ValidRound
+	chainID := cs.state.ChainID
 	if block == nil {
 		panic("Failed to createProposalBlock. Did you forget to add commit for previous block?")
 	}
@@ -242,27 +243,18 @@ func validatePrevoteAndPrecommit(t *testing.T, cs *ConsensusState, thisRound, lo
 	// verify the prevote
 	validatePrevote(t, cs, thisRound, privVal, votedBlockHash)
 	// verify precommit
-	cs.mtx.Lock()
 	validatePrecommit(t, cs, thisRound, lockRound, privVal, votedBlockHash, lockedBlockHash)
-	cs.mtx.Unlock()
 }
 
-func subscribeToVoter(cs *ConsensusState, addr []byte) <-chan tmpubsub.Message {
-	votesSub, err := cs.eventBus.SubscribeUnbuffered(context.Background(), testSubscriber, types.EventQueryVote)
-	if err != nil {
-		panic(fmt.Sprintf("failed to subscribe %s to %v", testSubscriber, types.EventQueryVote))
-	}
-	ch := make(chan tmpubsub.Message)
-	go func() {
-		for msg := range votesSub.Out() {
-			vote := msg.Data().(types.EventDataVote)
-			// we only fire for our own votes
-			if bytes.Equal(addr, vote.Vote.ValidatorAddress) {
-				ch <- msg
+func subscribeToVoter(cs *ConsensusState, addr crypto.Address) <-chan events.Event {
+	return events.SubscribeFiltered(cs.evsw, testSubscriber, func(event events.Event) bool {
+		if vote, ok := event.(types.EventVote); ok {
+			if vote.Vote.ValidatorAddress == addr {
+				return true
 			}
 		}
-	}()
-	return ch
+		return false
+	})
 }
 
 //-------------------------------------------------------------------------------
@@ -288,27 +280,24 @@ func newConsensusStateWithConfigAndBlockStore(thisConfig *cfg.Config, state sm.S
 	proxyAppConnCon := abcicli.NewLocalClient(mtx, app)
 
 	// Make Mempool
-	mempool := mempl.NewCListMempool(thisConfig.Mempool, proxyAppConnMem, 0)
+	mempool := mempl.NewCListMempool(thisConfig.Mempool, proxyAppConnMem, 0, state.ConsensusParams.Block.MaxTxBytes)
 	mempool.SetLogger(log.TestingLogger().With("module", "mempool"))
 	if thisConfig.Consensus.WaitForTxs() {
 		mempool.EnableTxsAvailable()
 	}
 
-	// mock the evidence pool
-	evpool := sm.MockEvidencePool{}
-
 	// Make ConsensusState
 	stateDB := blockDB
 	sm.SaveState(stateDB, state) //for save height 1's validators info
-	blockExec := sm.NewBlockExecutor(stateDB, log.TestingLogger(), proxyAppConnCon, mempool, evpool)
-	cs := NewConsensusState(thisConfig.Consensus, state, blockExec, blockStore, mempool, evpool)
+	blockExec := sm.NewBlockExecutor(stateDB, log.TestingLogger(), proxyAppConnCon, mempool)
+	cs := NewConsensusState(thisConfig.Consensus, state, blockExec, blockStore, mempool)
 	cs.SetLogger(log.TestingLogger().With("module", "consensus"))
 	cs.SetPrivValidator(pv)
 
-	eventBus := types.NewEventBus()
-	eventBus.SetLogger(log.TestingLogger().With("module", "events"))
-	eventBus.Start()
-	cs.SetEventBus(eventBus)
+	evsw := events.NewEventSwitch()
+	evsw.SetLogger(log.TestingLogger().With("module", "events"))
+	evsw.Start()
+	cs.SetEventSwitch(evsw)
 	return cs
 }
 
@@ -340,7 +329,7 @@ func randConsensusState(nValidators int) (*ConsensusState, []*validatorStub) {
 
 //-------------------------------------------------------------------------------
 
-func ensureNoNewEvent(ch <-chan tmpubsub.Message, timeout time.Duration,
+func ensureNoNewEvent(ch <-chan events.Event, timeout time.Duration,
 	errorMessage string) {
 	select {
 	case <-time.After(timeout):
@@ -350,28 +339,28 @@ func ensureNoNewEvent(ch <-chan tmpubsub.Message, timeout time.Duration,
 	}
 }
 
-func ensureNoNewEventOnChannel(ch <-chan tmpubsub.Message) {
+func ensureNoNewEventOnChannel(ch <-chan events.Event) {
 	ensureNoNewEvent(
 		ch,
 		ensureTimeout,
 		"We should be stuck waiting, not receiving new event on the channel")
 }
 
-func ensureNoNewRoundStep(stepCh <-chan tmpubsub.Message) {
+func ensureNoNewRoundStep(stepCh <-chan events.Event) {
 	ensureNoNewEvent(
 		stepCh,
 		ensureTimeout,
 		"We should be stuck waiting, not receiving NewRoundStep event")
 }
 
-func ensureNoNewUnlock(unlockCh <-chan tmpubsub.Message) {
+func ensureNoNewUnlock(unlockCh <-chan events.Event) {
 	ensureNoNewEvent(
 		unlockCh,
 		ensureTimeout,
 		"We should be stuck waiting, not receiving Unlock event")
 }
 
-func ensureNoNewTimeout(stepCh <-chan tmpubsub.Message, timeout int64) {
+func ensureNoNewTimeout(stepCh <-chan events.Event, timeout int64) {
 	timeoutDuration := time.Duration(timeout*10) * time.Nanosecond
 	ensureNoNewEvent(
 		stepCh,
@@ -379,35 +368,36 @@ func ensureNoNewTimeout(stepCh <-chan tmpubsub.Message, timeout int64) {
 		"We should be stuck waiting, not receiving NewTimeout event")
 }
 
-func ensureNewEvent(ch <-chan tmpubsub.Message, height int64, round int, timeout time.Duration, errorMessage string) {
+func ensureNewEvent(ch <-chan events.Event, height int64, round int, timeout time.Duration, errorMessage string) {
 	select {
 	case <-time.After(timeout):
+		cmn.PrintAllGoroutines()
 		panic(errorMessage)
 	case msg := <-ch:
-		roundStateEvent, ok := msg.Data().(types.EventDataRoundState)
+		csevent, ok := msg.(cstypes.ConsensusEvent)
 		if !ok {
-			panic(fmt.Sprintf("expected a EventDataRoundState, got %T. Wrong subscription channel?",
-				msg.Data()))
+			panic(fmt.Sprintf("expected a ConsensusEvent, got %T. Wrong subscription channel?",
+				msg))
 		}
-		if roundStateEvent.Height != height {
-			panic(fmt.Sprintf("expected height %v, got %v", height, roundStateEvent.Height))
+		if csevent.GetHRS().Height != height {
+			panic(fmt.Sprintf("expected height %v, got %v", height, csevent.GetHRS().Height))
 		}
-		if roundStateEvent.Round != round {
-			panic(fmt.Sprintf("expected round %v, got %v", round, roundStateEvent.Round))
+		if csevent.GetHRS().Round != round {
+			panic(fmt.Sprintf("expected round %v, got %v", round, csevent.GetHRS().Round))
 		}
 		// TODO: We could check also for a step at this point!
 	}
 }
 
-func ensureNewRound(roundCh <-chan tmpubsub.Message, height int64, round int) {
+func ensureNewRound(roundCh <-chan events.Event, height int64, round int) {
 	select {
 	case <-time.After(ensureTimeout):
 		panic("Timeout expired while waiting for NewRound event")
 	case msg := <-roundCh:
-		newRoundEvent, ok := msg.Data().(types.EventDataNewRound)
+		newRoundEvent, ok := msg.(cstypes.EventNewRound)
 		if !ok {
-			panic(fmt.Sprintf("expected a EventDataNewRound, got %T. Wrong subscription channel?",
-				msg.Data()))
+			panic(fmt.Sprintf("expected a EventNewRound, got %T. Wrong subscription channel?",
+				msg))
 		}
 		if newRoundEvent.Height != height {
 			panic(fmt.Sprintf("expected height %v, got %v", height, newRoundEvent.Height))
@@ -418,21 +408,21 @@ func ensureNewRound(roundCh <-chan tmpubsub.Message, height int64, round int) {
 	}
 }
 
-func ensureNewTimeout(timeoutCh <-chan tmpubsub.Message, height int64, round int, timeout int64) {
-	timeoutDuration := time.Duration(timeout*10) * time.Nanosecond
+func ensureNewTimeout(timeoutCh <-chan events.Event, height int64, round int, timeout int64) {
+	timeoutDuration := (time.Duration(timeout))*time.Nanosecond + 5*time.Second
 	ensureNewEvent(timeoutCh, height, round, timeoutDuration,
 		"Timeout expired while waiting for NewTimeout event")
 }
 
-func ensureNewProposal(proposalCh <-chan tmpubsub.Message, height int64, round int) {
+func ensureNewProposal(proposalCh <-chan events.Event, height int64, round int) {
 	select {
 	case <-time.After(ensureTimeout):
 		panic("Timeout expired while waiting for NewProposal event")
 	case msg := <-proposalCh:
-		proposalEvent, ok := msg.Data().(types.EventDataCompleteProposal)
+		proposalEvent, ok := msg.(cstypes.EventCompleteProposal)
 		if !ok {
-			panic(fmt.Sprintf("expected a EventDataCompleteProposal, got %T. Wrong subscription channel?",
-				msg.Data()))
+			panic(fmt.Sprintf("expected a EventCompleteProposal, got %T. Wrong subscription channel?",
+				msg))
 		}
 		if proposalEvent.Height != height {
 			panic(fmt.Sprintf("expected height %v, got %v", height, proposalEvent.Height))
@@ -443,20 +433,20 @@ func ensureNewProposal(proposalCh <-chan tmpubsub.Message, height int64, round i
 	}
 }
 
-func ensureNewValidBlock(validBlockCh <-chan tmpubsub.Message, height int64, round int) {
+func ensureNewValidBlock(validBlockCh <-chan events.Event, height int64, round int) {
 	ensureNewEvent(validBlockCh, height, round, ensureTimeout,
 		"Timeout expired while waiting for NewValidBlock event")
 }
 
-func ensureNewBlock(blockCh <-chan tmpubsub.Message, height int64) {
+func ensureNewBlock(blockCh <-chan events.Event, height int64) {
 	select {
 	case <-time.After(ensureTimeout):
 		panic("Timeout expired while waiting for NewBlock event")
 	case msg := <-blockCh:
-		blockEvent, ok := msg.Data().(types.EventDataNewBlock)
+		blockEvent, ok := msg.(types.EventNewBlock)
 		if !ok {
-			panic(fmt.Sprintf("expected a EventDataNewBlock, got %T. Wrong subscription channel?",
-				msg.Data()))
+			panic(fmt.Sprintf("expected a EventNewBlock, got %T. Wrong subscription channel?",
+				msg))
 		}
 		if blockEvent.Block.Height != height {
 			panic(fmt.Sprintf("expected height %v, got %v", height, blockEvent.Block.Height))
@@ -464,15 +454,15 @@ func ensureNewBlock(blockCh <-chan tmpubsub.Message, height int64) {
 	}
 }
 
-func ensureNewBlockHeader(blockCh <-chan tmpubsub.Message, height int64, blockHash []byte) {
+func ensureNewBlockHeader(blockCh <-chan events.Event, height int64, blockHash []byte) {
 	select {
 	case <-time.After(ensureTimeout):
 		panic("Timeout expired while waiting for NewBlockHeader event")
 	case msg := <-blockCh:
-		blockHeaderEvent, ok := msg.Data().(types.EventDataNewBlockHeader)
+		blockHeaderEvent, ok := msg.(types.EventNewBlockHeader)
 		if !ok {
-			panic(fmt.Sprintf("expected a EventDataNewBlockHeader, got %T. Wrong subscription channel?",
-				msg.Data()))
+			panic(fmt.Sprintf("expected a EventNewBlockHeader, got %T. Wrong subscription channel?",
+				msg))
 		}
 		if blockHeaderEvent.Header.Height != height {
 			panic(fmt.Sprintf("expected height %v, got %v", height, blockHeaderEvent.Header.Height))
@@ -483,20 +473,20 @@ func ensureNewBlockHeader(blockCh <-chan tmpubsub.Message, height int64, blockHa
 	}
 }
 
-func ensureNewUnlock(unlockCh <-chan tmpubsub.Message, height int64, round int) {
+func ensureNewUnlock(unlockCh <-chan events.Event, height int64, round int) {
 	ensureNewEvent(unlockCh, height, round, ensureTimeout,
 		"Timeout expired while waiting for NewUnlock event")
 }
 
-func ensureProposal(proposalCh <-chan tmpubsub.Message, height int64, round int, propID types.BlockID) {
+func ensureProposal(proposalCh <-chan events.Event, height int64, round int, propID types.BlockID) {
 	select {
 	case <-time.After(ensureTimeout):
 		panic("Timeout expired while waiting for NewProposal event")
 	case msg := <-proposalCh:
-		proposalEvent, ok := msg.Data().(types.EventDataCompleteProposal)
+		proposalEvent, ok := msg.(cstypes.EventCompleteProposal)
 		if !ok {
-			panic(fmt.Sprintf("expected a EventDataCompleteProposal, got %T. Wrong subscription channel?",
-				msg.Data()))
+			panic(fmt.Sprintf("expected a EventCompleteProposal, got %T. Wrong subscription channel?",
+				msg))
 		}
 		if proposalEvent.Height != height {
 			panic(fmt.Sprintf("expected height %v, got %v", height, proposalEvent.Height))
@@ -510,24 +500,24 @@ func ensureProposal(proposalCh <-chan tmpubsub.Message, height int64, round int,
 	}
 }
 
-func ensurePrecommit(voteCh <-chan tmpubsub.Message, height int64, round int) {
+func ensurePrecommit(voteCh <-chan events.Event, height int64, round int) {
 	ensureVote(voteCh, height, round, types.PrecommitType)
 }
 
-func ensurePrevote(voteCh <-chan tmpubsub.Message, height int64, round int) {
+func ensurePrevote(voteCh <-chan events.Event, height int64, round int) {
 	ensureVote(voteCh, height, round, types.PrevoteType)
 }
 
-func ensureVote(voteCh <-chan tmpubsub.Message, height int64, round int,
+func ensureVote(voteCh <-chan events.Event, height int64, round int,
 	voteType types.SignedMsgType) {
 	select {
 	case <-time.After(ensureTimeout):
 		panic("Timeout expired while waiting for NewVote event")
 	case msg := <-voteCh:
-		voteEvent, ok := msg.Data().(types.EventDataVote)
+		voteEvent, ok := msg.(types.EventVote)
 		if !ok {
-			panic(fmt.Sprintf("expected a EventDataVote, got %T. Wrong subscription channel?",
-				msg.Data()))
+			panic(fmt.Sprintf("expected a EventVote, got %T. Wrong subscription channel?",
+				msg))
 		}
 		vote := voteEvent.Vote
 		if vote.Height != height {
@@ -542,7 +532,7 @@ func ensureVote(voteCh <-chan tmpubsub.Message, height int64, round int,
 	}
 }
 
-func ensureNewEventOnChannel(ch <-chan tmpubsub.Message) {
+func ensureNewEventOnChannel(ch <-chan events.Event) {
 	select {
 	case <-time.After(ensureTimeout):
 		panic("Timeout expired while waiting for new activity on the channel")
@@ -570,6 +560,7 @@ func randConsensusNet(nValidators int, testName string, tickerFunc func() Timeou
 	appFunc func() abci.Application, configOpts ...func(*cfg.Config)) ([]*ConsensusState, cleanupFunc) {
 	genDoc, privVals := randGenesisDoc(nValidators, false, 30)
 	css := make([]*ConsensusState, nValidators)
+	apps := make([]abci.Application, nValidators)
 	logger := consensusLogger()
 	configRootDirs := make([]string, 0, nValidators)
 	for i := 0; i < nValidators; i++ {
@@ -582,16 +573,24 @@ func randConsensusNet(nValidators int, testName string, tickerFunc func() Timeou
 		}
 		ensureDir(filepath.Dir(thisConfig.Consensus.WalFile()), 0700) // dir for wal
 		app := appFunc()
-		vals := types.TM2PB.ValidatorUpdates(state.Validators)
+		vals := state.Validators.ABCIValidatorUpdates()
 		app.InitChain(abci.RequestInitChain{Validators: vals})
 
 		css[i] = newConsensusStateWithConfigAndBlockStore(thisConfig, state, privVals[i], app, stateDB)
 		css[i].SetTimeoutTicker(tickerFunc())
 		css[i].SetLogger(logger.With("validator", i, "module", "consensus"))
+		apps[i] = app
 	}
 	return css, func() {
 		for _, dir := range configRootDirs {
 			os.RemoveAll(dir)
+		}
+		for _, cs := range css {
+			cs.Stop()
+			cs.Wait()
+		}
+		for _, app := range apps {
+			app.Close()
 		}
 	}
 }
@@ -600,6 +599,7 @@ func randConsensusNet(nValidators int, testName string, tickerFunc func() Timeou
 func randConsensusNetWithPeers(nValidators, nPeers int, testName string, tickerFunc func() TimeoutTicker, appFunc func(string) abci.Application) ([]*ConsensusState, *types.GenesisDoc, *cfg.Config, cleanupFunc) {
 	genDoc, privVals := randGenesisDoc(nValidators, false, testMinPower)
 	css := make([]*ConsensusState, nPeers)
+	apps := make([]abci.Application, nPeers)
 	logger := consensusLogger()
 	var peer0Config *cfg.Config
 	configRootDirs := make([]string, 0, nPeers)
@@ -629,9 +629,10 @@ func randConsensusNetWithPeers(nValidators, nPeers int, testName string, tickerF
 		}
 
 		app := appFunc(path.Join(config.DBDir(), fmt.Sprintf("%s_%d", testName, i)))
-		vals := types.TM2PB.ValidatorUpdates(state.Validators)
+		vals := state.Validators.ABCIValidatorUpdates()
 		if _, ok := app.(*kvstore.PersistentKVStoreApplication); ok {
-			state.Version.Consensus.App = kvstore.ProtocolVersion //simulate handshake, receive app version. If don't do this, replay test will fail
+			state.AppVersion = kvstore.AppVersion
+			//simulate handshake, receive app version. If don't do this, replay test will fail
 		}
 		app.InitChain(abci.RequestInitChain{Validators: vals})
 		//sm.SaveState(stateDB,state)	//height 1's validatorsInfo already saved in LoadStateFromDBOrGenesisDoc above
@@ -639,10 +640,18 @@ func randConsensusNetWithPeers(nValidators, nPeers int, testName string, tickerF
 		css[i] = newConsensusStateWithConfig(thisConfig, state, privVal, app)
 		css[i].SetTimeoutTicker(tickerFunc())
 		css[i].SetLogger(logger.With("validator", i, "module", "consensus"))
+		apps[i] = app
 	}
 	return css, genDoc, peer0Config, func() {
 		for _, dir := range configRootDirs {
 			os.RemoveAll(dir)
+		}
+		for _, cs := range css {
+			cs.Stop()
+			cs.Wait()
+		}
+		for _, app := range apps {
+			app.Close()
 		}
 	}
 }

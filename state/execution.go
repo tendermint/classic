@@ -395,7 +395,7 @@ func updateState(
 	return State{
 		SoftwareVersion:                  tmver.Version,
 		BlockVersion:                     typesver.BlockVersion,
-		AppVersion:                       "",
+		AppVersion:                       state.AppVersion, // TODO
 		ChainID:                          state.ChainID,
 		LastBlockHeight:                  header.Height,
 		LastBlockTotalTx:                 state.LastBlockTotalTx + header.NumTxs,

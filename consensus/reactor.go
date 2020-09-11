@@ -8,15 +8,15 @@ import (
 
 	"github.com/pkg/errors"
 
-	amino "github.com/tendermint/go-amino-x"
 	cstypes "github.com/tendermint/classic/consensus/types"
 	cmn "github.com/tendermint/classic/libs/common"
-	tmevents "github.com/tendermint/classic/libs/events"
+	"github.com/tendermint/classic/libs/events"
 	"github.com/tendermint/classic/libs/log"
 	"github.com/tendermint/classic/p2p"
 	sm "github.com/tendermint/classic/state"
 	"github.com/tendermint/classic/types"
 	tmtime "github.com/tendermint/classic/types/time"
+	"github.com/tendermint/go-amino-x"
 )
 
 const (
@@ -41,7 +41,7 @@ type ConsensusReactor struct {
 
 	mtx      sync.RWMutex
 	fastSync bool
-	eventBus *types.EventBus
+	evsw     events.EventSwitch
 
 	metrics *Metrics
 }
@@ -54,6 +54,7 @@ func NewConsensusReactor(consensusState *ConsensusState, fastSync bool, options 
 	conR := &ConsensusReactor{
 		conS:     consensusState,
 		fastSync: fastSync,
+		evsw:     events.NilEventSwitch(),
 		metrics:  NopMetrics(),
 	}
 	conR.updateFastSyncingMetric()
@@ -270,7 +271,7 @@ func (conR *ConsensusReactor) Receive(chID byte, src p2p.Peer, msgBytes []byte) 
 			default:
 				panic("Bad VoteSetBitsMessage field Type. Forgot to add a check in ValidateBasic?")
 			}
-			src.TrySend(VoteSetBitsChannel, cdc.MustMarshal(&VoteSetBitsMessage{
+			src.TrySend(VoteSetBitsChannel, amino.MustMarshalAny(&VoteSetBitsMessage{
 				Height:  msg.Height,
 				Round:   msg.Round,
 				Type:    msg.Type,
@@ -358,10 +359,10 @@ func (conR *ConsensusReactor) Receive(chID byte, src p2p.Peer, msgBytes []byte) 
 	}
 }
 
-// SetEventBus sets event bus.
-func (conR *ConsensusReactor) SetEventBus(b *types.EventBus) {
-	conR.eventBus = b
-	conR.conS.SetEventBus(b)
+// SetEventSwitch sets event bus.
+func (conR *ConsensusReactor) SetEventSwitch(evsw events.EventSwitch) {
+	conR.evsw = evsw
+	conR.conS.SetEventSwitch(evsw)
 }
 
 // FastSync returns whether the consensus reactor is in fast-sync mode.
@@ -378,21 +379,16 @@ func (conR *ConsensusReactor) FastSync() bool {
 // them to peers upon receiving.
 func (conR *ConsensusReactor) subscribeToBroadcastEvents() {
 	const subscriber = "consensus-reactor"
-	conR.conS.evsw.AddListenerForEvent(subscriber, types.EventNewRoundStep,
-		func(data tmevents.EventData) {
-			conR.broadcastNewRoundStepMessage(data.(*cstypes.RoundState))
-		})
-
-	conR.conS.evsw.AddListenerForEvent(subscriber, types.EventValidBlock,
-		func(data tmevents.EventData) {
-			conR.broadcastNewValidBlockMessage(data.(*cstypes.RoundState))
-		})
-
-	conR.conS.evsw.AddListenerForEvent(subscriber, types.EventVote,
-		func(data tmevents.EventData) {
-			conR.broadcastHasVoteMessage(data.(*types.Vote))
-		})
-
+	conR.conS.evsw.AddListener(subscriber, func(event events.Event) {
+		switch event := event.(type) {
+		case cstypes.EventNewRoundStep:
+			conR.broadcastNewRoundStepMessage(event)
+		case cstypes.EventNewValidBlock:
+			conR.broadcastNewValidBlockMessage(event)
+		case types.EventVote:
+			conR.broadcastHasVoteMessage(event.Vote)
+		}
+	})
 }
 
 func (conR *ConsensusReactor) unsubscribeFromBroadcastEvents() {
@@ -400,20 +396,20 @@ func (conR *ConsensusReactor) unsubscribeFromBroadcastEvents() {
 	conR.conS.evsw.RemoveListener(subscriber)
 }
 
-func (conR *ConsensusReactor) broadcastNewRoundStepMessage(rs *cstypes.RoundState) {
-	nrsMsg := makeRoundStepMessage(rs)
-	conR.Switch.Broadcast(StateChannel, cdc.MustMarshal(nrsMsg))
+func (conR *ConsensusReactor) broadcastNewRoundStepMessage(event cstypes.EventNewRoundStep) {
+	nrsMsg := makeRoundStepMessage(event)
+	conR.Switch.Broadcast(StateChannel, amino.MustMarshalAny(nrsMsg))
 }
 
-func (conR *ConsensusReactor) broadcastNewValidBlockMessage(rs *cstypes.RoundState) {
+func (conR *ConsensusReactor) broadcastNewValidBlockMessage(event cstypes.EventNewValidBlock) {
 	csMsg := &NewValidBlockMessage{
-		Height:           rs.Height,
-		Round:            rs.Round,
-		BlockPartsHeader: rs.ProposalBlockParts.Header(),
-		BlockParts:       rs.ProposalBlockParts.BitArray(),
-		IsCommit:         rs.Step == cstypes.RoundStepCommit,
+		Height:           event.Height,
+		Round:            event.Round,
+		BlockPartsHeader: event.BlockPartsHeader,
+		BlockParts:       event.BlockParts,
+		IsCommit:         event.IsCommit,
 	}
-	conR.Switch.Broadcast(StateChannel, cdc.MustMarshal(csMsg))
+	conR.Switch.Broadcast(StateChannel, amino.MustMarshalAny(csMsg))
 }
 
 // Broadcasts HasVoteMessage to peers that care.
@@ -424,7 +420,7 @@ func (conR *ConsensusReactor) broadcastHasVoteMessage(vote *types.Vote) {
 		Type:   vote.Type,
 		Index:  vote.ValidatorIndex,
 	}
-	conR.Switch.Broadcast(StateChannel, cdc.MustMarshal(msg))
+	conR.Switch.Broadcast(StateChannel, amino.MustMarshalAny(msg))
 	/*
 		// TODO: Make this broadcast more selective.
 		for _, peer := range conR.Switch.Peers().List() {
@@ -445,21 +441,21 @@ func (conR *ConsensusReactor) broadcastHasVoteMessage(vote *types.Vote) {
 	*/
 }
 
-func makeRoundStepMessage(rs *cstypes.RoundState) (nrsMsg *NewRoundStepMessage) {
+func makeRoundStepMessage(event cstypes.EventNewRoundStep) (nrsMsg *NewRoundStepMessage) {
 	nrsMsg = &NewRoundStepMessage{
-		Height:                rs.Height,
-		Round:                 rs.Round,
-		Step:                  rs.Step,
-		SecondsSinceStartTime: int(time.Since(rs.StartTime).Seconds()),
-		LastCommitRound:       rs.LastCommit.Round(),
+		Height:                event.Height,
+		Round:                 event.Round,
+		Step:                  event.Step,
+		SecondsSinceStartTime: event.SecondsSinceStartTime,
+		LastCommitRound:       event.LastCommitRound,
 	}
 	return
 }
 
 func (conR *ConsensusReactor) sendNewRoundStepMessage(peer p2p.Peer) {
 	rs := conR.conS.GetRoundState()
-	nrsMsg := makeRoundStepMessage(rs)
-	peer.Send(StateChannel, cdc.MustMarshal(nrsMsg))
+	nrsMsg := makeRoundStepMessage(rs.EventNewRoundStep())
+	peer.Send(StateChannel, amino.MustMarshalAny(nrsMsg))
 }
 
 func (conR *ConsensusReactor) gossipDataRoutine(peer p2p.Peer, ps *PeerState) {
@@ -485,7 +481,7 @@ OUTER_LOOP:
 					Part:   part,
 				}
 				logger.Debug("Sending block part", "height", prs.Height, "round", prs.Round)
-				if peer.Send(DataChannel, cdc.MustMarshal(msg)) {
+				if peer.Send(DataChannel, amino.MustMarshalAny(msg)) {
 					ps.SetHasProposalBlockPart(prs.Height, prs.Round, index)
 				}
 				continue OUTER_LOOP
@@ -529,7 +525,7 @@ OUTER_LOOP:
 			{
 				msg := &ProposalMessage{Proposal: rs.Proposal}
 				logger.Debug("Sending proposal", "height", prs.Height, "round", prs.Round)
-				if peer.Send(DataChannel, cdc.MustMarshal(msg)) {
+				if peer.Send(DataChannel, amino.MustMarshalAny(msg)) {
 					// NOTE[ZM]: A peer might have received different proposal msg so this Proposal msg will be rejected!
 					ps.SetHasProposal(rs.Proposal)
 				}
@@ -545,7 +541,7 @@ OUTER_LOOP:
 					ProposalPOL:      rs.Votes.Prevotes(rs.Proposal.POLRound).BitArray(),
 				}
 				logger.Debug("Sending POL", "height", prs.Height, "round", prs.Round)
-				peer.Send(DataChannel, cdc.MustMarshal(msg))
+				peer.Send(DataChannel, amino.MustMarshalAny(msg))
 			}
 			continue OUTER_LOOP
 		}
@@ -588,7 +584,7 @@ func (conR *ConsensusReactor) gossipDataForCatchup(logger log.Logger, rs *cstype
 			Part:   part,
 		}
 		logger.Debug("Sending block part for catchup", "round", prs.Round, "index", index)
-		if peer.Send(DataChannel, cdc.MustMarshal(msg)) {
+		if peer.Send(DataChannel, amino.MustMarshalAny(msg)) {
 			ps.SetHasProposalBlockPart(prs.Height, prs.Round, index)
 		} else {
 			logger.Debug("Sending block part for catchup failed")
@@ -743,7 +739,7 @@ OUTER_LOOP:
 			prs := ps.GetRoundState()
 			if rs.Height == prs.Height {
 				if maj23, ok := rs.Votes.Prevotes(prs.Round).TwoThirdsMajority(); ok {
-					peer.TrySend(StateChannel, cdc.MustMarshal(&VoteSetMaj23Message{
+					peer.TrySend(StateChannel, amino.MustMarshalAny(&VoteSetMaj23Message{
 						Height:  prs.Height,
 						Round:   prs.Round,
 						Type:    types.PrevoteType,
@@ -760,7 +756,7 @@ OUTER_LOOP:
 			prs := ps.GetRoundState()
 			if rs.Height == prs.Height {
 				if maj23, ok := rs.Votes.Precommits(prs.Round).TwoThirdsMajority(); ok {
-					peer.TrySend(StateChannel, cdc.MustMarshal(&VoteSetMaj23Message{
+					peer.TrySend(StateChannel, amino.MustMarshalAny(&VoteSetMaj23Message{
 						Height:  prs.Height,
 						Round:   prs.Round,
 						Type:    types.PrecommitType,
@@ -777,7 +773,7 @@ OUTER_LOOP:
 			prs := ps.GetRoundState()
 			if rs.Height == prs.Height && prs.ProposalPOLRound >= 0 {
 				if maj23, ok := rs.Votes.Prevotes(prs.ProposalPOLRound).TwoThirdsMajority(); ok {
-					peer.TrySend(StateChannel, cdc.MustMarshal(&VoteSetMaj23Message{
+					peer.TrySend(StateChannel, amino.MustMarshalAny(&VoteSetMaj23Message{
 						Height:  prs.Height,
 						Round:   prs.ProposalPOLRound,
 						Type:    types.PrevoteType,
@@ -796,7 +792,7 @@ OUTER_LOOP:
 			prs := ps.GetRoundState()
 			if prs.CatchupCommitRound != -1 && 0 < prs.Height && prs.Height <= conR.conS.blockStore.Height() {
 				commit := conR.conS.LoadCommit(prs.Height)
-				peer.TrySend(StateChannel, cdc.MustMarshal(&VoteSetMaj23Message{
+				peer.TrySend(StateChannel, amino.MustMarshalAny(&VoteSetMaj23Message{
 					Height:  prs.Height,
 					Round:   commit.Round(),
 					Type:    types.PrecommitType,
@@ -958,7 +954,7 @@ func (ps *PeerState) ToJSON() ([]byte, error) {
 	ps.mtx.Lock()
 	defer ps.mtx.Unlock()
 
-	return cdc.MarshalJSON(ps)
+	return amino.MarshalJSON(ps)
 }
 
 // GetHeight returns an atomic snapshot of the PeerRoundState's height
@@ -1026,7 +1022,7 @@ func (ps *PeerState) PickSendVote(votes types.VoteSetReader) bool {
 	if vote, ok := ps.PickVoteToSend(votes); ok {
 		msg := &VoteMessage{vote}
 		ps.logger.Debug("Sending vote message", "ps", ps, "vote", vote)
-		if ps.peer.Send(VoteChannel, cdc.MustMarshal(msg)) {
+		if ps.peer.Send(VoteChannel, amino.MustMarshalAny(msg)) {
 			ps.SetHasVote(vote)
 			return true
 		}
@@ -1369,24 +1365,11 @@ type ConsensusMessage interface {
 	ValidateBasic() error
 }
 
-func RegisterConsensusMessages(cdc *amino.Codec) {
-	cdc.RegisterInterface((*ConsensusMessage)(nil), nil)
-	cdc.RegisterConcrete(&NewRoundStepMessage{}, "tendermint/NewRoundStepMessage", nil)
-	cdc.RegisterConcrete(&NewValidBlockMessage{}, "tendermint/NewValidBlockMessage", nil)
-	cdc.RegisterConcrete(&ProposalMessage{}, "tendermint/Proposal", nil)
-	cdc.RegisterConcrete(&ProposalPOLMessage{}, "tendermint/ProposalPOL", nil)
-	cdc.RegisterConcrete(&BlockPartMessage{}, "tendermint/BlockPart", nil)
-	cdc.RegisterConcrete(&VoteMessage{}, "tendermint/Vote", nil)
-	cdc.RegisterConcrete(&HasVoteMessage{}, "tendermint/HasVote", nil)
-	cdc.RegisterConcrete(&VoteSetMaj23Message{}, "tendermint/VoteSetMaj23", nil)
-	cdc.RegisterConcrete(&VoteSetBitsMessage{}, "tendermint/VoteSetBits", nil)
-}
-
 func decodeMsg(bz []byte) (msg ConsensusMessage, err error) {
 	if len(bz) > maxMsgSize {
 		return msg, fmt.Errorf("Msg exceeds max size (%d > %d)", len(bz), maxMsgSize)
 	}
-	err = cdc.Unmarshal(bz, &msg)
+	err = amino.Unmarshal(bz, &msg)
 	return
 }
 

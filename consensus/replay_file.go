@@ -2,7 +2,6 @@ package consensus
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -13,13 +12,14 @@ import (
 	dbm "github.com/tendermint/classic/db"
 
 	cfg "github.com/tendermint/classic/config"
+	cstypes "github.com/tendermint/classic/consensus/types"
 	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/classic/libs/events"
 	"github.com/tendermint/classic/libs/log"
 	"github.com/tendermint/classic/mempool/mock"
 	"github.com/tendermint/classic/proxy"
 	sm "github.com/tendermint/classic/state"
 	"github.com/tendermint/classic/store"
-	"github.com/tendermint/classic/types"
 )
 
 const (
@@ -53,12 +53,8 @@ func (cs *ConsensusState) ReplayFile(file string, console bool) error {
 
 	// ensure all new step events are regenerated as expected
 
-	ctx := context.Background()
-	newStepSub, err := cs.eventBus.Subscribe(ctx, subscriber, types.EventQueryNewRoundStep)
-	if err != nil {
-		return errors.Errorf("failed to subscribe %s to %v", subscriber, types.EventQueryNewRoundStep)
-	}
-	defer cs.eventBus.Unsubscribe(ctx, subscriber, types.EventQueryNewRoundStep)
+	newStepSub := events.SubscribeToEvent(cs.evsw, subscriber, cstypes.EventNewRoundStep{})
+	defer cs.evsw.RemoveListener(subscriber)
 
 	// just open the file for reading, no need to use wal
 	fp, err := os.OpenFile(file, os.O_RDONLY, 0600)
@@ -120,13 +116,13 @@ func newPlayback(fileName string, fp *os.File, cs *ConsensusState, genState sm.S
 }
 
 // go back count steps by resetting the state and running (pb.count - count) steps
-func (pb *playback) replayReset(count int, newStepSub types.Subscription) error {
+func (pb *playback) replayReset(count int, newStepSub <-chan events.Event) error {
 	pb.cs.Stop()
 	pb.cs.Wait()
 
 	newCS := NewConsensusState(pb.cs.config, pb.genesisState.Copy(), pb.cs.blockExec,
-		pb.cs.blockStore, pb.cs.txNotifier, pb.cs.evpool)
-	newCS.SetEventBus(pb.cs.eventBus)
+		pb.cs.blockStore, pb.cs.txNotifier)
+	newCS.SetEventSwitch(pb.cs.evsw)
 	newCS.startForReplay()
 
 	if err := pb.fp.Close(); err != nil {
@@ -212,14 +208,10 @@ func (pb *playback) replayConsoleLoop() int {
 			// NOTE: "back" is not supported in the state machine design,
 			// so we restart and replay up to
 
-			ctx := context.Background()
 			// ensure all new step events are regenerated as expected
 
-			newStepSub, err := pb.cs.eventBus.Subscribe(ctx, subscriber, types.EventQueryNewRoundStep)
-			if err != nil {
-				cmn.Exit(fmt.Sprintf("failed to subscribe %s to %v", subscriber, types.EventQueryNewRoundStep))
-			}
-			defer pb.cs.eventBus.Unsubscribe(ctx, subscriber, types.EventQueryNewRoundStep)
+			newStepSub := events.SubscribeToEvent(pb.cs.evsw, subscriber, cstypes.EventNewRoundStep{})
+			defer pb.cs.evsw.RemoveListener(subscriber)
 
 			if len(tokens) == 1 {
 				if err := pb.replayReset(1, newStepSub); err != nil {
@@ -299,24 +291,24 @@ func newConsensusStateForReplay(config cfg.BaseConfig, csConfig *cfg.ConsensusCo
 		cmn.Exit(fmt.Sprintf("Error starting proxy app conns: %v", err))
 	}
 
-	eventBus := types.NewEventBus()
-	if err := eventBus.Start(); err != nil {
+	evsw := events.NewEventSwitch()
+	if err := evsw.Start(); err != nil {
 		cmn.Exit(fmt.Sprintf("Failed to start event bus: %v", err))
 	}
 
 	handshaker := NewHandshaker(stateDB, state, blockStore, gdoc)
-	handshaker.SetEventBus(eventBus)
+	handshaker.SetEventSwitch(evsw)
 	err = handshaker.Handshake(proxyApp)
 	if err != nil {
 		cmn.Exit(fmt.Sprintf("Error on handshake: %v", err))
 	}
 
-	mempool, evpool := mock.Mempool{}, sm.MockEvidencePool{}
-	blockExec := sm.NewBlockExecutor(stateDB, log.TestingLogger(), proxyApp.Consensus(), mempool, evpool)
+	mempool := mock.Mempool{}
+	blockExec := sm.NewBlockExecutor(stateDB, log.TestingLogger(), proxyApp.Consensus(), mempool)
 
 	consensusState := NewConsensusState(csConfig, state.Copy(), blockExec,
-		blockStore, mempool, evpool)
+		blockStore, mempool)
 
-	consensusState.SetEventBus(eventBus)
+	consensusState.SetEventSwitch(evsw)
 	return consensusState
 }

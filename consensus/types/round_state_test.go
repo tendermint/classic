@@ -3,11 +3,12 @@ package types
 import (
 	"testing"
 
-	amino "github.com/tendermint/go-amino-x"
+	"github.com/tendermint/classic/crypto"
 	"github.com/tendermint/classic/crypto/ed25519"
 	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/classic/types"
 	tmtime "github.com/tendermint/classic/types/time"
+	amino "github.com/tendermint/go-amino-x"
 )
 
 func BenchmarkRoundStateDeepCopy(b *testing.B) {
@@ -26,7 +27,7 @@ func BenchmarkRoundStateDeepCopy(b *testing.B) {
 	sig := make([]byte, ed25519.SignatureSize)
 	for i := 0; i < nval; i++ {
 		precommits[i] = (&types.Vote{
-			ValidatorAddress: types.Address(cmn.RandBytes(20)),
+			ValidatorAddress: crypto.AddressFromBytes(cmn.RandBytes(20)),
 			Timestamp:        tmtime.Now(),
 			BlockID:          blockID,
 			Signature:        sig,
@@ -48,12 +49,10 @@ func BenchmarkRoundStateDeepCopy(b *testing.B) {
 			ConsensusHash:   cmn.RandBytes(20),
 			AppHash:         cmn.RandBytes(20),
 			LastResultsHash: cmn.RandBytes(20),
-			EvidenceHash:    cmn.RandBytes(20),
 		},
 		Data: types.Data{
 			Txs: txs,
 		},
-		Evidence:   types.EvidenceData{},
 		LastCommit: types.NewCommit(blockID, precommits),
 	}
 	parts := block.MakePartSet(4096)

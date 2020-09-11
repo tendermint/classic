@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/classic/consensus/types"
+	cstypes "github.com/tendermint/classic/consensus/types"
 	"github.com/tendermint/classic/crypto/merkle"
 	"github.com/tendermint/classic/libs/autofile"
 	"github.com/tendermint/classic/libs/log"
@@ -72,8 +72,8 @@ func TestWALTruncate(t *testing.T) {
 	dec := NewWALDecoder(gr)
 	msg, err := dec.Decode()
 	assert.NoError(t, err, "expected to decode a message")
-	rs, ok := msg.Msg.(tmtypes.EventDataRoundState)
-	assert.True(t, ok, "expected message of type EventDataRoundState")
+	rs, ok := msg.Msg.(newRoundStepInfo)
+	assert.True(t, ok, "expected message of type EventRoundState")
 	assert.Equal(t, rs.Height, h+1, "wrong height")
 }
 
@@ -81,7 +81,7 @@ func TestWALEncoderDecoder(t *testing.T) {
 	now := tmtime.Now()
 	msgs := []TimedWALMessage{
 		{Time: now, Msg: EndHeightMessage{0}},
-		{Time: now, Msg: timeoutInfo{Duration: time.Second, Height: 1, Round: 1, Step: types.RoundStepPropose}},
+		{Time: now, Msg: timeoutInfo{Duration: time.Second, Height: 1, Round: 1, Step: cstypes.RoundStepPropose}},
 	}
 
 	b := new(bytes.Buffer)
@@ -135,7 +135,7 @@ func TestWALWrite(t *testing.T) {
 			},
 		},
 	}
-	err = wal.Write(msg)
+	err = wal.Write(msgInfo{Msg: msg})
 	if assert.Error(t, err) {
 		assert.Contains(t, err.Error(), "msg is too big")
 	}
@@ -162,8 +162,8 @@ func TestWALSearchForEndHeight(t *testing.T) {
 	dec := NewWALDecoder(gr)
 	msg, err := dec.Decode()
 	assert.NoError(t, err, "expected to decode a message")
-	rs, ok := msg.Msg.(tmtypes.EventDataRoundState)
-	assert.True(t, ok, "expected message of type EventDataRoundState")
+	rs, ok := msg.Msg.(newRoundStepInfo)
+	assert.True(t, ok, "expected message of type newRoundStepInfo")
 	assert.Equal(t, rs.Height, h+1, "wrong height")
 }
 
@@ -233,7 +233,17 @@ func benchmarkWalDecode(b *testing.B, n int) {
 	enc := NewWALEncoder(buf)
 
 	data := nBytes(n)
-	enc.Encode(&TimedWALMessage{Msg: data, Time: time.Now().Round(time.Second).UTC()})
+	msg := msgInfo{
+		Msg: &BlockPartMessage{
+			Height: 1,
+			Round:  1,
+			Part: &tmtypes.Part{
+				Index: 1,
+				Bytes: data,
+			},
+		},
+	}
+	enc.Encode(&TimedWALMessage{Msg: msg, Time: time.Now().Round(time.Second).UTC()})
 
 	encoded := buf.Bytes()
 

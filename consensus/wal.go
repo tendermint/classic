@@ -10,12 +10,11 @@ import (
 
 	"github.com/pkg/errors"
 
-	amino "github.com/tendermint/go-amino-x"
 	auto "github.com/tendermint/classic/libs/autofile"
 	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/classic/libs/log"
-	"github.com/tendermint/classic/types"
 	tmtime "github.com/tendermint/classic/types/time"
+	"github.com/tendermint/go-amino-x"
 )
 
 const (
@@ -29,6 +28,15 @@ const (
 //--------------------------------------------------------
 // types and functions for savings consensus messages
 
+type WALMessage interface {
+	AssertWALMessage()
+}
+
+func (_ EndHeightMessage) AssertWALMessage() {} // wal.go
+func (_ newRoundStepInfo) AssertWALMessage() {} // state.go
+func (_ msgInfo) AssertWALMessage()          {} // state.go
+func (_ timeoutInfo) AssertWALMessage()      {} // state.go
+
 // TimedWALMessage wraps WALMessage and adds Time for debugging purposes.
 type TimedWALMessage struct {
 	Time time.Time  `json:"time"`
@@ -39,16 +47,6 @@ type TimedWALMessage struct {
 // @internal used by scripts/wal2json util.
 type EndHeightMessage struct {
 	Height int64 `json:"height"`
-}
-
-type WALMessage interface{}
-
-func RegisterWALMessages(cdc *amino.Codec) {
-	cdc.RegisterInterface((*WALMessage)(nil), nil)
-	cdc.RegisterConcrete(types.EventDataRoundState{}, "tendermint/wal/EventDataRoundState", nil)
-	cdc.RegisterConcrete(msgInfo{}, "tendermint/wal/MsgInfo", nil)
-	cdc.RegisterConcrete(timeoutInfo{}, "tendermint/wal/TimeoutInfo", nil)
-	cdc.RegisterConcrete(EndHeightMessage{}, "tendermint/wal/EndHeightMessage", nil)
 }
 
 //--------------------------------------------------------
@@ -291,7 +289,7 @@ func NewWALEncoder(wr io.Writer) *WALEncoder {
 // the amino-encoded size of v is greater than 1MB. Any error encountered
 // during the write is also returned.
 func (enc *WALEncoder) Encode(v *TimedWALMessage) error {
-	data := cdc.MustMarshal(v)
+	data := amino.MustMarshal(v)
 
 	crc := crc32.Checksum(data, crc32c)
 	length := uint32(len(data))
@@ -381,7 +379,7 @@ func (dec *WALDecoder) Decode() (*TimedWALMessage, error) {
 	}
 
 	var res = new(TimedWALMessage) // nolint: gosimple
-	err = cdc.Unmarshal(data, res)
+	err = amino.Unmarshal(data, res)
 	if err != nil {
 		return nil, DataCorruptionError{fmt.Errorf("failed to decode data: %v", err)}
 	}
