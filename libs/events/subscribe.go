@@ -1,6 +1,10 @@
 package events
 
-import "reflect"
+import (
+	"log"
+	"reflect"
+	"time"
+)
 
 // Returns a synchronous event emitter.
 func Subscribe(evsw EventSwitch, listenerID string) <-chan Event {
@@ -42,7 +46,22 @@ func SubscribeFilteredOn(evsw EventSwitch, listenerID string, filter EventFilter
 		}
 		// NOTE: This callback must not block for performance.
 		if cap(ch) == 0 {
-			ch <- event // synchronous
+			timeout := 10 * time.Second
+		LOOP:
+			for {
+				select { // sync
+				case ch <- event:
+					break LOOP
+				case <-evsw.Quit():
+					close(ch)
+					break LOOP
+				case <-time.After(timeout):
+					// After a minute, print a message for debugging.
+					log.Printf("[WARN] EventSwitch subscriber %v blocked on %v for %v", listenerID, event, timeout)
+					// Exponentially back off warning messages.
+					timeout *= 2
+				}
+			}
 		} else {
 			select {
 			case ch <- event:

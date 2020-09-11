@@ -2,6 +2,7 @@
 package events
 
 import (
+	"fmt"
 	"sync"
 
 	cmn "github.com/tendermint/classic/libs/common"
@@ -34,7 +35,9 @@ type EventSwitch interface {
 	cmn.Service
 	Fireable
 
-	// Multiple callbacks can be registered for each listener.
+	// Multiple callbacks can be registered for a given listenerID.
+	// Events are called back in the order that they were registered with this
+	// function.
 	AddListener(listenerID string, cb EventCallback)
 	// Removes all callbacks for listener.
 	RemoveListener(listenerID string)
@@ -105,5 +108,16 @@ func (evsw *eventSwitch) FireEvent(event Event) {
 
 	for _, cell := range listeners {
 		cell.cb(event)
+	}
+}
+
+func (evsw *eventSwitch) String() string {
+	if evsw == nil {
+		return "nil-eventSwitch"
+	} else {
+		evsw.mtx.RLock()
+		defer evsw.mtx.RUnlock()
+
+		return fmt.Sprintf("*eventSwitch{%v}", len(evsw.listeners))
 	}
 }
