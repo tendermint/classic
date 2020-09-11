@@ -67,6 +67,12 @@ func (addr Address) String() string {
 	return bech32Addr
 }
 
+func (addr Address) Bytes() []byte {
+	res := make([]byte, AddressSize)
+	copy(res, addr[:])
+	return res
+}
+
 func (addr *Address) DecodeString(str string) error {
 	pre, bz, err := bech32.Decode(str)
 	if err != nil {
