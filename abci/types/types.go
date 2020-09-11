@@ -237,7 +237,7 @@ type BlockParams struct {
 	MaxDataBytes  int64 // must be > 0
 	MaxBlockBytes int64 // must be > 0
 	MaxGas        int64 // must be >= -1
-	TimeIotaMS    int64
+	TimeIotaMS    int64 // must be > 0
 }
 
 type ValidatorParams struct {

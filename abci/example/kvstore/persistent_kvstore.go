@@ -231,3 +231,7 @@ func (app *PersistentKVStoreApplication) updateValidator(val abci.ValidatorUpdat
 
 	return abci.ResponseDeliverTx{}
 }
+
+func (app *PersistentKVStoreApplication) Close() error {
+	return app.app.Close()
+}

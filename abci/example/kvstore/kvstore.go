@@ -14,7 +14,7 @@ import (
 var (
 	stateKey        = []byte("stateKey")
 	kvPairPrefixKey = []byte("kvPairKey:")
-	appVersion      = "v0.0.0"
+	AppVersion      = "v0.0.0"
 )
 
 type State struct {
@@ -70,7 +70,7 @@ func (app *KVStoreApplication) Info(req abci.RequestInfo) (resInfo abci.Response
 			Data: []byte(fmt.Sprintf("{\"size\":%v}", app.state.Size)),
 		},
 		ABCIVersion: abciver.Version,
-		AppVersion:  appVersion,
+		AppVersion:  AppVersion,
 	}
 }
 
@@ -133,4 +133,9 @@ func (app *KVStoreApplication) Query(reqQuery abci.RequestQuery) (resQuery abci.
 		}
 		return
 	}
+}
+
+func (app *KVStoreApplication) Close() error {
+	app.state.db.Close()
+	return nil
 }
