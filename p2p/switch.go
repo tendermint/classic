@@ -234,6 +234,14 @@ func (sw *Switch) OnStart() error {
 
 // OnStop implements BaseService. It stops all peers and reactors.
 func (sw *Switch) OnStop() {
+	// Stop transport
+	if t, ok := sw.transport.(TransportLifecycle); ok {
+		err := t.Close()
+		if err != nil {
+			sw.Logger.Error("Error stopping transport on stop: ", err)
+		}
+	}
+
 	// Stop peers
 	for _, p := range sw.peers.List() {
 		sw.stopAndRemovePeer(p, nil)

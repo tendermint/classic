@@ -68,9 +68,9 @@ type Transport interface {
 	Cleanup(Peer)
 }
 
-// transportLifecycle bundles the methods for callers to control start and stop
+// TransportLifecycle bundles the methods for callers to control start and stop
 // behaviour.
-type transportLifecycle interface {
+type TransportLifecycle interface {
 	Close() error
 	Listen(NetAddress) error
 }
@@ -151,7 +151,7 @@ type MultiplexTransport struct {
 
 // Test multiplexTransport for interface completeness.
 var _ Transport = (*MultiplexTransport)(nil)
-var _ transportLifecycle = (*MultiplexTransport)(nil)
+var _ TransportLifecycle = (*MultiplexTransport)(nil)
 
 // NewMultiplexTransport returns a tcp connected multiplexed peer.
 func NewMultiplexTransport(
@@ -223,7 +223,7 @@ func (mt *MultiplexTransport) Dial(
 	return p, nil
 }
 
-// Close implements transportLifecycle.
+// Close implements TransportLifecycle.
 func (mt *MultiplexTransport) Close() error {
 	close(mt.closec)
 
@@ -234,7 +234,7 @@ func (mt *MultiplexTransport) Close() error {
 	return nil
 }
 
-// Listen implements transportLifecycle.
+// Listen implements TransportLifecycle.
 func (mt *MultiplexTransport) Listen(addr NetAddress) error {
 	ln, err := net.Listen("tcp", addr.DialString())
 	if err != nil {
