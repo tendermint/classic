@@ -409,7 +409,7 @@ var testGenesisFmt = `{
 }`
 
 var testPrivValidatorKey = `{
-  "address": "A3258DCBF45DCA0DF052981870F2D1441A36D145",
+  "address": "oyWNy/Rdyg3wUpgYcPLRRBo20UU=",
   "pub_key": {
     "@type": "/tm.PubKeyEd25519",
     "value": "AT/+aaL1eB0477Mud9JMm8Sh8BIvOYlPGC9KkIUmFaE="
