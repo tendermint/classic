@@ -156,7 +156,6 @@ func startInProcess(ctx *Context, appCreator AppCreator) (*node.Node, error) {
 		proxy.NewLocalClientCreator(app),
 		node.DefaultGenesisDocProviderFunc(cfg),
 		node.DefaultDBProvider,
-		node.DefaultMetricsProvider(cfg.Instrumentation),
 		ctx.Logger.With("module", "node"),
 	)
 	if err != nil {

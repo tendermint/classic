@@ -13,7 +13,6 @@ To add a new p2p.Reactor, use the CustomReactors option:
 				clientCreator,
 				genesisDocProvider,
 				dbProvider,
-				metricsProvider,
 				logger,
 				CustomReactors(map[string]p2p.Reactor{"CUSTOM": customReactor}),
 		)
@@ -29,7 +28,6 @@ To replace the built-in p2p.Reactor, use the CustomReactors option:
 				clientCreator,
 				genesisDocProvider,
 				dbProvider,
-				metricsProvider,
 				logger,
 				CustomReactors(map[string]p2p.Reactor{"BLOCKCHAIN": customBlockchainReactor}),
 		)

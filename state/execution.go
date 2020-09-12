@@ -2,7 +2,6 @@ package state
 
 import (
 	"fmt"
-	"time"
 
 	abci "github.com/tendermint/classic/abci/types"
 	"github.com/tendermint/classic/crypto"
@@ -39,17 +38,9 @@ type BlockExecutor struct {
 	mempool mempl.Mempool
 
 	logger log.Logger
-
-	metrics *Metrics
 }
 
 type BlockExecutorOption func(executor *BlockExecutor)
-
-func BlockExecutorWithMetrics(metrics *Metrics) BlockExecutorOption {
-	return func(blockExec *BlockExecutor) {
-		blockExec.metrics = metrics
-	}
-}
 
 // NewBlockExecutor returns a new BlockExecutor with a NopEventBus.
 // Call SetEventBus to provide one.
@@ -60,7 +51,6 @@ func NewBlockExecutor(db dbm.DB, logger log.Logger, proxyApp proxy.AppConnConsen
 		evsw:     events.NilEventSwitch(),
 		mempool:  mempool,
 		logger:   logger,
-		metrics:  NopMetrics(),
 	}
 
 	for _, option := range options {
@@ -111,10 +101,7 @@ func (blockExec *BlockExecutor) ApplyBlock(state State, blockID types.BlockID, b
 		return state, ErrInvalidBlock(err)
 	}
 
-	startTime := time.Now().UnixNano()
 	abciResponses, err := execBlockOnProxyApp(blockExec.logger, blockExec.proxyApp, block, blockExec.db)
-	endTime := time.Now().UnixNano()
-	blockExec.metrics.BlockProcessingTime.Observe(float64(endTime-startTime) / 1000000)
 	if err != nil {
 		return state, ErrProxyAppConn(err)
 	}

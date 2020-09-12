@@ -48,7 +48,6 @@ type peerConfig struct {
 	// if the peer is persistent or not.
 	isPersistent func(*NetAddress) bool
 	reactorsByCh map[byte]Reactor
-	metrics      *Metrics
 }
 
 // Transport emits and connects to Peers. The implementation of Peer is left to
@@ -494,7 +493,6 @@ func (mt *MultiplexTransport) wrapPeer(
 		cfg.reactorsByCh,
 		cfg.chDescs,
 		cfg.onPeerError,
-		PeerMetrics(cfg.metrics),
 	)
 
 	return p

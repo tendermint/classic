@@ -3,15 +3,12 @@ package p2p
 import (
 	"fmt"
 	"net"
-	"time"
 
 	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/classic/libs/log"
 
 	tmconn "github.com/tendermint/classic/p2p/conn"
 )
-
-const metricsTickerDuration = 10 * time.Second
 
 // Peer is an interface representing a peer connected on a reactor.
 type Peer interface {
@@ -111,9 +108,6 @@ type peer struct {
 
 	// User data
 	Data *cmn.CMap
-
-	metrics       *Metrics
-	metricsTicker *time.Ticker
 }
 
 type PeerOption func(*peer)
@@ -128,12 +122,10 @@ func newPeer(
 	options ...PeerOption,
 ) *peer {
 	p := &peer{
-		peerConn:      pc,
-		nodeInfo:      nodeInfo,
-		channels:      nodeInfo.Channels, // TODO
-		Data:          cmn.NewCMap(),
-		metricsTicker: time.NewTicker(metricsTickerDuration),
-		metrics:       NopMetrics(),
+		peerConn: pc,
+		nodeInfo: nodeInfo,
+		channels: nodeInfo.Channels, // TODO
+		Data:     cmn.NewCMap(),
 	}
 
 	p.mconn = createMConnection(
@@ -180,7 +172,6 @@ func (p *peer) OnStart() error {
 		return err
 	}
 
-	go p.metricsReporter()
 	return nil
 }
 
@@ -188,14 +179,12 @@ func (p *peer) OnStart() error {
 // .Send() calls will get flushed before closing the connection.
 // NOTE: it is not safe to call this method more than once.
 func (p *peer) FlushStop() {
-	p.metricsTicker.Stop()
 	p.BaseService.OnStop()
 	p.mconn.FlushStop() // stop everything and close the conn
 }
 
 // OnStop implements BaseService.
 func (p *peer) OnStop() {
-	p.metricsTicker.Stop()
 	p.BaseService.OnStop()
 	p.mconn.Stop() // stop everything and close the conn
 }
@@ -247,13 +236,6 @@ func (p *peer) Send(chID byte, msgBytes []byte) bool {
 		return false
 	}
 	res := p.mconn.Send(chID, msgBytes)
-	if res {
-		labels := []string{
-			"peer_id", p.ID().String(),
-			"chID", fmt.Sprintf("%#x", chID),
-		}
-		p.metrics.PeerSendBytesTotal.With(labels...).Add(float64(len(msgBytes)))
-	}
 	return res
 }
 
@@ -266,13 +248,6 @@ func (p *peer) TrySend(chID byte, msgBytes []byte) bool {
 		return false
 	}
 	res := p.mconn.TrySend(chID, msgBytes)
-	if res {
-		labels := []string{
-			"peer_id", (p.ID().String()),
-			"chID", fmt.Sprintf("%#x", chID),
-		}
-		p.metrics.PeerSendBytesTotal.With(labels...).Add(float64(len(msgBytes)))
-	}
 	return res
 }
 
@@ -333,31 +308,6 @@ func (p *peer) CanSend(chID byte) bool {
 	return p.mconn.CanSend(chID)
 }
 
-//---------------------------------------------------
-
-func PeerMetrics(metrics *Metrics) PeerOption {
-	return func(p *peer) {
-		p.metrics = metrics
-	}
-}
-
-func (p *peer) metricsReporter() {
-	for {
-		select {
-		case <-p.metricsTicker.C:
-			status := p.mconn.Status()
-			var sendQueueSize float64
-			for _, chStatus := range status.Channels {
-				sendQueueSize += float64(chStatus.SendQueueSize)
-			}
-
-			p.metrics.PeerPendingSendBytes.With("peer_id", (p.ID().String())).Set(sendQueueSize)
-		case <-p.Quit():
-			return
-		}
-	}
-}
-
 //------------------------------------------------------------------
 // helper funcs
 
@@ -377,11 +327,6 @@ func createMConnection(
 			// which does onPeerError.
 			panic(fmt.Sprintf("Unknown channel %X", chID))
 		}
-		labels := []string{
-			"peer_id", p.ID().String(),
-			"chID", fmt.Sprintf("%#x", chID),
-		}
-		p.metrics.PeerReceiveBytesTotal.With(labels...).Add(float64(len(msgBytes)))
 		reactor.Receive(chID, p, msgBytes)
 	}
 

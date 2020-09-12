@@ -136,9 +136,6 @@ type ConsensusState struct {
 
 	// closed when we finish shutting down
 	done chan struct{}
-
-	// for reporting metrics
-	metrics *Metrics
 }
 
 // StateOption sets an optional parameter on the ConsensusState.
@@ -166,7 +163,6 @@ func NewConsensusState(
 		doWALCatchup:     true,
 		evsw:             tmevents.NewEventSwitch(),
 		wal:              nilWAL{},
-		metrics:          NopMetrics(),
 	}
 	// set function defaults (may be overwritten before calling Start)
 	cs.decideProposal = cs.defaultDecideProposal
@@ -198,11 +194,6 @@ func (cs *ConsensusState) SetLogger(l log.Logger) {
 func (cs *ConsensusState) SetEventSwitch(evsw events.EventSwitch) {
 	cs.evsw = evsw
 	cs.blockExec.SetEventSwitch(evsw)
-}
-
-// StateMetrics sets the metrics.
-func StateMetrics(metrics *Metrics) StateOption {
-	return func(cs *ConsensusState) { cs.metrics = metrics }
 }
 
 // String returns a string.
@@ -452,7 +443,6 @@ func (cs *ConsensusState) SetProposalAndBlock(proposal *types.Proposal, block *t
 // internal functions for managing the state
 
 func (cs *ConsensusState) updateHeight(height int64) {
-	cs.metrics.Height.Set(float64(height))
 	cs.Height = height
 }
 
@@ -841,7 +831,6 @@ func (cs *ConsensusState) enterNewRound(height int64, round int) {
 	cs.TriggeredTimeoutPrecommit = false
 
 	cs.evsw.FireEvent(cs.EventNewRound())
-	cs.metrics.Rounds.Set(float64(round))
 
 	// Wait for txs to be available in the mempool
 	// before we enterPropose in round 0. If the last block changed the app hash,
@@ -1369,9 +1358,6 @@ func (cs *ConsensusState) finalizeCommit(height int64) {
 
 	fail.Fail() // XXX
 
-	// must be called before we update state
-	cs.recordMetrics(height, block)
-
 	// NewHeightStep!
 	cs.updateToState(stateCopy)
 
@@ -1385,38 +1371,6 @@ func (cs *ConsensusState) finalizeCommit(height int64) {
 	// * cs.Height has been increment to height+1
 	// * cs.Step is now cstypes.RoundStepNewHeight
 	// * cs.StartTime is set to when we will start round0.
-}
-
-func (cs *ConsensusState) recordMetrics(height int64, block *types.Block) {
-	cs.metrics.Validators.Set(float64(cs.Validators.Size()))
-	cs.metrics.ValidatorsPower.Set(float64(cs.Validators.TotalVotingPower()))
-	missingValidators := 0
-	missingValidatorsPower := int64(0)
-	for i, val := range cs.Validators.Validators {
-		var vote *types.CommitSig
-		if i < len(block.LastCommit.Precommits) {
-			vote = block.LastCommit.Precommits[i]
-		}
-		if vote == nil {
-			missingValidators++
-			missingValidatorsPower += val.VotingPower
-		}
-	}
-	cs.metrics.MissingValidators.Set(float64(missingValidators))
-	cs.metrics.MissingValidatorsPower.Set(float64(missingValidatorsPower))
-
-	if height > 1 {
-		lastBlockMeta := cs.blockStore.LoadBlockMeta(height - 1)
-		cs.metrics.BlockIntervalSeconds.Set(
-			block.Time.Sub(lastBlockMeta.Header.Time).Seconds(),
-		)
-	}
-
-	cs.metrics.NumTxs.Set(float64(block.NumTxs))
-	cs.metrics.BlockSizeBytes.Set(float64(block.Size()))
-	cs.metrics.TotalTxs.Set(float64(block.TotalTxs))
-	cs.metrics.CommittedHeight.Set(float64(block.Height))
-
 }
 
 //-----------------------------------------------------------------------------

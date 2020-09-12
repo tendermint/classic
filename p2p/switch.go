@@ -86,8 +86,6 @@ type Switch struct {
 	peerFilters   []PeerFilterFunc
 
 	rng *cmn.Rand // seed for randomizing dial times and orders
-
-	metrics *Metrics
 }
 
 // NetAddress returns the address the switch is listening on.
@@ -113,7 +111,6 @@ func NewSwitch(
 		peers:                NewPeerSet(),
 		dialing:              cmn.NewCMap(),
 		reconnecting:         cmn.NewCMap(),
-		metrics:              NopMetrics(),
 		transport:            transport,
 		filterTimeout:        defaultFilterTimeout,
 		persistentPeersAddrs: make([]*NetAddress, 0),
@@ -139,11 +136,6 @@ func SwitchFilterTimeout(timeout time.Duration) SwitchOption {
 // SwitchPeerFilters sets the filters for rejection of new peers.
 func SwitchPeerFilters(filters ...PeerFilterFunc) SwitchOption {
 	return func(sw *Switch) { sw.peerFilters = filters }
-}
-
-// WithMetrics sets the metrics.
-func WithMetrics(metrics *Metrics) SwitchOption {
-	return func(sw *Switch) { sw.metrics = metrics }
 }
 
 //---------------------------------------------------------------------
@@ -348,9 +340,7 @@ func (sw *Switch) stopAndRemovePeer(peer Peer, reason interface{}) {
 	// reconnect to our node and the switch calls InitPeer before
 	// RemovePeer is finished.
 	// https://github.com/tendermint/classic/issues/3338
-	if sw.peers.Remove(peer) {
-		sw.metrics.Peers.Add(float64(-1))
-	}
+	sw.peers.Remove(peer)
 }
 
 // reconnectToPeer tries to reconnect to the addr, first repeatedly
@@ -577,7 +567,6 @@ func (sw *Switch) acceptRoutine() {
 			chDescs:      sw.chDescs,
 			onPeerError:  sw.StopPeerForError,
 			reactorsByCh: sw.reactorsByCh,
-			metrics:      sw.metrics,
 			isPersistent: sw.isPeerPersistentFn(),
 		})
 		if err != nil {
@@ -678,7 +667,6 @@ func (sw *Switch) addOutboundPeerWithConfig(
 		onPeerError:  sw.StopPeerForError,
 		isPersistent: sw.isPeerPersistentFn(),
 		reactorsByCh: sw.reactorsByCh,
-		metrics:      sw.metrics,
 	})
 	if err != nil {
 		if e, ok := err.(ErrRejected); ok {
@@ -778,7 +766,6 @@ func (sw *Switch) addPeer(p Peer) error {
 	if err := sw.peers.Add(p); err != nil {
 		return err
 	}
-	sw.metrics.Peers.Add(float64(1))
 
 	// Start all the reactor protocols on the peer.
 	for _, reactor := range sw.reactors {

@@ -325,26 +325,6 @@ create_empty_blocks_interval = "{{ .Consensus.CreateEmptyBlocksInterval }}"
 # Reactor sleep duration parameters
 peer_gossip_sleep_duration = "{{ .Consensus.PeerGossipSleepDuration }}"
 peer_query_maj23_sleep_duration = "{{ .Consensus.PeerQueryMaj23SleepDuration }}"
-
-##### instrumentation configuration options #####
-[instrumentation]
-
-# When true, Prometheus metrics are served under /metrics on
-# PrometheusListenAddr.
-# Check out the documentation for the list of available metrics.
-prometheus = {{ .Instrumentation.Prometheus }}
-
-# Address to listen for Prometheus collector(s) connections
-prometheus_listen_addr = "{{ .Instrumentation.PrometheusListenAddr }}"
-
-# Maximum number of simultaneous connections.
-# If you want to accept a larger number than the default, make sure
-# you increase your OS limits.
-# 0 - unlimited.
-max_open_connections = {{ .Instrumentation.MaxOpenConnections }}
-
-# Instrumentation namespace
-namespace = "{{ .Instrumentation.Namespace }}"
 `
 
 /****** these are for test settings ***********/

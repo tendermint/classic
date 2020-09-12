@@ -42,8 +42,6 @@ type ConsensusReactor struct {
 	mtx      sync.RWMutex
 	fastSync bool
 	evsw     events.EventSwitch
-
-	metrics *Metrics
 }
 
 type ReactorOption func(*ConsensusReactor)
@@ -55,9 +53,7 @@ func NewConsensusReactor(consensusState *ConsensusState, fastSync bool, options 
 		conS:     consensusState,
 		fastSync: fastSync,
 		evsw:     events.NilEventSwitch(),
-		metrics:  NopMetrics(),
 	}
-	conR.updateFastSyncingMetric()
 	conR.BaseReactor = *p2p.NewBaseReactor("ConsensusReactor", conR)
 
 	for _, option := range options {
@@ -109,7 +105,6 @@ func (conR *ConsensusReactor) SwitchToConsensus(state sm.State, blocksSynced int
 	conR.mtx.Lock()
 	conR.fastSync = false
 	conR.mtx.Unlock()
-	conR.metrics.FastSyncing.Set(0)
 
 	if blocksSynced > 0 {
 		// dont bother with the WAL if we fast synced
@@ -295,7 +290,6 @@ func (conR *ConsensusReactor) Receive(chID byte, src p2p.Peer, msgBytes []byte) 
 			ps.ApplyProposalPOLMessage(msg)
 		case *BlockPartMessage:
 			ps.SetHasProposalBlockPart(msg.Height, msg.Round, msg.Part.Index)
-			conR.metrics.BlockParts.With("peer_id", string(src.ID())).Add(1)
 			conR.conS.peerMsgQueue <- msgInfo{msg, src.ID()}
 		default:
 			conR.Logger.Error(fmt.Sprintf("Unknown message type %v", reflect.TypeOf(msg)))
@@ -869,21 +863,6 @@ func (conR *ConsensusReactor) StringIndented(indent string) string {
 	}
 	s += indent + "}"
 	return s
-}
-
-func (conR *ConsensusReactor) updateFastSyncingMetric() {
-	var fastSyncing float64
-	if conR.fastSync {
-		fastSyncing = 1
-	} else {
-		fastSyncing = 0
-	}
-	conR.metrics.FastSyncing.Set(fastSyncing)
-}
-
-// ReactorMetrics sets the metrics
-func ReactorMetrics(metrics *Metrics) ReactorOption {
-	return func(conR *ConsensusReactor) { conR.metrics = metrics }
 }
 
 //-----------------------------------------------------------------------------

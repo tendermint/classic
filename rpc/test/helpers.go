@@ -167,7 +167,6 @@ func NewTendermint(app abci.Application, opts *Options) *nm.Node {
 	node, err := nm.NewNode(config, pv, nodeKey, papp,
 		nm.DefaultGenesisDocProviderFunc(config),
 		nm.DefaultDBProvider,
-		nm.DefaultMetricsProvider(config.Instrumentation),
 		logger)
 	if err != nil {
 		panic(err)

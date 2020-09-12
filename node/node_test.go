@@ -15,6 +15,7 @@ import (
 	"github.com/tendermint/classic/abci/example/kvstore"
 	cfg "github.com/tendermint/classic/config"
 	"github.com/tendermint/classic/crypto/ed25519"
+	dbm "github.com/tendermint/classic/db"
 	"github.com/tendermint/classic/evidence"
 	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/classic/libs/log"
@@ -27,7 +28,6 @@ import (
 	"github.com/tendermint/classic/types"
 	tmtime "github.com/tendermint/classic/types/time"
 	"github.com/tendermint/classic/version"
-	dbm "github.com/tendermint/classic/db"
 )
 
 func TestNodeStartStop(t *testing.T) {
@@ -234,12 +234,10 @@ func TestCreateProposalBlock(t *testing.T) {
 	proposerAddr, _ := state.Validators.GetByIndex(0)
 
 	// Make Mempool
-	memplMetrics := mempl.PrometheusMetrics("node_test")
 	mempool := mempl.NewCListMempool(
 		config.Mempool,
 		proxyApp.Mempool(),
 		state.LastBlockHeight,
-		mempl.WithMetrics(memplMetrics),
 		mempl.WithPreCheck(sm.TxPreCheck(state)),
 		mempl.WithPostCheck(sm.TxPostCheck(state)),
 	)
@@ -306,7 +304,6 @@ func TestNodeNewNodeCustomReactors(t *testing.T) {
 		proxy.DefaultClientCreator(config.ProxyApp, config.ABCI, config.DBDir()),
 		DefaultGenesisDocProviderFunc(config),
 		DefaultDBProvider,
-		DefaultMetricsProvider(config.Instrumentation),
 		log.TestingLogger(),
 		CustomReactors(map[string]p2p.Reactor{"FOO": cr, "BLOCKCHAIN": customBlockchainReactor}),
 	)

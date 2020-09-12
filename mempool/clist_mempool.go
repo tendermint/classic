@@ -65,8 +65,6 @@ type CListMempool struct {
 	wal *auto.AutoFile
 
 	logger log.Logger
-
-	metrics *Metrics
 }
 
 var _ Mempool = &CListMempool{}
@@ -95,7 +93,6 @@ func NewCListMempool(
 		recheckCursor: nil,
 		recheckEnd:    nil,
 		logger:        log.NewNopLogger(),
-		metrics:       NopMetrics(),
 	}
 	if config.CacheSize > 0 {
 		mempool.cache = newMapTxCache(config.CacheSize)
@@ -129,11 +126,6 @@ func WithPreCheck(f PreCheckFunc) CListMempoolOption {
 // false. This is ran after CheckTx.
 func WithPostCheck(f PostCheckFunc) CListMempoolOption {
 	return func(mem *CListMempool) { mem.postCheck = f }
-}
-
-// WithMetrics sets the metrics.
-func WithMetrics(metrics *Metrics) CListMempoolOption {
-	return func(mem *CListMempool) { mem.metrics = metrics }
 }
 
 // *panics* if can't create directory or open file.
@@ -310,11 +302,7 @@ func (mem *CListMempool) globalCb(req abci.Request, res abci.Response) {
 	if mem.recheckCursor == nil {
 		return
 	} else {
-		mem.metrics.RecheckTimes.Add(1)
 		mem.resCbRecheck(req, res)
-
-		// update metrics
-		mem.metrics.Size.Set(float64(mem.Size()))
 	}
 }
 
@@ -336,9 +324,6 @@ func (mem *CListMempool) reqResCb(tx []byte, peerID uint16, externalCb func(abci
 
 		mem.resCbFirstTime(tx, peerID, res)
 
-		// update metrics
-		mem.metrics.Size.Set(float64(mem.Size()))
-
 		// passed in by the caller of CheckTx, eg. the RPC
 		if externalCb != nil {
 			externalCb(res)
@@ -352,7 +337,6 @@ func (mem *CListMempool) addTx(memTx *mempoolTx) {
 	e := mem.txs.PushBack(memTx)
 	mem.txsMap.Store(txKey(memTx.tx), e)
 	atomic.AddInt64(&mem.txsBytes, int64(len(memTx.tx)))
-	mem.metrics.TxSizeBytes.Observe(float64(len(memTx.tx)))
 }
 
 // Called from:
@@ -398,7 +382,6 @@ func (mem *CListMempool) resCbFirstTime(tx []byte, peerID uint16, res abci.Respo
 		} else {
 			// ignore bad transaction
 			mem.logger.Info("Rejected bad transaction", "tx", txID(tx), "res", res, "err", postCheckErr)
-			mem.metrics.FailedTxs.Add(1)
 			// remove from cache (it might be good later)
 			mem.cache.Remove(tx)
 		}
@@ -592,9 +575,6 @@ func (mem *CListMempool) Update(
 			mem.notifyTxsAvailable()
 		}
 	}
-
-	// Update metrics
-	mem.metrics.Size.Set(float64(mem.Size()))
 
 	return nil
 }

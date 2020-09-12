@@ -126,7 +126,7 @@ func TestFastSyncConfigValidateBasic(t *testing.T) {
 	assert.NoError(t, cfg.ValidateBasic())
 
 	// tamper with version
-	cfg.Version = "v1"
+	cfg.Version = "v0"
 	assert.NoError(t, cfg.ValidateBasic())
 
 	cfg.Version = "invalid"
@@ -155,13 +155,4 @@ func TestConsensusConfigValidateBasic(t *testing.T) {
 		assert.Error(t, cfg.ValidateBasic())
 		reflect.ValueOf(cfg).Elem().FieldByName(fieldName).SetInt(0)
 	}
-}
-
-func TestInstrumentationConfigValidateBasic(t *testing.T) {
-	cfg := TestInstrumentationConfig()
-	assert.NoError(t, cfg.ValidateBasic())
-
-	// tamper with maximum open connections
-	cfg.MaxOpenConnections = -1
-	assert.Error(t, cfg.ValidateBasic())
 }
