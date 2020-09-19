@@ -8,9 +8,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	amino "github.com/tendermint/go-amino-x"
-	cmn "github.com/tendermint/classic/libs/common"
 	types "github.com/tendermint/classic/rpc/lib/types"
+	amino "github.com/tendermint/go-amino-x"
 )
 
 func TestParseJSONMap(t *testing.T) {
@@ -66,19 +65,20 @@ func TestParseJSONMap(t *testing.T) {
 		}
 		v, ok := p3.Value.(*[]byte)
 		if assert.True(t, ok, "%#v", p3.Value) {
-			assert.EqualValues(t, []byte{0x12, 0x34}, *v)
+			// "1234" is interpreted as base64, decodes to the following bytes.
+			assert.EqualValues(t, []byte{0xd7, 0x6d, 0xf8}, *v)
 		}
 	}
 
 	// simplest solution, but hard-coded
 	p4 := struct {
 		Value  []byte `json:"value"`
-		Height int          `json:"height"`
+		Height int    `json:"height"`
 	}{}
 	err = json.Unmarshal(input, &p4)
 	if assert.Nil(t, err) {
 		assert.EqualValues(t, 22, p4.Height)
-		assert.EqualValues(t, []byte{0x12, 0x34}, p4.Value)
+		assert.EqualValues(t, []byte{0xd7, 0x6d, 0xf8}, p4.Value)
 	}
 
 	// so, let's use this trick...
@@ -95,7 +95,7 @@ func TestParseJSONMap(t *testing.T) {
 		var v []byte
 		err = json.Unmarshal(*p5["value"], &v)
 		if assert.Nil(t, err) {
-			assert.Equal(t, []byte{0x12, 0x34}, v)
+			assert.Equal(t, []byte{0xd7, 0x6d, 0xf8}, v)
 		}
 	}
 }
@@ -124,7 +124,7 @@ func TestParseJSONArray(t *testing.T) {
 	if assert.Nil(t, err) {
 		v, ok := p2[0].(*[]byte)
 		if assert.True(t, ok, "%#v", p2[0]) {
-			assert.EqualValues(t, []byte{0x12, 0x34}, *v)
+			assert.EqualValues(t, []byte{0xd7, 0x6d, 0xf8}, *v)
 		}
 		h, ok := p2[1].(*int)
 		if assert.True(t, ok, "%#v", p2[1]) {

@@ -17,10 +17,10 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 
-	amino "github.com/tendermint/go-amino-x"
 	cmn "github.com/tendermint/classic/libs/common"
 	"github.com/tendermint/classic/libs/log"
 	types "github.com/tendermint/classic/rpc/lib/types"
+	amino "github.com/tendermint/go-amino-x"
 )
 
 // RegisterRPCFuncs adds a route for each function in the funcMap, as well as general jsonrpc and websocket handlers for all functions.
@@ -823,11 +823,15 @@ func unreflectResult(returns []reflect.Value) (interface{}, error) {
 		return nil, errors.Errorf("%v", errV.Interface())
 	}
 	rv := returns[0]
-	// the result is a registered interface,
-	// we need a pointer to it so we can marshal with type byte
-	rvp := reflect.New(rv.Type())
-	rvp.Elem().Set(rv)
-	return rvp.Interface(), nil
+	// If the result is a registered interface, we need a pointer to it so
+	// we can marshal with type info.
+	if rv.Kind() == reflect.Interface {
+		rvp := reflect.New(rv.Type())
+		rvp.Elem().Set(rv)
+		return rvp.Interface(), nil
+	} else {
+		return rv.Interface(), nil
+	}
 }
 
 // writes a list of available rpc endpoints as an html page
