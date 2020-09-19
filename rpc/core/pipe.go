@@ -7,6 +7,8 @@ import (
 	cfg "github.com/tendermint/classic/config"
 	"github.com/tendermint/classic/consensus"
 	"github.com/tendermint/classic/crypto"
+	dbm "github.com/tendermint/classic/db"
+	"github.com/tendermint/classic/libs/events"
 	"github.com/tendermint/classic/libs/log"
 	mempl "github.com/tendermint/classic/mempool"
 	"github.com/tendermint/classic/p2p"
@@ -14,7 +16,6 @@ import (
 	sm "github.com/tendermint/classic/state"
 	"github.com/tendermint/classic/state/txindex"
 	"github.com/tendermint/classic/types"
-	dbm "github.com/tendermint/classic/db"
 )
 
 const (
@@ -73,7 +74,8 @@ var (
 	addrBook         p2p.AddrBook
 	txIndexer        txindex.TxIndexer
 	consensusReactor *consensus.ConsensusReactor
-	eventBus         *types.EventBus // thread safe
+	evsw             events.EventSwitch
+	gTxDispatcher    *txDispatcher
 	mempool          mempl.Mempool
 
 	logger log.Logger
@@ -137,8 +139,9 @@ func SetLogger(l log.Logger) {
 	logger = l
 }
 
-func SetEventBus(b *types.EventBus) {
-	eventBus = b
+func SetEventSwitch(sw events.EventSwitch) {
+	evsw = sw
+	gTxDispatcher = newTxDispatcher(evsw)
 }
 
 // SetConfig sets an RPCConfig.

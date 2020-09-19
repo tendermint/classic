@@ -1,13 +1,15 @@
 package core
 
 import (
-	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/pkg/errors"
 
 	abci "github.com/tendermint/classic/abci/types"
+	cmn "github.com/tendermint/classic/libs/common"
+	"github.com/tendermint/classic/libs/events"
 	ctypes "github.com/tendermint/classic/rpc/core/types"
 	rpctypes "github.com/tendermint/classic/rpc/lib/types"
 	"github.com/tendermint/classic/types"
@@ -134,20 +136,20 @@ func BroadcastTxAsync(ctx *rpctypes.Context, tx types.Tx) (*ctypes.ResultBroadca
 // |-----------+------+---------+----------+-----------------|
 // | tx        | Tx   | nil     | true     | The transaction |
 func BroadcastTxSync(ctx *rpctypes.Context, tx types.Tx) (*ctypes.ResultBroadcastTx, error) {
-	resCh := make(chan *abci.Response, 1)
-	err := mempool.CheckTx(tx, func(res *abci.Response) {
+	resCh := make(chan abci.Response, 1)
+	err := mempool.CheckTx(tx, func(res abci.Response) {
 		resCh <- res
 	})
 	if err != nil {
 		return nil, err
 	}
 	res := <-resCh
-	r := res.GetCheckTx()
+	r := res.(abci.ResponseCheckTx)
 	return &ctypes.ResultBroadcastTx{
-		Code: r.Code,
-		Data: r.Data,
-		Log:  r.Log,
-		Hash: tx.Hash(),
+		Error: r.Error,
+		Data:  r.Data,
+		Log:   r.Log,
+		Hash:  tx.Hash(),
 	}, nil
 }
 
@@ -213,29 +215,10 @@ func BroadcastTxSync(ctx *rpctypes.Context, tx types.Tx) (*ctypes.ResultBroadcas
 // |-----------+------+---------+----------+-----------------|
 // | tx        | Tx   | nil     | true     | The transaction |
 func BroadcastTxCommit(ctx *rpctypes.Context, tx types.Tx) (*ctypes.ResultBroadcastTxCommit, error) {
-	subscriber := ctx.RemoteAddr()
-
-	if eventBus.NumClients() >= config.MaxSubscriptionClients {
-		return nil, fmt.Errorf("max_subscription_clients %d reached", config.MaxSubscriptionClients)
-	} else if eventBus.NumClientSubscriptions(subscriber) >= config.MaxSubscriptionsPerClient {
-		return nil, fmt.Errorf("max_subscriptions_per_client %d reached", config.MaxSubscriptionsPerClient)
-	}
-
-	// Subscribe to tx being committed in block.
-	subCtx, cancel := context.WithTimeout(ctx.Context(), SubscribeTimeout)
-	defer cancel()
-	q := types.EventQueryTxFor(tx)
-	deliverTxSub, err := eventBus.Subscribe(subCtx, subscriber, q)
-	if err != nil {
-		err = errors.Wrap(err, "failed to subscribe to tx")
-		logger.Error("Error on broadcast_tx_commit", "err", err)
-		return nil, err
-	}
-	defer eventBus.Unsubscribe(context.Background(), subscriber, q)
 
 	// Broadcast tx and wait for CheckTx result
-	checkTxResCh := make(chan *abci.Response, 1)
-	err = mempool.CheckTx(tx, func(res *abci.Response) {
+	checkTxResCh := make(chan abci.Response, 1)
+	err := mempool.CheckTx(tx, func(res abci.Response) {
 		checkTxResCh <- res
 	})
 	if err != nil {
@@ -243,48 +226,26 @@ func BroadcastTxCommit(ctx *rpctypes.Context, tx types.Tx) (*ctypes.ResultBroadc
 		return nil, fmt.Errorf("Error on broadcastTxCommit: %v", err)
 	}
 	checkTxResMsg := <-checkTxResCh
-	checkTxRes := checkTxResMsg.GetCheckTx()
-	if checkTxRes.Code != abci.CodeTypeOK {
+	checkTxRes := checkTxResMsg.(abci.ResponseCheckTx)
+	if checkTxRes.Error != nil {
 		return &ctypes.ResultBroadcastTxCommit{
-			CheckTx:   *checkTxRes,
+			CheckTx:   checkTxRes,
 			DeliverTx: abci.ResponseDeliverTx{},
 			Hash:      tx.Hash(),
 		}, nil
 	}
 
 	// Wait for the tx to be included in a block or timeout.
-	select {
-	case msg := <-deliverTxSub.Out(): // The tx was included in a block.
-		deliverTxRes := msg.Data().(types.EventDataTx)
-		return &ctypes.ResultBroadcastTxCommit{
-			CheckTx:   *checkTxRes,
-			DeliverTx: deliverTxRes.Result,
-			Hash:      tx.Hash(),
-			Height:    deliverTxRes.Height,
-		}, nil
-	case <-deliverTxSub.Cancelled():
-		var reason string
-		if deliverTxSub.Err() == nil {
-			reason = "Tendermint exited"
-		} else {
-			reason = deliverTxSub.Err().Error()
-		}
-		err = fmt.Errorf("deliverTxSub was cancelled (reason: %s)", reason)
-		logger.Error("Error on broadcastTxCommit", "err", err)
-		return &ctypes.ResultBroadcastTxCommit{
-			CheckTx:   *checkTxRes,
-			DeliverTx: abci.ResponseDeliverTx{},
-			Hash:      tx.Hash(),
-		}, err
-	case <-time.After(config.TimeoutBroadcastTxCommit):
-		err = errors.New("Timed out waiting for tx to be included in a block")
-		logger.Error("Error on broadcastTxCommit", "err", err)
-		return &ctypes.ResultBroadcastTxCommit{
-			CheckTx:   *checkTxRes,
-			DeliverTx: abci.ResponseDeliverTx{},
-			Hash:      tx.Hash(),
-		}, err
+	txRes, err := gTxDispatcher.getTxResult(tx, nil)
+	if err != nil {
+		return nil, err
 	}
+	return &ctypes.ResultBroadcastTxCommit{
+		CheckTx:   checkTxRes,
+		DeliverTx: txRes.Response,
+		Hash:      tx.Hash(),
+		Height:    txRes.Height,
+	}, nil
 }
 
 // Get unconfirmed transactions (maximum ?limit entries) including their number.
@@ -371,4 +332,116 @@ func NumUnconfirmedTxs(ctx *rpctypes.Context) (*ctypes.ResultUnconfirmedTxs, err
 		Count:      mempool.Size(),
 		Total:      mempool.Size(),
 		TotalBytes: mempool.TxsBytes()}, nil
+}
+
+//----------------------------------------
+// txListener
+
+// NOTE: txDispatcher doesn't handle any throttling or resource management.
+// The RPC websockets system is expected to throttle requests.
+type txDispatcher struct {
+	cmn.BaseService
+	evsw       events.EventSwitch
+	listenerID string
+	sub        <-chan events.Event
+
+	mtx     sync.Mutex
+	waiters map[string]*txWaiter // string(types.Tx) -> *txWaiter
+}
+
+func newTxDispatcher(evsw events.EventSwitch) *txDispatcher {
+	listenerID := fmt.Sprintf("txDispatcher#%v", cmn.RandStr(6))
+	sub := events.SubscribeToEvent(evsw, listenerID, types.EventTx{})
+
+	td := &txDispatcher{
+		evsw:       evsw,
+		listenerID: listenerID,
+		sub:        sub,
+		waiters:    make(map[string]*txWaiter),
+	}
+	td.BaseService = *cmn.NewBaseService(nil, "txDispatcher", td)
+	err := td.Start()
+	if err != nil {
+		panic(err)
+	}
+	return td
+}
+
+func (td *txDispatcher) OnStart() error {
+	go td.listenRoutine()
+	return nil
+}
+
+func (td *txDispatcher) OnStop() {
+	td.evsw.RemoveListener(td.listenerID)
+}
+
+func (td *txDispatcher) listenRoutine() {
+	for {
+		select {
+		case event, ok := <-td.sub:
+			if !ok {
+				td.Stop()
+				panic("txDispatcher subscription unexpectedly closed")
+			}
+			txEvent := event.(types.EventTx)
+			td.notifyTxEvent(txEvent)
+		case <-td.Quit():
+			return
+		}
+	}
+}
+
+func (td *txDispatcher) notifyTxEvent(txEvent types.EventTx) {
+	td.mtx.Lock()
+	defer td.mtx.Unlock()
+
+	tx := txEvent.Result.Tx
+	waiter, ok := td.waiters[string(tx)]
+	if !ok {
+		return // nothing to do
+	} else {
+		waiter.txRes = txEvent.Result
+		close(waiter.waitCh)
+	}
+}
+
+// blocking
+// If the tx is already being waited on, returns the result from the original request.
+// Upon result or timeout, the tx is forgotten from txDispatcher, and can be re-requested.
+// If the tx times out, an error is returned.
+// Quit can optionally be provided to terminate early (e.g. if the caller disconnects).
+func (td *txDispatcher) getTxResult(tx types.Tx, quit chan struct{}) (types.TxResult, error) {
+
+	// Get or create waiter.
+	td.mtx.Lock()
+	waiter, ok := td.waiters[string(tx)]
+	if !ok {
+		waiter = newTxWaiter(tx)
+	}
+	td.mtx.Unlock()
+
+	select {
+	case <-waiter.waitCh:
+		return waiter.txRes, nil
+	case <-waiter.timeCh:
+		return types.TxResult{}, errors.New("request timeout")
+	case <-quit:
+		return types.TxResult{}, errors.New("caller quit")
+	}
+}
+
+type txWaiter struct {
+	tx     types.Tx
+	waitCh chan struct{}
+	timeCh <-chan time.Time
+	txRes  types.TxResult
+}
+
+func newTxWaiter(tx types.Tx) *txWaiter {
+	return &txWaiter{
+		tx:     tx,
+		waitCh: make(chan struct{}),
+		timeCh: time.After(config.TimeoutBroadcastTxCommit),
+	}
 }

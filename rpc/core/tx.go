@@ -1,5 +1,7 @@
 package core
 
+/*
+
 import (
 	"fmt"
 
@@ -233,3 +235,4 @@ func TxSearch(ctx *rpctypes.Context, query string, prove bool, page, perPage int
 
 	return &ctypes.ResultTxSearch{Txs: apiResults, TotalCount: totalCount}, nil
 }
+*/

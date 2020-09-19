@@ -2298,11 +2298,11 @@ func (goo TxResult) ToPBMessage(cdc *amino.Codec) (msg proto.Message, err error)
 		}
 		{
 			pbom := proto.Message(nil)
-			pbom, err = goo.Result.ToPBMessage(cdc)
+			pbom, err = goo.Response.ToPBMessage(cdc)
 			if err != nil {
 				return
 			}
-			pbo.Result = pbom.(*abcipb.ResponseDeliverTx)
+			pbo.Response = pbom.(*abcipb.ResponseDeliverTx)
 		}
 	}
 	msg = pbo
@@ -2345,8 +2345,8 @@ func (goo *TxResult) FromPBMessage(cdc *amino.Codec, msg proto.Message) (err err
 				}
 			}
 			{
-				if pbo.Result != nil {
-					err = (*goo).Result.FromPBMessage(cdc, pbo.Result)
+				if pbo.Response != nil {
+					err = (*goo).Response.FromPBMessage(cdc, pbo.Response)
 					if err != nil {
 						return
 					}
@@ -2378,7 +2378,7 @@ func IsTxResultReprEmpty(goor TxResult) (empty bool) {
 			}
 		}
 		{
-			e := abci.IsResponseDeliverTxReprEmpty(goor.Result)
+			e := abci.IsResponseDeliverTxReprEmpty(goor.Response)
 			if e == false {
 				return false
 			}

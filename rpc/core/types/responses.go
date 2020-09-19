@@ -6,7 +6,6 @@ import (
 
 	abci "github.com/tendermint/classic/abci/types"
 	"github.com/tendermint/classic/crypto"
-	cmn "github.com/tendermint/classic/libs/common"
 
 	"github.com/tendermint/classic/p2p"
 	"github.com/tendermint/classic/state"
@@ -58,25 +57,25 @@ func NewResultCommit(header *types.Header, commit *types.Commit,
 
 // Info about the node's syncing state
 type SyncInfo struct {
-	LatestBlockHash   []byte `json:"latest_block_hash"`
-	LatestAppHash     []byte `json:"latest_app_hash"`
-	LatestBlockHeight int64        `json:"latest_block_height"`
-	LatestBlockTime   time.Time    `json:"latest_block_time"`
-	CatchingUp        bool         `json:"catching_up"`
+	LatestBlockHash   []byte    `json:"latest_block_hash"`
+	LatestAppHash     []byte    `json:"latest_app_hash"`
+	LatestBlockHeight int64     `json:"latest_block_height"`
+	LatestBlockTime   time.Time `json:"latest_block_time"`
+	CatchingUp        bool      `json:"catching_up"`
 }
 
 // Info about the node's validator
 type ValidatorInfo struct {
-	Address     []byte  `json:"address"`
-	PubKey      crypto.PubKey `json:"pub_key"`
-	VotingPower int64         `json:"voting_power"`
+	Address     crypto.Address `json:"address"`
+	PubKey      crypto.PubKey  `json:"pub_key"`
+	VotingPower int64          `json:"voting_power"`
 }
 
 // Node Status
 type ResultStatus struct {
-	NodeInfo      p2p.DefaultNodeInfo `json:"node_info"`
-	SyncInfo      SyncInfo            `json:"sync_info"`
-	ValidatorInfo ValidatorInfo       `json:"validator_info"`
+	NodeInfo      p2p.NodeInfo  `json:"node_info"`
+	SyncInfo      SyncInfo      `json:"sync_info"`
+	ValidatorInfo ValidatorInfo `json:"validator_info"`
 }
 
 // Is TxIndexing enabled
@@ -107,7 +106,7 @@ type ResultDialPeers struct {
 
 // A peer
 type Peer struct {
-	NodeInfo         p2p.DefaultNodeInfo  `json:"node_info"`
+	NodeInfo         p2p.NodeInfo         `json:"node_info"`
 	IsOutbound       bool                 `json:"is_outbound"`
 	ConnectionStatus p2p.ConnectionStatus `json:"connection_status"`
 	RemoteIP         string               `json:"remote_ip"`
@@ -121,8 +120,8 @@ type ResultValidators struct {
 
 // ConsensusParams for given height
 type ResultConsensusParams struct {
-	BlockHeight     int64                 `json:"block_height"`
-	ConsensusParams types.ConsensusParams `json:"consensus_params"`
+	BlockHeight     int64                `json:"block_height"`
+	ConsensusParams abci.ConsensusParams `json:"consensus_params"`
 }
 
 // Info about the consensus state.
@@ -145,9 +144,9 @@ type ResultConsensusState struct {
 
 // CheckTx result
 type ResultBroadcastTx struct {
-	Code uint32       `json:"code"`
-	Data []byte `json:"data"`
-	Log  string       `json:"log"`
+	Error abci.Error `json:"error"`
+	Data  []byte     `json:"data"`
+	Log   string     `json:"log"`
 
 	Hash []byte `json:"hash"`
 }
@@ -156,13 +155,13 @@ type ResultBroadcastTx struct {
 type ResultBroadcastTxCommit struct {
 	CheckTx   abci.ResponseCheckTx   `json:"check_tx"`
 	DeliverTx abci.ResponseDeliverTx `json:"deliver_tx"`
-	Hash      []byte           `json:"hash"`
+	Hash      []byte                 `json:"hash"`
 	Height    int64                  `json:"height"`
 }
 
 // Result of querying for a tx
 type ResultTx struct {
-	Hash     []byte           `json:"hash"`
+	Hash     []byte                 `json:"hash"`
 	Height   int64                  `json:"height"`
 	Index    uint32                 `json:"index"`
 	TxResult abci.ResponseDeliverTx `json:"tx_result"`
@@ -210,7 +209,5 @@ type (
 
 // Event data from a subscription
 type ResultEvent struct {
-	Query  string              `json:"query"`
-	Data   types.TMEventData   `json:"data"`
-	Events map[string][]string `json:"events"`
+	Event types.TMEvent `json:"event"`
 }

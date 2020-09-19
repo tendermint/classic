@@ -1,11 +1,8 @@
 package core
 
 import (
-	"bytes"
 	"time"
 
-	cmn "github.com/tendermint/classic/libs/common"
-	"github.com/tendermint/classic/p2p"
 	ctypes "github.com/tendermint/classic/rpc/core/types"
 	rpctypes "github.com/tendermint/classic/rpc/lib/types"
 	sm "github.com/tendermint/classic/state"
@@ -99,7 +96,7 @@ func Status(ctx *rpctypes.Context) (*ctypes.ResultStatus, error) {
 	}
 
 	result := &ctypes.ResultStatus{
-		NodeInfo: p2pTransport.NodeInfo().(p2p.DefaultNodeInfo),
+		NodeInfo: p2pTransport.NodeInfo(),
 		SyncInfo: ctypes.SyncInfo{
 			LatestBlockHash:   latestBlockHash,
 			LatestAppHash:     latestAppHash,
@@ -124,7 +121,7 @@ func validatorAtHeight(h int64) *types.Validator {
 	lastBlockHeight, vals := consensusState.GetValidators()
 	if lastBlockHeight == h {
 		for _, val := range vals {
-			if bytes.Equal(val.Address, privValAddress) {
+			if val.Address != privValAddress {
 				return val
 			}
 		}

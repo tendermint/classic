@@ -2,8 +2,6 @@ package core
 
 import (
 	abci "github.com/tendermint/classic/abci/types"
-	cmn "github.com/tendermint/classic/libs/common"
-	"github.com/tendermint/classic/proxy"
 	ctypes "github.com/tendermint/classic/rpc/core/types"
 	rpctypes "github.com/tendermint/classic/rpc/lib/types"
 )
@@ -64,7 +62,7 @@ func ABCIQuery(ctx *rpctypes.Context, path string, data []byte, height int64, pr
 		return nil, err
 	}
 	logger.Info("ABCIQuery", "path", path, "data", data, "result", resQuery)
-	return &ctypes.ResultABCIQuery{Response: *resQuery}, nil
+	return &ctypes.ResultABCIQuery{Response: resQuery}, nil
 }
 
 // Get some info about the application.
@@ -98,9 +96,9 @@ func ABCIQuery(ctx *rpctypes.Context, path string, data []byte, height int64, pr
 // }
 // ```
 func ABCIInfo(ctx *rpctypes.Context) (*ctypes.ResultABCIInfo, error) {
-	resInfo, err := proxyAppQuery.InfoSync(proxy.RequestInfo)
+	resInfo, err := proxyAppQuery.InfoSync(abci.RequestInfo{})
 	if err != nil {
 		return nil, err
 	}
-	return &ctypes.ResultABCIInfo{Response: *resInfo}, nil
+	return &ctypes.ResultABCIInfo{Response: resInfo}, nil
 }

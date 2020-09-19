@@ -27,7 +27,7 @@ func TestUnsafeDialSeeds(t *testing.T) {
 		isErr bool
 	}{
 		{[]string{}, true},
-		{[]string{"d51fb70907db1c6c2d5237e78379b25cf1a37ab4@127.0.0.1:41198"}, false},
+		{[]string{"c1m6kmam774klwlh4dhmhaatd7al026qqq9xk0hx@127.0.0.1:41198"}, false},
 		{[]string{"127.0.0.1:41198"}, true},
 	}
 
@@ -57,7 +57,7 @@ func TestUnsafeDialPeers(t *testing.T) {
 		isErr bool
 	}{
 		{[]string{}, true},
-		{[]string{"d51fb70907db1c6c2d5237e78379b25cf1a37ab4@127.0.0.1:41198"}, false},
+		{[]string{"c1m6kmam774klwlh4dhmhaatd7al026qqq9xk0hx@127.0.0.1:41198"}, false},
 		{[]string{"127.0.0.1:41198"}, true},
 	}
 

@@ -133,7 +133,7 @@ message TxResult {
 	sint64 Height = 1;
 	uint32 Index = 2;
 	bytes Tx = 3;
-	abci.ResponseDeliverTx Result = 4;
+	abci.ResponseDeliverTx Response = 4;
 }
 
 message BytesList {
