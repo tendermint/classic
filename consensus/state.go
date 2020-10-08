@@ -360,7 +360,6 @@ func (cs *ConsensusState) OnStop() {
 // NOTE: be sure to Stop() the event switch and drain
 // any event listeners or this may deadlock
 func (cs *ConsensusState) Wait() {
-	fmt.Printf("WAIT waiting %p\n", cs.done)
 	if cs.done != nil {
 		<-cs.done
 	}
