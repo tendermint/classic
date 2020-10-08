@@ -28,7 +28,7 @@ import (
 // WALGenerateNBlocks generates a consensus WAL. It does this by spinning up a
 // stripped down version of node (proxy app, event bus, consensus state) with a
 // persistent kvstore application and special consensus wal instance
-// (byteBufferWAL) and waits until numBlocks are created. If the node fails to produce given numBlocks, it returns an error.
+// (heightStopWAL) and waits until numBlocks are created. If the node fails to produce given numBlocks, it returns an error.
 func WALGenerateNBlocks(t *testing.T, wr io.Writer, numBlocks int) (err error) {
 	config := getConfig(t)
 
@@ -85,9 +85,11 @@ func WALGenerateNBlocks(t *testing.T, wr io.Writer, numBlocks int) (err error) {
 
 	// set consensus wal to buffered WAL, which will write all incoming msgs to buffer
 	numBlocksWritten := make(chan struct{})
-	wal := newByteBufferWAL(logger, NewWALEncoder(wr), int64(numBlocks), numBlocksWritten)
-	// see wal.go#103
-	wal.Write(EndHeightMessage{0})
+	wal := newHeightStopWAL(logger, NewWALWriter(wr, maxMsgSize), int64(numBlocks)+1, numBlocksWritten)
+	// See wal.go OnStart().
+	// Since we separate the WALWriter from the WAL, we need to
+	// initialize ourself.
+	wal.WriteMetaSync(MetaMessage{Height: 1})
 	consensusState.wal = wal
 
 	if err := consensusState.Start(); err != nil {
@@ -142,11 +144,11 @@ func getConfig(t *testing.T) *cfg.Config {
 	return c
 }
 
-// byteBufferWAL is a WAL which writes all msgs to a byte buffer. Writing stops
-// when the heightToStop is reached. Client will be notified via
+// heightStopWAL is a WAL which writes all msgs to underlying WALWriter.
+// Writing stops when the heightToStop is reached. Client will be notified via
 // signalWhenStopsTo channel.
-type byteBufferWAL struct {
-	enc               *WALEncoder
+type heightStopWAL struct {
+	enc               *WALWriter
 	stopped           bool
 	heightToStop      int64
 	signalWhenStopsTo chan<- struct{}
@@ -157,8 +159,8 @@ type byteBufferWAL struct {
 // needed for determinism
 var fixedTime, _ = time.Parse(time.RFC3339, "2017-01-02T15:04:05Z")
 
-func newByteBufferWAL(logger log.Logger, enc *WALEncoder, nBlocks int64, signalStop chan<- struct{}) *byteBufferWAL {
-	return &byteBufferWAL{
+func newHeightStopWAL(logger log.Logger, enc *WALWriter, nBlocks int64, signalStop chan<- struct{}) *heightStopWAL {
+	return &heightStopWAL{
 		enc:               enc,
 		heightToStop:      nBlocks,
 		signalWhenStopsTo: signalStop,
@@ -169,24 +171,13 @@ func newByteBufferWAL(logger log.Logger, enc *WALEncoder, nBlocks int64, signalS
 // Save writes message to the internal buffer except when heightToStop is
 // reached, in which case it will signal the caller via signalWhenStopsTo and
 // skip writing.
-func (w *byteBufferWAL) Write(m WALMessage) error {
+func (w *heightStopWAL) Write(m WALMessage) error {
 	if w.stopped {
-		w.logger.Debug("WAL already stopped. Not writing message", "msg", m)
-		return nil
-	}
-
-	if endMsg, ok := m.(EndHeightMessage); ok {
-		w.logger.Debug("WAL write end height message", "height", endMsg.Height, "stopHeight", w.heightToStop)
-		if endMsg.Height == w.heightToStop {
-			w.logger.Debug("Stopping WAL at height", "height", endMsg.Height)
-			w.signalWhenStopsTo <- struct{}{}
-			w.stopped = true
-			return nil
-		}
+		panic("WAL already stopped. Not writing meta message")
 	}
 
 	w.logger.Debug("WAL Write Message", "msg", m)
-	err := w.enc.Encode(&TimedWALMessage{fixedTime, m})
+	err := w.enc.Write(TimedWALMessage{fixedTime, m})
 	if err != nil {
 		panic(fmt.Sprintf("failed to encode the msg %v", m))
 	}
@@ -194,16 +185,37 @@ func (w *byteBufferWAL) Write(m WALMessage) error {
 	return nil
 }
 
-func (w *byteBufferWAL) WriteSync(m WALMessage) error {
+func (w *heightStopWAL) WriteSync(m WALMessage) error {
 	return w.Write(m)
 }
 
-func (w *byteBufferWAL) FlushAndSync() error { return nil }
+func (w *heightStopWAL) WriteMetaSync(m MetaMessage) error {
+	if w.stopped {
+		panic("WAL already stopped. Not writing meta message")
+	}
 
-func (w *byteBufferWAL) SearchForEndHeight(height int64, options *WALSearchOptions) (rd io.ReadCloser, found bool, err error) {
+	if m.Height != 0 {
+		w.logger.Debug("WAL write end height message", "height", m.Height, "stopHeight", w.heightToStop)
+		if m.Height == w.heightToStop {
+			w.logger.Debug("Stopping WAL at height", "height", m.Height)
+			w.signalWhenStopsTo <- struct{}{}
+			w.stopped = true
+			return nil
+		}
+	}
+
+	// After processing is successful, commit to underlying store.  This must
+	// come last.
+	w.enc.WriteMeta(m)
+	return nil
+}
+
+func (w *heightStopWAL) FlushAndSync() error { return nil }
+
+func (w *heightStopWAL) SearchForHeight(height int64, options *WALSearchOptions) (rd io.ReadCloser, found bool, err error) {
 	return nil, false, nil
 }
 
-func (w *byteBufferWAL) Start() error { return nil }
-func (w *byteBufferWAL) Stop() error  { return nil }
-func (w *byteBufferWAL) Wait()        {}
+func (w *heightStopWAL) Start() error { return nil }
+func (w *heightStopWAL) Stop() error  { return nil }
+func (w *heightStopWAL) Wait()        {}

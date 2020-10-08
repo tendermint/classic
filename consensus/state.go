@@ -368,7 +368,7 @@ func (cs *ConsensusState) Wait() {
 
 // OpenWAL opens a file to log all consensus messages and timeouts for deterministic accountability
 func (cs *ConsensusState) OpenWAL(walFile string) (WAL, error) {
-	wal, err := NewWAL(walFile)
+	wal, err := NewWAL(walFile, maxMsgSize)
 	if err != nil {
 		cs.Logger.Error("Failed to open WAL for consensus state", "wal", walFile, "err", err)
 		return nil, err
@@ -585,20 +585,15 @@ func (cs *ConsensusState) newStep() {
 // ConsensusState must be locked before any internal state is updated.
 func (cs *ConsensusState) receiveRoutine(maxSteps int) {
 	onExit := func() {
-		fmt.Println("ONEXIT")
 		// NOTE: the internalMsgQueue may have signed messages from our
 		// priv_val that haven't hit the WAL, but its ok because
 		// priv_val tracks LastSig
 
 		// close wal now that we're done writing to it
 		cs.wal.Stop()
-		fmt.Println("ONEXIT 1")
 		cs.wal.Wait()
-		fmt.Println("ONEXIT 2")
-		fmt.Printf("ONEXIT closing %p\n", cs.done)
 
 		close(cs.done)
-		fmt.Println("ONEXIT 3")
 	}
 
 	defer func() {
@@ -1320,22 +1315,22 @@ func (cs *ConsensusState) finalizeCommit(height int64) {
 
 	fail.Fail() // XXX
 
-	// Write EndHeightMessage{} for this height, implying that the blockstore
-	// has saved the block.
+	// Write MetaMessage{Height+1} for this height, implying that the
+	// blockstore has saved the block for height Height.
 	//
-	// If we crash before writing this EndHeightMessage{}, we will recover by
+	// If we crash before writing this meta message, we will recover by
 	// running ApplyBlock during the ABCI handshake when we restart.  If we
 	// didn't save the block to the blockstore before writing
 	// EndHeightMessage{}, we'd have to change WAL replay -- currently it
-	// complains about replaying for heights where an #ENDHEIGHT entry already
+	// complains about replaying for heights where a #{"h"} entry already
 	// exists.
 	//
 	// Either way, the ConsensusState should not be resumed until we
 	// successfully call ApplyBlock (ie. later here, or in Handshake after
 	// restart).
-	endMsg := EndHeightMessage{height}
-	if err := cs.wal.WriteSync(endMsg); err != nil { // NOTE: fsync
-		panic(fmt.Sprintf("Failed to write %v msg to consensus wal due to %v. Check your FS and restart the node", endMsg, err))
+	meta := MetaMessage{Height: height + 1}
+	if err := cs.wal.WriteMetaSync(meta); err != nil { // NOTE: fsync
+		panic(fmt.Sprintf("Failed to write %v msg to consensus wal due to %v. Check your FS and restart the node", meta, err))
 	}
 
 	fail.Fail() // XXX

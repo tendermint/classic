@@ -43,9 +43,9 @@ var crc32c = crc32.MakeTable(crc32.Castagnoli)
 // Unmarshal and apply a single message to the consensus state as if it were
 // received in receiveRoutine.  Lines that start with "#" are ignored.
 // NOTE: receiveRoutine should not be running.
-func (cs *ConsensusState) readReplayMessage(msg *TimedWALMessage, newStepSub <-chan events.Event) error {
+func (cs *ConsensusState) readReplayMessage(msg *TimedWALMessage, meta *MetaMessage, newStepSub <-chan events.Event) error {
 	// Skip meta messages which exist for demarcating boundaries.
-	if _, ok := msg.Msg.(EndHeightMessage); ok {
+	if meta != nil {
 		return nil
 	}
 
@@ -105,13 +105,13 @@ func (cs *ConsensusState) catchupReplay(csHeight int64) error {
 	cs.replayMode = true
 	defer func() { cs.replayMode = false }()
 
-	// Ensure that #ENDHEIGHT for this height doesn't exist.
+	// Ensure that MetaMessage.Height = height+1 doesn't exist.
 	// NOTE: This is just a sanity check. As far as we know things work fine
 	// without it, and Handshake could reuse ConsensusState if it weren't for
-	// this check (since we can crash after writing #ENDHEIGHT).
+	// this check (since we can crash after writing #{"h"} (meta height).).
 	//
 	// Ignore data corruption errors since this is a sanity check.
-	gr, found, err := cs.wal.SearchForEndHeight(csHeight, &WALSearchOptions{IgnoreDataCorruptionErrors: true})
+	gr, found, err := cs.wal.SearchForHeight(csHeight+1, &WALSearchOptions{IgnoreDataCorruptionErrors: true})
 	if err != nil {
 		return err
 	}
@@ -127,7 +127,7 @@ func (cs *ConsensusState) catchupReplay(csHeight int64) error {
 	// Search for last height marker.
 	//
 	// Ignore data corruption errors in previous heights because we only care about last height
-	gr, found, err = cs.wal.SearchForEndHeight(csHeight-1, &WALSearchOptions{IgnoreDataCorruptionErrors: true})
+	gr, found, err = cs.wal.SearchForHeight(csHeight, &WALSearchOptions{IgnoreDataCorruptionErrors: true})
 	if err == io.EOF {
 		cs.Logger.Error("Replay: wal.group.Search returned EOF", "#ENDHEIGHT", csHeight-1)
 	} else if err != nil {
@@ -140,12 +140,11 @@ func (cs *ConsensusState) catchupReplay(csHeight int64) error {
 
 	cs.Logger.Info("Catchup by replaying consensus messages", "height", csHeight)
 
-	var msg *TimedWALMessage
-	dec := WALDecoder{gr}
+	dec := NewWALReader(gr, maxMsgSize)
 
 LOOP:
 	for {
-		msg, err = dec.Decode()
+		msg, meta, err := dec.ReadMessage()
 		switch {
 		case err == io.EOF:
 			break LOOP
@@ -155,11 +154,10 @@ LOOP:
 		case err != nil:
 			return err
 		}
-
 		// NOTE: since the priv key is set when the msgs are received
 		// it will attempt to eg double sign but we can just ignore it
 		// since the votes will be replayed and we'll get to the next step
-		if err := cs.readReplayMessage(msg, nil); err != nil {
+		if err := cs.readReplayMessage(msg, meta, nil); err != nil {
 			return err
 		}
 	}

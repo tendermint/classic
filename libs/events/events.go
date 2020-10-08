@@ -10,7 +10,6 @@ import (
 
 // All implementors must be amino-encodable.
 type Event interface {
-	AssertEvent()
 }
 
 // Eventable is the interface reactors and other modules must export to become
@@ -19,11 +18,16 @@ type Eventable interface {
 	SetEventSwitch(evsw EventSwitch)
 }
 
-// Fireable is the interface that wraps the FireEvent method.
-//
-// FireEvent fires an event with the given name and data.
 type Fireable interface {
 	FireEvent(ev Event)
+}
+
+type Listenable interface {
+	// Multiple callbacks can be registered for a given listenerID.  Events are
+	// called back in the order that they were registered with this function.
+	AddListener(listenerID string, cb EventCallback)
+	// Removes all callbacks that match listenerID.
+	RemoveListener(listenerID string)
 }
 
 // EventSwitch is the interface for synchronous pubsub, where listeners
@@ -34,13 +38,7 @@ type Fireable interface {
 type EventSwitch interface {
 	cmn.Service
 	Fireable
-
-	// Multiple callbacks can be registered for a given listenerID.
-	// Events are called back in the order that they were registered with this
-	// function.
-	AddListener(listenerID string, cb EventCallback)
-	// Removes all callbacks for listener.
-	RemoveListener(listenerID string)
+	Listenable
 }
 
 type EventCallback func(event Event)

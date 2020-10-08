@@ -31,5 +31,5 @@ var Package = amino.RegisterPackage(amino.NewPackage(
 		msgInfo{},
 		timeoutInfo{},
 		TimedWALMessage{},
-		EndHeightMessage{},
+		MetaMessage{},
 	))

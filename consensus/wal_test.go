@@ -37,7 +37,7 @@ func TestWALTruncate(t *testing.T) {
 	// defaultHeadSizeLimit(10M) is hard to simulate.
 	// this magic number 1 * time.Millisecond make RotateFile check frequently.
 	// defaultGroupCheckDuration(5s) is hard to simulate.
-	wal, err := NewWAL(walFile,
+	wal, err := NewWAL(walFile, maxMsgSize,
 		autofile.GroupHeadSizeLimit(4096),
 		autofile.GroupCheckDuration(1*time.Millisecond),
 	)
@@ -63,25 +63,26 @@ func TestWALTruncate(t *testing.T) {
 	wal.FlushAndSync()
 
 	h := int64(50)
-	gr, found, err := wal.SearchForEndHeight(h, &WALSearchOptions{})
+	gr, found, err := wal.SearchForHeight(h+1, &WALSearchOptions{})
 	assert.NoError(t, err, "expected not to err on height %d", h)
 	assert.True(t, found, "expected to find end height for %d", h)
 	assert.NotNil(t, gr)
 	defer gr.Close()
 
-	dec := NewWALDecoder(gr)
-	msg, err := dec.Decode()
+	dec := NewWALReader(gr, maxMsgSize)
+	msg, meta, err := dec.ReadMessage()
 	assert.NoError(t, err, "expected to decode a message")
 	rs, ok := msg.Msg.(newRoundStepInfo)
+	assert.Nil(t, meta, "expected no meta")
 	assert.True(t, ok, "expected message of type EventRoundState")
 	assert.Equal(t, rs.Height, h+1, "wrong height")
 }
 
-func TestWALEncoderDecoder(t *testing.T) {
+func TestWALWriterReader(t *testing.T) {
 	now := tmtime.Now()
 	msgs := []TimedWALMessage{
-		{Time: now, Msg: EndHeightMessage{0}},
 		{Time: now, Msg: timeoutInfo{Duration: time.Second, Height: 1, Round: 1, Step: cstypes.RoundStepPropose}},
+		{Time: now, Msg: timeoutInfo{Duration: time.Second, Height: 1, Round: 2, Step: cstypes.RoundStepPropose}},
 	}
 
 	b := new(bytes.Buffer)
@@ -91,13 +92,14 @@ func TestWALEncoderDecoder(t *testing.T) {
 
 		b.Reset()
 
-		enc := NewWALEncoder(b)
-		err := enc.Encode(&msg)
+		enc := NewWALWriter(b, maxMsgSize)
+		err := enc.Write(msg)
 		require.NoError(t, err)
 
-		dec := NewWALDecoder(b)
-		decoded, err := dec.Decode()
+		dec := NewWALReader(b, maxMsgSize)
+		decoded, meta, err := dec.ReadMessage()
 		require.NoError(t, err)
+		require.Nil(t, meta)
 
 		assert.Equal(t, msg.Time.UTC(), decoded.Time)
 		assert.Equal(t, msg.Msg, decoded.Msg)
@@ -110,7 +112,7 @@ func TestWALWrite(t *testing.T) {
 	defer os.RemoveAll(walDir)
 	walFile := filepath.Join(walDir, "wal")
 
-	wal, err := NewWAL(walFile)
+	wal, err := NewWAL(walFile, maxMsgSize)
 	require.NoError(t, err)
 	err = wal.Start()
 	require.NoError(t, err)
@@ -131,7 +133,7 @@ func TestWALWrite(t *testing.T) {
 			Proof: merkle.SimpleProof{
 				Total:    1,
 				Index:    1,
-				LeafHash: make([]byte, maxMsgSizeBytes-30),
+				LeafHash: make([]byte, maxMsgSize),
 			},
 		},
 	}
@@ -139,29 +141,47 @@ func TestWALWrite(t *testing.T) {
 	if assert.Error(t, err) {
 		assert.Contains(t, err.Error(), "msg is too big")
 	}
+
+	// 2) Write returns no error if msg is not too big.
+	msg = &BlockPartMessage{
+		Height: 1,
+		Round:  1,
+		Part: &tmtypes.Part{
+			Index: 1,
+			Bytes: make([]byte, 1),
+			Proof: merkle.SimpleProof{
+				Total:    1,
+				Index:    1,
+				LeafHash: make([]byte, 20),
+			},
+		},
+	}
+	err = wal.Write(msgInfo{Msg: msg})
+	assert.NoError(t, err)
 }
 
-func TestWALSearchForEndHeight(t *testing.T) {
+func TestWALSearchForHeight(t *testing.T) {
 	walBody, err := WALWithNBlocks(t, 6)
 	if err != nil {
 		t.Fatal(err)
 	}
 	walFile := tempWALWithData(walBody)
 
-	wal, err := NewWAL(walFile)
+	wal, err := NewWAL(walFile, maxMsgSize)
 	require.NoError(t, err)
 	wal.SetLogger(log.TestingLogger())
 
 	h := int64(3)
-	gr, found, err := wal.SearchForEndHeight(h, &WALSearchOptions{})
+	gr, found, err := wal.SearchForHeight(h+1, &WALSearchOptions{})
 	assert.NoError(t, err, "expected not to err on height %d", h)
 	assert.True(t, found, "expected to find end height for %d", h)
 	assert.NotNil(t, gr)
 	defer gr.Close()
 
-	dec := NewWALDecoder(gr)
-	msg, err := dec.Decode()
+	dec := NewWALReader(gr, maxMsgSize)
+	msg, meta, err := dec.ReadMessage()
 	assert.NoError(t, err, "expected to decode a message")
+	assert.Nil(t, meta, "expected no meta")
 	rs, ok := msg.Msg.(newRoundStepInfo)
 	assert.True(t, ok, "expected message of type newRoundStepInfo")
 	assert.Equal(t, rs.Height, h+1, "wrong height")
@@ -173,7 +193,7 @@ func TestWALPeriodicSync(t *testing.T) {
 	defer os.RemoveAll(walDir)
 
 	walFile := filepath.Join(walDir, "wal")
-	wal, err := NewWAL(walFile, autofile.GroupCheckDuration(1*time.Millisecond))
+	wal, err := NewWAL(walFile, maxMsgSize, autofile.GroupCheckDuration(1*time.Millisecond))
 	require.NoError(t, err)
 
 	wal.SetFlushInterval(walTestFlushInterval)
@@ -198,7 +218,7 @@ func TestWALPeriodicSync(t *testing.T) {
 	assert.Zero(t, wal.Group().Buffered())
 
 	h := int64(4)
-	gr, found, err := wal.SearchForEndHeight(h, &WALSearchOptions{})
+	gr, found, err := wal.SearchForHeight(h+1, &WALSearchOptions{})
 	assert.NoError(t, err, "expected not to err on height %d", h)
 	assert.True(t, found, "expected to find end height for %d", h)
 	assert.NotNil(t, gr)
@@ -226,11 +246,11 @@ func nBytes(n int) []byte {
 	return buf[:n]
 }
 
-func benchmarkWalDecode(b *testing.B, n int) {
+func benchmarkWalRead(b *testing.B, n int) {
 	// registerInterfacesOnce()
 
 	buf := new(bytes.Buffer)
-	enc := NewWALEncoder(buf)
+	enc := NewWALWriter(buf, maxMsgSize)
 
 	data := nBytes(n)
 	msg := msgInfo{
@@ -243,7 +263,7 @@ func benchmarkWalDecode(b *testing.B, n int) {
 			},
 		},
 	}
-	enc.Encode(&TimedWALMessage{Msg: msg, Time: time.Now().Round(time.Second).UTC()})
+	enc.Write(TimedWALMessage{Msg: msg, Time: time.Now().Round(time.Second).UTC()})
 
 	encoded := buf.Bytes()
 
@@ -251,33 +271,33 @@ func benchmarkWalDecode(b *testing.B, n int) {
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		buf.Write(encoded)
-		dec := NewWALDecoder(buf)
-		if _, err := dec.Decode(); err != nil {
+		dec := NewWALReader(buf, maxMsgSize)
+		if _, _, err := dec.ReadMessage(); err != nil {
 			b.Fatal(err)
 		}
 	}
 	b.ReportAllocs()
 }
 
-func BenchmarkWalDecode512B(b *testing.B) {
-	benchmarkWalDecode(b, 512)
+func BenchmarkWalRead512B(b *testing.B) {
+	benchmarkWalRead(b, 512)
 }
 
-func BenchmarkWalDecode10KB(b *testing.B) {
-	benchmarkWalDecode(b, 10*1024)
+func BenchmarkWalRead10KB(b *testing.B) {
+	benchmarkWalRead(b, 10*1024)
 }
-func BenchmarkWalDecode100KB(b *testing.B) {
-	benchmarkWalDecode(b, 100*1024)
+func BenchmarkWalRead100KB(b *testing.B) {
+	benchmarkWalRead(b, 100*1024)
 }
-func BenchmarkWalDecode1MB(b *testing.B) {
-	benchmarkWalDecode(b, 1024*1024)
+func BenchmarkWalRead1MB(b *testing.B) {
+	benchmarkWalRead(b, 1024*1024)
 }
-func BenchmarkWalDecode10MB(b *testing.B) {
-	benchmarkWalDecode(b, 10*1024*1024)
+func BenchmarkWalRead10MB(b *testing.B) {
+	benchmarkWalRead(b, 10*1024*1024)
 }
-func BenchmarkWalDecode100MB(b *testing.B) {
-	benchmarkWalDecode(b, 100*1024*1024)
+func BenchmarkWalRead100MB(b *testing.B) {
+	benchmarkWalRead(b, 100*1024*1024)
 }
-func BenchmarkWalDecode1GB(b *testing.B) {
-	benchmarkWalDecode(b, 1024*1024*1024)
+func BenchmarkWalRead1GB(b *testing.B) {
+	benchmarkWalRead(b, 1024*1024*1024)
 }

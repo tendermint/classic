@@ -67,19 +67,20 @@ func (cs *ConsensusState) ReplayFile(file string, console bool) error {
 
 	var nextN int // apply N msgs in a row
 	var msg *TimedWALMessage
+	var meta *MetaMessage
 	for {
 		if nextN == 0 && console {
 			nextN = pb.replayConsoleLoop()
 		}
 
-		msg, err = pb.dec.Decode()
+		msg, meta, err = pb.dec.ReadMessage()
 		if err == io.EOF {
 			return nil
 		} else if err != nil {
 			return err
 		}
 
-		if err := pb.cs.readReplayMessage(msg, newStepSub); err != nil {
+		if err := pb.cs.readReplayMessage(msg, meta, newStepSub); err != nil {
 			return err
 		}
 
@@ -97,7 +98,7 @@ type playback struct {
 	cs *ConsensusState
 
 	fp    *os.File
-	dec   *WALDecoder
+	dec   *WALReader
 	count int // how many lines/msgs into the file are we
 
 	// replays can be reset to beginning
@@ -111,7 +112,7 @@ func newPlayback(fileName string, fp *os.File, cs *ConsensusState, genState sm.S
 		fp:           fp,
 		fileName:     fileName,
 		genesisState: genState,
-		dec:          NewWALDecoder(fp),
+		dec:          NewWALReader(fp, maxMsgSize),
 	}
 }
 
@@ -133,20 +134,21 @@ func (pb *playback) replayReset(count int, newStepSub <-chan events.Event) error
 		return err
 	}
 	pb.fp = fp
-	pb.dec = NewWALDecoder(fp)
+	pb.dec = NewWALReader(fp, maxMsgSize)
 	count = pb.count - count
 	fmt.Printf("Reseting from %d to %d\n", pb.count, count)
 	pb.count = 0
 	pb.cs = newCS
 	var msg *TimedWALMessage
+	var meta *MetaMessage
 	for i := 0; i < count; i++ {
-		msg, err = pb.dec.Decode()
+		msg, meta, err = pb.dec.ReadMessage()
 		if err == io.EOF {
 			return nil
 		} else if err != nil {
 			return err
 		}
-		if err := pb.cs.readReplayMessage(msg, newStepSub); err != nil {
+		if err := pb.cs.readReplayMessage(msg, meta, newStepSub); err != nil {
 			return err
 		}
 		pb.count++

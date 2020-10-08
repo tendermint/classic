@@ -166,11 +166,18 @@ func TestStateEnterProposeYesPrivValidator(t *testing.T) {
 
 	// Listen for propose timeout event
 
+	newRoundCh := subscribe(cs.evsw, cstypes.EventNewRound{})
 	timeoutCh := subscribe(cs.evsw, cstypes.EventTimeoutPropose{})
 	proposalCh := subscribe(cs.evsw, cstypes.EventCompleteProposal{})
 
 	startFrom(cs, height, round)
+	defer func() {
+		cs.Stop()
+		cs.Wait()
+	}()
 
+	// Wait for new round so proposer is set.
+	ensureNewRound(newRoundCh, height, round)
 	ensureNewProposal(proposalCh, height, round)
 
 	// Check that Proposal, ProposalBlock, ProposalBlockParts are set.
@@ -187,9 +194,6 @@ func TestStateEnterProposeYesPrivValidator(t *testing.T) {
 
 	// if we're a validator, enterPropose should not timeout
 	ensureNoNewTimeout(timeoutCh, cs.config.TimeoutPropose.Nanoseconds())
-
-	cs.Stop()
-	cs.Wait()
 }
 
 func TestStateBadProposal(t *testing.T) {

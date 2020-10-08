@@ -75,22 +75,32 @@ func startNewConsensusStateAndWaitForBlock(t *testing.T, consensusReplayConfig *
 	bytes, _ := ioutil.ReadFile(cs.config.WalFile())
 	t.Logf("====== WAL: \n\r%X\n", bytes)
 
-	err := cs.Start()
-	require.NoError(t, err)
-	defer cs.Stop()
-
 	// This is just a signal that we haven't halted; its not something contained
 	// in the WAL itself. Assuming the consensus state is running, replay of any
 	// WAL, including the empty one, should eventually be followed by a new
 	// block, or else something is wrong.
 	newBlockSub := subscribe(cs.evsw, types.EventNewBlock{})
-	select {
-	case _, ok := <-newBlockSub:
-		if !ok {
-			t.Fatal("newBlockSub was cancelled")
+
+	go func() {
+		err := cs.Start()
+		require.NoError(t, err)
+	}()
+	defer cs.Stop()
+
+LOOP:
+	for {
+		select {
+		case event, ok := <-newBlockSub:
+			if !ok {
+				t.Fatal("newBlockSub was cancelled")
+			}
+			event_ := event.(types.EventNewBlock)
+			if lastBlockHeight <= event_.Block.Header.Height {
+				break LOOP
+			}
+		case <-time.After(60 * time.Second): // XXX why so long?
+			t.Fatal("Timed out waiting for new block (see trace above)")
 		}
-	case <-time.After(120 * time.Second):
-		t.Fatal("Timed out waiting for new block (see trace above)")
 	}
 }
 
@@ -110,9 +120,9 @@ func sendTxs(ctx context.Context, cs *ConsensusState) {
 // TestWALCrash uses crashing WAL to test we can recover from any WAL failure.
 func TestWALCrash(t *testing.T) {
 	testCases := []struct {
-		name         string
-		initFn       func(dbm.DB, *ConsensusState, context.Context)
-		heightToStop int64
+		name            string
+		initFn          func(dbm.DB, *ConsensusState, context.Context)
+		lastBlockHeight int64
 	}{
 		{"empty block",
 			func(stateDB dbm.DB, cs *ConsensusState, ctx context.Context) {},
@@ -128,15 +138,15 @@ func TestWALCrash(t *testing.T) {
 		tc := tc
 		consensusReplayConfig := ResetConfig(fmt.Sprintf("%s_%d", t.Name(), i))
 		t.Run(tc.name, func(t *testing.T) {
-			crashWALandCheckLiveness(t, consensusReplayConfig, tc.initFn, tc.heightToStop)
+			crashWALandCheckLiveness(t, consensusReplayConfig, tc.initFn, tc.lastBlockHeight)
 		})
 	}
 }
 
 func crashWALandCheckLiveness(t *testing.T, consensusReplayConfig *cfg.Config,
-	initFn func(dbm.DB, *ConsensusState, context.Context), heightToStop int64) {
-	walPanicked := make(chan error)
-	crashingWal := &crashingWAL{panicCh: walPanicked, heightToStop: heightToStop}
+	initFn func(dbm.DB, *ConsensusState, context.Context), lastBlockHeight int64) {
+	crashCh := make(chan error)
+	crashingWal := &crashingWAL{crashCh: crashCh, lastBlockHeight: lastBlockHeight}
 
 	i := 1
 LOOP:
@@ -175,8 +185,8 @@ LOOP:
 		i++
 
 		select {
-		case err := <-walPanicked:
-			t.Logf("WAL panicked: %v", err)
+		case err := <-crashCh:
+			t.Logf("WAL crashed: %v", err)
 
 			// make sure we can make blocks after a crash
 			startNewConsensusStateAndWaitForBlock(t, consensusReplayConfig, cs.Height, blockDB, stateDB)
@@ -186,7 +196,7 @@ LOOP:
 			cancel()
 
 			// if we reached the required height, exit
-			if _, ok := err.(ReachedHeightToStopError); ok {
+			if _, ok := err.(ReachedLastBlockHeightError); ok {
 				break LOOP
 			}
 		case <-time.After(10 * time.Second):
@@ -199,9 +209,9 @@ LOOP:
 // (before and after). It remembers a message for which we last panicked
 // (lastPanickedForMsgIndex), so we don't panic for it in subsequent iterations.
 type crashingWAL struct {
-	next         WAL
-	panicCh      chan error
-	heightToStop int64
+	next            WAL
+	crashCh         chan error
+	lastBlockHeight int64 // inclusive
 
 	msgIndex                int // current message index
 	lastPanickedForMsgIndex int // last message for which we panicked
@@ -218,33 +228,23 @@ func (e WALWriteError) Error() string {
 	return e.msg
 }
 
-// ReachedHeightToStopError indicates we've reached the required consensus
+// ReachedLastBlockHeightError indicates we've reached the required consensus
 // height and may exit.
-type ReachedHeightToStopError struct {
+type ReachedLastBlockHeightError struct {
 	height int64
 }
 
-func (e ReachedHeightToStopError) Error() string {
+func (e ReachedLastBlockHeightError) Error() string {
 	return fmt.Sprintf("reached height to stop %d", e.height)
 }
 
-// Write simulate WAL's crashing by sending an error to the panicCh and then
+// Write simulate WAL's crashing by sending an error to the crashCh and then
 // exiting the cs.receiveRoutine.
 func (w *crashingWAL) Write(m WALMessage) error {
-	if endMsg, ok := m.(EndHeightMessage); ok {
-		if endMsg.Height == w.heightToStop {
-			w.panicCh <- ReachedHeightToStopError{endMsg.Height}
-			runtime.Goexit()
-			return nil
-		}
-
-		return w.next.Write(m)
-	}
-
 	if w.msgIndex > w.lastPanickedForMsgIndex {
 		w.lastPanickedForMsgIndex = w.msgIndex
 		_, file, line, _ := runtime.Caller(1)
-		w.panicCh <- WALWriteError{fmt.Sprintf("failed to write %T to WAL (fileline: %s:%d)", m, file, line)}
+		w.crashCh <- WALWriteError{fmt.Sprintf("failed to write %T to WAL (fileline: %s:%d)", m, file, line)}
 		runtime.Goexit()
 		return nil
 	}
@@ -253,14 +253,25 @@ func (w *crashingWAL) Write(m WALMessage) error {
 	return w.next.Write(m)
 }
 
+func (w *crashingWAL) WriteMetaSync(m MetaMessage) error {
+	// we crash once we've reached w.lastBlockHeight+1,
+	// to test all the WAL lines produced during w.lastBlockHeight.
+	if m.Height != 0 && m.Height == w.lastBlockHeight+1 {
+		w.crashCh <- ReachedLastBlockHeightError{m.Height}
+		runtime.Goexit()
+		return nil
+	}
+	return w.next.WriteMetaSync(m)
+}
+
 func (w *crashingWAL) WriteSync(m WALMessage) error {
 	return w.Write(m)
 }
 
 func (w *crashingWAL) FlushAndSync() error { return w.next.FlushAndSync() }
 
-func (w *crashingWAL) SearchForEndHeight(height int64, options *WALSearchOptions) (rd io.ReadCloser, found bool, err error) {
-	return w.next.SearchForEndHeight(height, options)
+func (w *crashingWAL) SearchForHeight(height int64, options *WALSearchOptions) (rd io.ReadCloser, found bool, err error) {
+	return w.next.SearchForHeight(height, options)
 }
 
 func (w *crashingWAL) Start() error { return w.next.Start() }
@@ -616,7 +627,7 @@ func testHandshakeReplay(t *testing.T, config *cfg.Config, nBlocks int, mode uin
 
 		privVal := privval.LoadFilePV(config.PrivValidatorKeyFile(), config.PrivValidatorStateFile())
 
-		wal, err := NewWAL(walFile)
+		wal, err := NewWAL(walFile, maxMsgSize)
 		require.NoError(t, err)
 		wal.SetLogger(log.TestingLogger())
 		err = wal.Start()
@@ -901,10 +912,10 @@ func (app *badApp) Commit() (res abci.ResponseCommit) {
 // utils for making blocks
 
 func makeBlockchainFromWAL(wal WAL) ([]*types.Block, []*types.Commit, error) {
-	var height int64
+	var height int64 = 1
 
 	// Search for height marker
-	gr, found, err := wal.SearchForEndHeight(height, &WALSearchOptions{})
+	gr, found, err := wal.SearchForHeight(height, &WALSearchOptions{})
 	if err != nil {
 		return nil, nil, err
 	}
@@ -922,22 +933,16 @@ func makeBlockchainFromWAL(wal WAL) ([]*types.Block, []*types.Commit, error) {
 		thisBlockCommit *types.Commit
 	)
 
-	dec := NewWALDecoder(gr)
+	dec := NewWALReader(gr, maxMsgSize)
 	for {
-		msg, err := dec.Decode()
+		msg, meta, err := dec.ReadMessage()
 		if err == io.EOF {
 			break
 		} else if err != nil {
 			return nil, nil, err
 		}
 
-		piece := readPieceFromWAL(msg)
-		if piece == nil {
-			continue
-		}
-
-		switch p := piece.(type) {
-		case EndHeightMessage:
+		if meta != nil {
 			// if its not the first one, we have a full block
 			if thisBlockParts != nil {
 				var block = new(types.Block)
@@ -945,28 +950,38 @@ func makeBlockchainFromWAL(wal WAL) ([]*types.Block, []*types.Commit, error) {
 				if err != nil {
 					panic(err)
 				}
-				if block.Height != height+1 {
-					panic(fmt.Sprintf("read bad block from wal. got height %d, expected %d", block.Height, height+1))
+				if block.Height != height {
+					panic(fmt.Sprintf("read bad block from wal. got height %d, expected %d", block.Height, height))
 				}
 				commitHeight := thisBlockCommit.Precommits[0].Height
-				if commitHeight != height+1 {
-					panic(fmt.Sprintf("commit doesnt match. got height %d, expected %d", commitHeight, height+1))
+				if commitHeight != height {
+					panic(fmt.Sprintf("commit doesnt match. got height %d, expected %d", commitHeight, height))
 				}
 				blocks = append(blocks, block)
 				commits = append(commits, thisBlockCommit)
 				height++
 			}
-		case *types.PartSetHeader:
-			thisBlockParts = types.NewPartSetFromHeader(*p)
-		case *types.Part:
-			_, err := thisBlockParts.AddPart(p)
-			if err != nil {
-				return nil, nil, err
+		}
+
+		if msg != nil {
+			piece := readPieceFromWAL(msg)
+			if piece == nil {
+				continue
 			}
-		case *types.Vote:
-			if p.Type == types.PrecommitType {
-				commitSigs := []*types.CommitSig{p.CommitSig()}
-				thisBlockCommit = types.NewCommit(p.BlockID, commitSigs)
+
+			switch p := piece.(type) {
+			case *types.PartSetHeader:
+				thisBlockParts = types.NewPartSetFromHeader(*p)
+			case *types.Part:
+				_, err := thisBlockParts.AddPart(p)
+				if err != nil {
+					return nil, nil, err
+				}
+			case *types.Vote:
+				if p.Type == types.PrecommitType {
+					commitSigs := []*types.CommitSig{p.CommitSig()}
+					thisBlockCommit = types.NewCommit(p.BlockID, commitSigs)
+				}
 			}
 		}
 	}
@@ -976,12 +991,12 @@ func makeBlockchainFromWAL(wal WAL) ([]*types.Block, []*types.Commit, error) {
 	if err != nil {
 		panic(err)
 	}
-	if block.Height != height+1 {
-		panic(fmt.Sprintf("read bad block from wal. got height %d, expected %d", block.Height, height+1))
+	if block.Height != height {
+		panic(fmt.Sprintf("read bad block from wal. got height %d, expected %d", block.Height, height))
 	}
 	commitHeight := thisBlockCommit.Precommits[0].Height
-	if commitHeight != height+1 {
-		panic(fmt.Sprintf("commit doesnt match. got height %d, expected %d", commitHeight, height+1))
+	if commitHeight != height {
+		panic(fmt.Sprintf("commit doesnt match. got height %d, expected %d", commitHeight, height))
 	}
 	blocks = append(blocks, block)
 	commits = append(commits, thisBlockCommit)
@@ -1000,8 +1015,6 @@ func readPieceFromWAL(msg *TimedWALMessage) interface{} {
 		case *VoteMessage:
 			return msg.Vote
 		}
-	case EndHeightMessage:
-		return m
 	}
 
 	return nil
