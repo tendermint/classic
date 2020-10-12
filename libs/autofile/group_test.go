@@ -54,17 +54,10 @@ func TestCheckHeadSizeLimit(t *testing.T) {
 	g.FlushAndSync()
 	assertGroupInfo(t, g.ReadGroupInfo(), 0, 0, 999000, 999000)
 
-	// Even calling checkHeadSizeLimit manually won't rotate it.
-	g.checkHeadSizeLimit()
-	assertGroupInfo(t, g.ReadGroupInfo(), 0, 0, 999000, 999000)
-
 	// Write 1000 more bytes.
 	err := g.WriteLine(cmn.RandStr(999))
 	require.NoError(t, err, "Error appending to head")
 	g.FlushAndSync()
-
-	// Calling checkHeadSizeLimit this time rolls it.
-	g.checkHeadSizeLimit()
 	assertGroupInfo(t, g.ReadGroupInfo(), 0, 1, 1000000, 0)
 
 	// Write 1000 more bytes.
@@ -72,8 +65,7 @@ func TestCheckHeadSizeLimit(t *testing.T) {
 	require.NoError(t, err, "Error appending to head")
 	g.FlushAndSync()
 
-	// Calling checkHeadSizeLimit does nothing.
-	g.checkHeadSizeLimit()
+	// Should not have rotated
 	assertGroupInfo(t, g.ReadGroupInfo(), 0, 1, 1001000, 1000)
 
 	// Write 1000 bytes 999 times.
@@ -82,20 +74,12 @@ func TestCheckHeadSizeLimit(t *testing.T) {
 		require.NoError(t, err, "Error appending to head")
 	}
 	g.FlushAndSync()
-	assertGroupInfo(t, g.ReadGroupInfo(), 0, 1, 2000000, 1000000)
-
-	// Calling checkHeadSizeLimit rolls it again.
-	g.checkHeadSizeLimit()
 	assertGroupInfo(t, g.ReadGroupInfo(), 0, 2, 2000000, 0)
 
 	// Write 1000 more bytes.
 	_, err = g.Head.Write([]byte(cmn.RandStr(999) + "\n"))
 	require.NoError(t, err, "Error appending to head")
 	g.FlushAndSync()
-	assertGroupInfo(t, g.ReadGroupInfo(), 0, 2, 2001000, 1000)
-
-	// Calling checkHeadSizeLimit does nothing.
-	g.checkHeadSizeLimit()
 	assertGroupInfo(t, g.ReadGroupInfo(), 0, 2, 2001000, 1000)
 
 	// Cleanup
@@ -140,7 +124,7 @@ func TestWrite(t *testing.T) {
 	g.FlushAndSync()
 
 	read := make([]byte, len(written))
-	gr, err := g.NewReader(0)
+	gr, err := g.NewReader(0, 0)
 	require.NoError(t, err, "failed to create reader")
 
 	_, err = gr.Read(read)
@@ -166,7 +150,7 @@ func TestGroupReaderRead(t *testing.T) {
 
 	totalWrittenLength := len(professor) + len(frankenstein)
 	read := make([]byte, totalWrittenLength)
-	gr, err := g.NewReader(0)
+	gr, err := g.NewReader(0, 0)
 	require.NoError(t, err, "failed to create reader")
 
 	n, err := gr.Read(read)
@@ -196,7 +180,7 @@ func TestGroupReaderRead2(t *testing.T) {
 
 	totalLength := len(professor) + len(frankenstein)
 	read := make([]byte, totalLength)
-	gr, err := g.NewReader(0)
+	gr, err := g.NewReader(0, 0)
 	require.NoError(t, err, "failed to create reader")
 
 	// 1) n < (size of the given slice), io.EOF

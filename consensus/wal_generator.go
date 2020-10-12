@@ -23,6 +23,7 @@ import (
 	sm "github.com/tendermint/classic/state"
 	"github.com/tendermint/classic/store"
 	"github.com/tendermint/classic/types"
+	walm "github.com/tendermint/classic/wal"
 )
 
 // WALGenerateNBlocks generates a consensus WAL. It does this by spinning up a
@@ -85,11 +86,11 @@ func WALGenerateNBlocks(t *testing.T, wr io.Writer, numBlocks int) (err error) {
 
 	// set consensus wal to buffered WAL, which will write all incoming msgs to buffer
 	numBlocksWritten := make(chan struct{})
-	wal := newHeightStopWAL(logger, NewWALWriter(wr, maxMsgSize), int64(numBlocks)+1, numBlocksWritten)
+	wal := newHeightStopWAL(logger, walm.NewWALWriter(wr, maxMsgSize), int64(numBlocks)+1, numBlocksWritten)
 	// See wal.go OnStart().
 	// Since we separate the WALWriter from the WAL, we need to
 	// initialize ourself.
-	wal.WriteMetaSync(MetaMessage{Height: 1})
+	wal.WriteMetaSync(walm.MetaMessage{Height: 1})
 	consensusState.wal = wal
 
 	if err := consensusState.Start(); err != nil {
@@ -100,7 +101,7 @@ func WALGenerateNBlocks(t *testing.T, wr io.Writer, numBlocks int) (err error) {
 	case <-numBlocksWritten:
 		consensusState.Stop()
 		return nil
-	case <-time.After(1 * time.Minute):
+	case <-time.After(2 * time.Minute):
 		consensusState.Stop()
 		return fmt.Errorf("waited too long for tendermint to produce %d blocks (grep logs for `wal_generator`)", numBlocks)
 	}
@@ -148,7 +149,7 @@ func getConfig(t *testing.T) *cfg.Config {
 // Writing stops when the heightToStop is reached. Client will be notified via
 // signalWhenStopsTo channel.
 type heightStopWAL struct {
-	enc               *WALWriter
+	enc               *walm.WALWriter
 	stopped           bool
 	heightToStop      int64
 	signalWhenStopsTo chan<- struct{}
@@ -159,7 +160,7 @@ type heightStopWAL struct {
 // needed for determinism
 var fixedTime, _ = time.Parse(time.RFC3339, "2017-01-02T15:04:05Z")
 
-func newHeightStopWAL(logger log.Logger, enc *WALWriter, nBlocks int64, signalStop chan<- struct{}) *heightStopWAL {
+func newHeightStopWAL(logger log.Logger, enc *walm.WALWriter, nBlocks int64, signalStop chan<- struct{}) *heightStopWAL {
 	return &heightStopWAL{
 		enc:               enc,
 		heightToStop:      nBlocks,
@@ -168,16 +169,20 @@ func newHeightStopWAL(logger log.Logger, enc *WALWriter, nBlocks int64, signalSt
 	}
 }
 
+func (w *heightStopWAL) SetLogger(logger log.Logger) {
+	w.logger = logger
+}
+
 // Save writes message to the internal buffer except when heightToStop is
 // reached, in which case it will signal the caller via signalWhenStopsTo and
 // skip writing.
-func (w *heightStopWAL) Write(m WALMessage) error {
+func (w *heightStopWAL) Write(m walm.WALMessage) error {
 	if w.stopped {
 		panic("WAL already stopped. Not writing meta message")
 	}
 
 	w.logger.Debug("WAL Write Message", "msg", m)
-	err := w.enc.Write(TimedWALMessage{fixedTime, m})
+	err := w.enc.Write(walm.TimedWALMessage{fixedTime, m})
 	if err != nil {
 		panic(fmt.Sprintf("failed to encode the msg %v", m))
 	}
@@ -185,11 +190,11 @@ func (w *heightStopWAL) Write(m WALMessage) error {
 	return nil
 }
 
-func (w *heightStopWAL) WriteSync(m WALMessage) error {
+func (w *heightStopWAL) WriteSync(m walm.WALMessage) error {
 	return w.Write(m)
 }
 
-func (w *heightStopWAL) WriteMetaSync(m MetaMessage) error {
+func (w *heightStopWAL) WriteMetaSync(m walm.MetaMessage) error {
 	if w.stopped {
 		panic("WAL already stopped. Not writing meta message")
 	}
@@ -212,7 +217,7 @@ func (w *heightStopWAL) WriteMetaSync(m MetaMessage) error {
 
 func (w *heightStopWAL) FlushAndSync() error { return nil }
 
-func (w *heightStopWAL) SearchForHeight(height int64, options *WALSearchOptions) (rd io.ReadCloser, found bool, err error) {
+func (w *heightStopWAL) SearchForHeight(height int64, options *walm.WALSearchOptions) (rd io.ReadCloser, found bool, err error) {
 	return nil, false, nil
 }
 

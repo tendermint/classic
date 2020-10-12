@@ -22,6 +22,7 @@ import (
 	sm "github.com/tendermint/classic/state"
 	"github.com/tendermint/classic/types"
 	tmtime "github.com/tendermint/classic/types/time"
+	walm "github.com/tendermint/classic/wal"
 	"github.com/tendermint/go-amino-x"
 )
 
@@ -122,7 +123,7 @@ type ConsensusState struct {
 
 	// a Write-Ahead Log ensures we can recover from any kind of crash
 	// and helps us avoid signing conflicting votes
-	wal          WAL
+	wal          walm.WAL
 	replayMode   bool // so we don't log signing errors during replay
 	doWALCatchup bool // determines if we even try to do the catchup
 
@@ -162,7 +163,7 @@ func NewConsensusState(
 		done:             nil,
 		doWALCatchup:     true,
 		evsw:             tmevents.NewEventSwitch(),
-		wal:              nilWAL{},
+		wal:              walm.NopWAL{},
 	}
 	// set function defaults (may be overwritten before calling Start)
 	cs.decideProposal = cs.defaultDecideProposal
@@ -286,8 +287,8 @@ func (cs *ConsensusState) OnStart() error {
 	}
 
 	// we may set the WAL in testing before calling Start,
-	// so only OpenWAL if its still the nilWAL
-	if _, ok := cs.wal.(nilWAL); ok {
+	// so only OpenWAL if its still the walm.NopWAL
+	if _, ok := cs.wal.(walm.NopWAL); ok {
 		walFile := cs.config.WalFile()
 		wal, err := cs.OpenWAL(walFile)
 		if err != nil {
@@ -311,7 +312,7 @@ func (cs *ConsensusState) OnStart() error {
 	if cs.doWALCatchup {
 		if err := cs.catchupReplay(cs.Height); err != nil {
 			// don't try to recover from data corruption error
-			if IsDataCorruptionError(err) {
+			if walm.IsDataCorruptionError(err) {
 				cs.Logger.Error("Encountered corrupt WAL file", "err", err.Error())
 				cs.Logger.Error("Please repair the WAL file before restarting")
 				fmt.Println(`You can attempt to repair the WAL as follows:
@@ -366,8 +367,8 @@ func (cs *ConsensusState) Wait() {
 }
 
 // OpenWAL opens a file to log all consensus messages and timeouts for deterministic accountability
-func (cs *ConsensusState) OpenWAL(walFile string) (WAL, error) {
-	wal, err := NewWAL(walFile, maxMsgSize)
+func (cs *ConsensusState) OpenWAL(walFile string) (walm.WAL, error) {
+	wal, err := walm.NewWAL(walFile, maxMsgSize)
 	if err != nil {
 		cs.Logger.Error("Failed to open WAL for consensus state", "wal", walFile, "err", err)
 		return nil, err
@@ -1327,7 +1328,7 @@ func (cs *ConsensusState) finalizeCommit(height int64) {
 	// Either way, the ConsensusState should not be resumed until we
 	// successfully call ApplyBlock (ie. later here, or in Handshake after
 	// restart).
-	meta := MetaMessage{Height: height + 1}
+	meta := walm.MetaMessage{Height: height + 1}
 	if err := cs.wal.WriteMetaSync(meta); err != nil { // NOTE: fsync
 		panic(fmt.Sprintf("Failed to write %v msg to consensus wal due to %v. Check your FS and restart the node", meta, err))
 	}

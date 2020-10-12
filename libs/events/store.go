@@ -23,7 +23,7 @@ func (ss *storeStream) SetHeight(height int64) {
 		// write new height
 		ss.height = height
 	} else /* if height <= ss.height */ {
-		panic(fmt.Sprint("invalid SetHeight height value. current %v, got %v", ss.height, height))
+		panic(fmt.Sprintf("invalid SetHeight height value. current %v, got %v", ss.height, height))
 	}
 }
 

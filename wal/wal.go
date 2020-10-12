@@ -1,4 +1,4 @@
-package consensus
+package wal
 
 import (
 	"bufio"
@@ -24,6 +24,11 @@ const (
 	walDefaultFlushInterval = 2 * time.Second
 )
 
+var (
+	crc32c      = crc32.MakeTable(crc32.Castagnoli)
+	base64stdnp = base64.StdEncoding.WithPadding(base64.NoPadding)
+)
+
 //--------------------------------------------------------
 // types and functions for savings consensus messages
 
@@ -38,6 +43,11 @@ type TimedWALMessage struct {
 }
 
 // Some lines are MetaMessages to denote new heights, etc.
+// NOTE: The encoding must not contain the '#' character,
+// so arbitrary strings will not work without some kind of escaping.
+// TODO: consider alternative meta line schemas in the long run, or escape the
+// '#' character in such a way that scanning randomly from any position in a
+// file resumes correctly after the first and only likely corruption.
 type MetaMessage struct {
 	Height int64 `json:"h"`
 }
@@ -47,11 +57,16 @@ type MetaMessage struct {
 
 // WAL is an interface for any write-ahead logger.
 type WAL interface {
+	// config methods
+	SetLogger(l log.Logger)
+
+	// write methods
 	Write(WALMessage) error
 	WriteSync(WALMessage) error
 	WriteMetaSync(MetaMessage) error
 	FlushAndSync() error
 
+	// search methods
 	SearchForHeight(height int64, options *WALSearchOptions) (rd io.ReadCloser, found bool, err error)
 
 	// service methods
@@ -79,11 +94,10 @@ type baseWAL struct {
 
 var _ WAL = &baseWAL{}
 
-// NewWAL returns a new write-ahead logger based on `baseWAL`, which
-// implements WAL. It's flushed and synced to disk every 2s and once when
-// stopped.  `maxSize` is the maximum allowable amino bytes of the caller's
-// WALMessage including the amino (byte) size prefix, but excluding any crc
-// checks.
+// NewWAL returns a new write-ahead logger based on `baseWAL`, which implements
+// WAL. It's flushed and synced to disk every 2s and once when stopped.
+// `maxSize` is the maximum allowable amino bytes of a TimedWALMessage
+// including the amino (byte) size prefix, but excluding any crc checks.
 func NewWAL(walFile string, maxSize int64, groupOptions ...func(*auto.Group)) (*baseWAL, error) {
 	err := cmn.EnsureDir(filepath.Dir(walFile), 0700)
 	if err != nil {
@@ -255,29 +269,31 @@ func (wal *baseWAL) SearchForHeight(height int64, options *WALSearchOptions) (rd
 	min, max := wal.group.MinIndex(), wal.group.MaxIndex()
 	wal.Logger.Info("Searching for height", "height", height, "min", min, "max", max)
 	for index := max; index >= min; index-- {
-		gr, err = wal.group.NewReader(index)
+		gr, err = wal.group.NewReader(index, index+1) // read only for index.
 		if err != nil {
 			return nil, false, err
 		}
-
 		dec := NewWALReader(gr, wal.maxSize)
+
 		for {
 			msg, meta, err = dec.ReadMessage()
 			// error case
 			if err != nil {
 				if err == io.EOF {
-					// OPTIMISATION: no need to look for height in older files if we've seen h < height
+					// No need to look for height in older files if we've seen h < height,
+					// since earlier blocks have lower heights than h.
 					if lastHeightFound > 0 && lastHeightFound < height {
-						gr.Close()
+						dec.Close()
 						return nil, false, nil
 					}
 					// check next file
+					dec.Close()
 					break
 				} else if options != nil && options.IgnoreDataCorruptionErrors && IsDataCorruptionError(err) {
 					wal.Logger.Error("Corrupted entry. Skipping...", "err", err)
 					continue // skip corrupted line and ignore error.
 				} else {
-					gr.Close()
+					dec.Close()
 					return nil, false, err
 				}
 			}
@@ -298,7 +314,6 @@ func (wal *baseWAL) SearchForHeight(height int64, options *WALSearchOptions) (rd
 				// which skips decoding non-meta messages.
 			}
 		}
-		gr.Close()
 	}
 
 	return nil, false, nil
@@ -366,7 +381,7 @@ func (enc *WALWriter) Write(v TimedWALMessage) error {
 	binary.BigEndian.PutUint32(line[0:4], crc)
 	copy(line[4:], twmBytes)
 
-	line64 := base64.StdEncoding.WithPadding(base64.NoPadding).EncodeToString(line)
+	line64 := base64stdnp.EncodeToString(line)
 	line64 += "\n"
 	_, err := enc.wr.Write([]byte(line64))
 	return err
@@ -475,7 +490,7 @@ func (dec *WALReader) ReadMessage() (*TimedWALMessage, *MetaMessage, error) {
 
 	// is usual TimedWALMessage.
 	// decode base64.
-	line, err := base64.StdEncoding.WithPadding(base64.NoPadding).DecodeString(string(line64))
+	line, err := base64stdnp.DecodeString(string(line64))
 	if err != nil {
 		return nil, nil, DataCorruptionError{fmt.Errorf("failed to decode base64: %v", err)}
 	}
@@ -509,17 +524,18 @@ func (dec *WALReader) ReadMessage() (*TimedWALMessage, *MetaMessage, error) {
 	return res, nil, err
 }
 
-type nilWAL struct{}
+type NopWAL struct{}
 
-var _ WAL = nilWAL{}
+var _ WAL = NopWAL{}
 
-func (nilWAL) Write(m WALMessage) error          { return nil }
-func (nilWAL) WriteSync(m WALMessage) error      { return nil }
-func (nilWAL) WriteMetaSync(m MetaMessage) error { return nil }
-func (nilWAL) FlushAndSync() error               { return nil }
-func (nilWAL) SearchForHeight(height int64, options *WALSearchOptions) (rd io.ReadCloser, found bool, err error) {
+func (NopWAL) SetLogger(l log.Logger)            {}
+func (NopWAL) Write(m WALMessage) error          { return nil }
+func (NopWAL) WriteSync(m WALMessage) error      { return nil }
+func (NopWAL) WriteMetaSync(m MetaMessage) error { return nil }
+func (NopWAL) FlushAndSync() error               { return nil }
+func (NopWAL) SearchForHeight(height int64, options *WALSearchOptions) (rd io.ReadCloser, found bool, err error) {
 	return nil, false, nil
 }
-func (nilWAL) Start() error { return nil }
-func (nilWAL) Stop() error  { return nil }
-func (nilWAL) Wait()        {}
+func (NopWAL) Start() error { return nil }
+func (NopWAL) Stop() error  { return nil }
+func (NopWAL) Wait()        {}

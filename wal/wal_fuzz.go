@@ -1,6 +1,6 @@
 // +build gofuzz
 
-package consensus
+package wal
 
 import (
 	"bytes"

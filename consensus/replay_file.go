@@ -20,6 +20,7 @@ import (
 	"github.com/tendermint/classic/proxy"
 	sm "github.com/tendermint/classic/state"
 	"github.com/tendermint/classic/store"
+	walm "github.com/tendermint/classic/wal"
 )
 
 const (
@@ -66,8 +67,8 @@ func (cs *ConsensusState) ReplayFile(file string, console bool) error {
 	defer pb.fp.Close() // nolint: errcheck
 
 	var nextN int // apply N msgs in a row
-	var msg *TimedWALMessage
-	var meta *MetaMessage
+	var msg *walm.TimedWALMessage
+	var meta *walm.MetaMessage
 	for {
 		if nextN == 0 && console {
 			nextN = pb.replayConsoleLoop()
@@ -98,7 +99,7 @@ type playback struct {
 	cs *ConsensusState
 
 	fp    *os.File
-	dec   *WALReader
+	dec   *walm.WALReader
 	count int // how many lines/msgs into the file are we
 
 	// replays can be reset to beginning
@@ -112,7 +113,7 @@ func newPlayback(fileName string, fp *os.File, cs *ConsensusState, genState sm.S
 		fp:           fp,
 		fileName:     fileName,
 		genesisState: genState,
-		dec:          NewWALReader(fp, maxMsgSize),
+		dec:          walm.NewWALReader(fp, maxMsgSize),
 	}
 }
 
@@ -134,13 +135,13 @@ func (pb *playback) replayReset(count int, newStepSub <-chan events.Event) error
 		return err
 	}
 	pb.fp = fp
-	pb.dec = NewWALReader(fp, maxMsgSize)
+	pb.dec = walm.NewWALReader(fp, maxMsgSize)
 	count = pb.count - count
 	fmt.Printf("Reseting from %d to %d\n", pb.count, count)
 	pb.count = 0
 	pb.cs = newCS
-	var msg *TimedWALMessage
-	var meta *MetaMessage
+	var msg *walm.TimedWALMessage
+	var meta *walm.MetaMessage
 	for i := 0; i < count; i++ {
 		msg, meta, err = pb.dec.ReadMessage()
 		if err == io.EOF {

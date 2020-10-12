@@ -30,6 +30,4 @@ var Package = amino.RegisterPackage(amino.NewPackage(
 		newRoundStepInfo{},
 		msgInfo{},
 		timeoutInfo{},
-		TimedWALMessage{},
-		MetaMessage{},
 	))

@@ -31,6 +31,7 @@ import (
 	"github.com/tendermint/classic/proxy"
 	sm "github.com/tendermint/classic/state"
 	"github.com/tendermint/classic/types"
+	walm "github.com/tendermint/classic/wal"
 	"github.com/tendermint/go-amino-x"
 )
 
@@ -209,7 +210,7 @@ LOOP:
 // (before and after). It remembers a message for which we last panicked
 // (lastPanickedForMsgIndex), so we don't panic for it in subsequent iterations.
 type crashingWAL struct {
-	next            WAL
+	next            walm.WAL
 	crashCh         chan error
 	lastBlockHeight int64 // inclusive
 
@@ -217,7 +218,7 @@ type crashingWAL struct {
 	lastPanickedForMsgIndex int // last message for which we panicked
 }
 
-var _ WAL = &crashingWAL{}
+var _ walm.WAL = &crashingWAL{}
 
 // WALWriteError indicates a WAL crash.
 type WALWriteError struct {
@@ -238,9 +239,13 @@ func (e ReachedLastBlockHeightError) Error() string {
 	return fmt.Sprintf("reached height to stop %d", e.height)
 }
 
+func (w *crashingWAL) SetLogger(logger log.Logger) {
+	w.next.SetLogger(logger)
+}
+
 // Write simulate WAL's crashing by sending an error to the crashCh and then
 // exiting the cs.receiveRoutine.
-func (w *crashingWAL) Write(m WALMessage) error {
+func (w *crashingWAL) Write(m walm.WALMessage) error {
 	if w.msgIndex > w.lastPanickedForMsgIndex {
 		w.lastPanickedForMsgIndex = w.msgIndex
 		_, file, line, _ := runtime.Caller(1)
@@ -253,7 +258,7 @@ func (w *crashingWAL) Write(m WALMessage) error {
 	return w.next.Write(m)
 }
 
-func (w *crashingWAL) WriteMetaSync(m MetaMessage) error {
+func (w *crashingWAL) WriteMetaSync(m walm.MetaMessage) error {
 	// we crash once we've reached w.lastBlockHeight+1,
 	// to test all the WAL lines produced during w.lastBlockHeight.
 	if m.Height != 0 && m.Height == w.lastBlockHeight+1 {
@@ -264,13 +269,13 @@ func (w *crashingWAL) WriteMetaSync(m MetaMessage) error {
 	return w.next.WriteMetaSync(m)
 }
 
-func (w *crashingWAL) WriteSync(m WALMessage) error {
+func (w *crashingWAL) WriteSync(m walm.WALMessage) error {
 	return w.Write(m)
 }
 
 func (w *crashingWAL) FlushAndSync() error { return w.next.FlushAndSync() }
 
-func (w *crashingWAL) SearchForHeight(height int64, options *WALSearchOptions) (rd io.ReadCloser, found bool, err error) {
+func (w *crashingWAL) SearchForHeight(height int64, options *walm.WALSearchOptions) (rd io.ReadCloser, found bool, err error) {
 	return w.next.SearchForHeight(height, options)
 }
 
@@ -627,7 +632,7 @@ func testHandshakeReplay(t *testing.T, config *cfg.Config, nBlocks int, mode uin
 
 		privVal := privval.LoadFilePV(config.PrivValidatorKeyFile(), config.PrivValidatorStateFile())
 
-		wal, err := NewWAL(walFile, maxMsgSize)
+		wal, err := walm.NewWAL(walFile, maxMsgSize)
 		require.NoError(t, err)
 		wal.SetLogger(log.TestingLogger())
 		err = wal.Start()
@@ -911,11 +916,11 @@ func (app *badApp) Commit() (res abci.ResponseCommit) {
 //--------------------------
 // utils for making blocks
 
-func makeBlockchainFromWAL(wal WAL) ([]*types.Block, []*types.Commit, error) {
+func makeBlockchainFromWAL(wal walm.WAL) ([]*types.Block, []*types.Commit, error) {
 	var height int64 = 1
 
 	// Search for height marker
-	gr, found, err := wal.SearchForHeight(height, &WALSearchOptions{})
+	gr, found, err := wal.SearchForHeight(height, &walm.WALSearchOptions{})
 	if err != nil {
 		return nil, nil, err
 	}
@@ -933,7 +938,7 @@ func makeBlockchainFromWAL(wal WAL) ([]*types.Block, []*types.Commit, error) {
 		thisBlockCommit *types.Commit
 	)
 
-	dec := NewWALReader(gr, maxMsgSize)
+	dec := walm.NewWALReader(gr, maxMsgSize)
 	for {
 		msg, meta, err := dec.ReadMessage()
 		if err == io.EOF {
@@ -1003,7 +1008,7 @@ func makeBlockchainFromWAL(wal WAL) ([]*types.Block, []*types.Commit, error) {
 	return blocks, commits, nil
 }
 
-func readPieceFromWAL(msg *TimedWALMessage) interface{} {
+func readPieceFromWAL(msg *walm.TimedWALMessage) interface{} {
 	// for logging
 	switch m := msg.Msg.(type) {
 	case msgInfo:

@@ -22,6 +22,7 @@ import (
 	"github.com/tendermint/classic/proxy"
 	sm "github.com/tendermint/classic/state"
 	"github.com/tendermint/classic/types"
+	walm "github.com/tendermint/classic/wal"
 )
 
 var crc32c = crc32.MakeTable(crc32.Castagnoli)
@@ -43,7 +44,7 @@ var crc32c = crc32.MakeTable(crc32.Castagnoli)
 // Unmarshal and apply a single message to the consensus state as if it were
 // received in receiveRoutine.  Lines that start with "#" are ignored.
 // NOTE: receiveRoutine should not be running.
-func (cs *ConsensusState) readReplayMessage(msg *TimedWALMessage, meta *MetaMessage, newStepSub <-chan events.Event) error {
+func (cs *ConsensusState) readReplayMessage(msg *walm.TimedWALMessage, meta *walm.MetaMessage, newStepSub <-chan events.Event) error {
 	// Skip meta messages which exist for demarcating boundaries.
 	if meta != nil {
 		return nil
@@ -111,7 +112,7 @@ func (cs *ConsensusState) catchupReplay(csHeight int64) error {
 	// this check (since we can crash after writing #{"h"} (meta height).).
 	//
 	// Ignore data corruption errors since this is a sanity check.
-	gr, found, err := cs.wal.SearchForHeight(csHeight+1, &WALSearchOptions{IgnoreDataCorruptionErrors: true})
+	gr, found, err := cs.wal.SearchForHeight(csHeight+1, &walm.WALSearchOptions{IgnoreDataCorruptionErrors: true})
 	if err != nil {
 		return err
 	}
@@ -127,7 +128,7 @@ func (cs *ConsensusState) catchupReplay(csHeight int64) error {
 	// Search for last height marker.
 	//
 	// Ignore data corruption errors in previous heights because we only care about last height
-	gr, found, err = cs.wal.SearchForHeight(csHeight, &WALSearchOptions{IgnoreDataCorruptionErrors: true})
+	gr, found, err = cs.wal.SearchForHeight(csHeight, &walm.WALSearchOptions{IgnoreDataCorruptionErrors: true})
 	if err == io.EOF {
 		cs.Logger.Error("Replay: wal.group.Search returned EOF", "#ENDHEIGHT", csHeight-1)
 	} else if err != nil {
@@ -140,7 +141,7 @@ func (cs *ConsensusState) catchupReplay(csHeight int64) error {
 
 	cs.Logger.Info("Catchup by replaying consensus messages", "height", csHeight)
 
-	dec := NewWALReader(gr, maxMsgSize)
+	dec := walm.NewWALReader(gr, maxMsgSize)
 
 LOOP:
 	for {
@@ -148,7 +149,7 @@ LOOP:
 		switch {
 		case err == io.EOF:
 			break LOOP
-		case IsDataCorruptionError(err):
+		case walm.IsDataCorruptionError(err):
 			cs.Logger.Error("data has been corrupted in last height of consensus WAL", "err", err, "height", csHeight)
 			return err
 		case err != nil:
