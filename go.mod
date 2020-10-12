@@ -1,8 +1,6 @@
 module github.com/tendermint/classic
 
-go 1.12
-
-replace github.com/tendermint/go-amino-x => /Users/jae/gocode/src/github.com/tendermint/go-amino-x
+go 1.15
 
 require (
 	github.com/bartekn/go-bip39 v0.0.0-20171116152956-a05967ea095d
