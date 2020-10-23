@@ -2,21 +2,30 @@
 
 The design goals for Tendermint Classic (and the SDK and related libraries) are:
 
- * Simplicity and Legibility.
+ * Simplicity: Code should be minimized
+ * Legibility: Code should be commented and its structure should be clear.
  * Parallel performance, namely ability to utilize multicore architecture.
  * Ability to evolve the codebase bug-free.
  * Debuggability.
  * Complete correctness that considers all edge cases, esp in concurrency.
- * Future-proof modular architecture, message protocol, APIs, and encapsulation
-remarkably and instructively typical.
- * To minimize dependencies to evolving, complex external projects, like protobuf.
+ * Future-proof modular architecture: 
+   * message protocol
+   * APIs  
+   * encapsulation remarkably and instructively typical.
+    * Pluggable network transports
+ * Elimination of dependencies on evolving, complex external projects, like protobuf.
  * To become free from the influence of state actors, and mega-corpoartions like Google.
- * To be uncompromisingly opinionated, without apology.
- * To become complete, as a reference standard worthy of promoting for educational purposes.
+ * Uncompromisingly opinionated, without apology.
+ * Complete, as a reference standard worthy of promoting for educational purposes.
 
-We start with Tendermint and the Cosmos-SDK versions for cosmoshub-3, and
-continue to improve the legibility of the codebase by leveraging Amino.
-In the near future, Amino will become the basis for a fork of Go.
+Tendermint Classic is lovingly composed of:
+
+* Tendermint 
+* Cosmos-SDK versions for cosmoshub-3
+* [aminoX](https://github.com/tendermint/go-amino-x)
+* Starport Classic
+
+Amino will become the basis for a fork of Go called [Hog](https://github.com/golang/go/issues/23157).
 
 Amino Classi, I mean Tendermint Classic ... burrb... has an attitude, and if
 Rick and Morty can do it, so can I, so fuck it, deal with it.
